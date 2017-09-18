@@ -27,6 +27,13 @@ fn make_html<'r>(content: String) -> Response<'r> {
     resp
 }
 
+#[get("/", rank=1)]
+fn index_<'r>() -> Option<Response<'r>> {
+    let mut path = PathBuf::new();
+    path.push("index.html");
+    index(path)
+}
+
 #[get("/<file..>", rank = 5)]
 fn index<'r>(file: PathBuf) -> Option<Response<'r>> {
 
@@ -71,7 +78,7 @@ fn not_found<'r>(_req: &Request) -> Response<'r> {
 fn main() {
     rocket::ignite()
         .manage(WebState::default())
-        .mount("/", routes![count, index])
+        .mount("/", routes![count, index, index_])
         .catch(errors![not_found])
         .launch();
 }
