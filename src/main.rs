@@ -5,6 +5,8 @@ extern crate rocket;
 
 use std::io::Cursor;
 use std::sync::{Mutex, Arc};
+use std::path::{Path, PathBuf};
+use std::fs::File;
 
 use rocket::{Request, Response, State};
 use rocket::http::{ContentType, Status};
@@ -25,12 +27,40 @@ fn make_html<'r>(content: String) -> Response<'r> {
     resp
 }
 
-#[get("/")]
-fn index<'r>(state: State<WebState>) -> Response<'r> {
+#[get("/<file..>", rank = 5)]
+fn index<'r>(file: PathBuf) -> Option<Response<'r>> {
+
+    let path = Path::new("static").join(file);
+    println!("Path: {:?}", path);
+
+    if let Ok(file) = File::open(&path) {
+        println!("Found content");
+
+        let mut resp = Response::new();
+        resp.set_status(Status::Ok);
+        resp.set_sized_body(file);
+        if let Some(ext) = path.extension() {
+            if let Some(ext) = ext.to_str() {
+                let ctype = ContentType::from_extension(ext);
+                if let Some(t) = ctype {
+                    resp.set_header(t);
+                }
+            }
+        }
+
+        Some(resp)
+    }
+    else {
+        None
+    }
+}
+
+#[get("/api/count", rank = 0)]
+fn count<'r>(state: State<WebState>) -> Response<'r> {
     let mut count = state.count.lock().unwrap();
     *count += 1;
 
-    make_html(format!("main page {}", count))
+    make_html(format!("{}", count))
 }
 
 #[error(404)]
@@ -41,7 +71,7 @@ fn not_found<'r>(_req: &Request) -> Response<'r> {
 fn main() {
     rocket::ignite()
         .manage(WebState::default())
-        .mount("/", routes![index])
+        .mount("/", routes![count, index])
         .catch(errors![not_found])
         .launch();
 }
