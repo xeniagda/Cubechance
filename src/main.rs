@@ -13,7 +13,12 @@ use rocket::http::{ContentType, Status};
 
 #[derive(Debug, Default)]
 struct WebState {
-    count: Arc<Mutex<u32>>
+    count: u32
+}
+
+#[derive(Debug, Default)]
+struct MutWebState {
+    state: Arc<Mutex<WebState>>
 }
 
 const HTML_NOT_FOUND: &'static str = include_str!("not_found.html");
@@ -63,11 +68,11 @@ fn index<'r>(file: PathBuf) -> Option<Response<'r>> {
 }
 
 #[get("/api/count", rank = 0)]
-fn count<'r>(state: State<WebState>) -> Response<'r> {
-    let mut count = state.count.lock().unwrap();
-    *count += 1;
+fn count<'r>(lstate: State<MutWebState>) -> Response<'r> {
+    let mut state = lstate.state.lock().unwrap();
+    (*state).count += 1;
 
-    make_html(format!("{}", count))
+    make_html(format!("{}", state.count))
 }
 
 #[error(404)]
@@ -77,7 +82,7 @@ fn not_found<'r>(_req: &Request) -> Response<'r> {
 
 fn main() {
     rocket::ignite()
-        .manage(WebState::default())
+        .manage(MutWebState::default())
         .mount("/", routes![count, index, index_])
         .catch(errors![not_found])
         .launch();
