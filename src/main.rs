@@ -30,7 +30,7 @@ fn make_html<'r>(content: String) -> Response<'r> {
 #[get("/<file..>", rank = 5)]
 fn index<'r>(file: PathBuf) -> Option<Response<'r>> {
 
-    let path = Path::new("static").join(file);
+    let path = Path::new("Static").join(file);
     println!("Path: {:?}", path);
 
     if let Ok(file) = File::open(&path) {
