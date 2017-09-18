@@ -33,16 +33,19 @@ fn make_html<'r>(content: String) -> Response<'r> {
 }
 
 #[get("/", rank=1)]
-fn index_<'r>() -> Option<Response<'r>> {
+fn index_<'r>(lstate: State<MutWebState>) -> Option<Response<'r>> {
     let mut path = PathBuf::new();
     path.push("index.html");
-    index(path)
+    index(path, lstate)
 }
 
 #[get("/<file..>", rank = 5)]
-fn index<'r>(file: PathBuf) -> Option<Response<'r>> {
+fn index<'r>(file: PathBuf, lstate: State<MutWebState>) -> Option<Response<'r>> {
+    let mut state = lstate.state.lock().unwrap();
+    (*state).count += 1;
 
     let path = Path::new("Static").join(file);
+
     println!("Path: {:?}", path);
 
     if let Ok(file) = File::open(&path) {
@@ -69,8 +72,7 @@ fn index<'r>(file: PathBuf) -> Option<Response<'r>> {
 
 #[get("/api/count", rank = 0)]
 fn count<'r>(lstate: State<MutWebState>) -> Response<'r> {
-    let mut state = lstate.state.lock().unwrap();
-    (*state).count += 1;
+    let state = lstate.state.lock().unwrap();
 
     make_html(format!("{}", state.count))
 }

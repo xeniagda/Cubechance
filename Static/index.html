@@ -5,6 +5,18 @@
         <title> Index </title>
     </head>
     <body>
-        hello
+        <p>
+            Visits: <span id="visits"></span>
+        </p>
+        <script>
+
+setInterval(function() {
+    var req = new XMLHttpRequest();
+    req.open("GET", "api/count", false);
+    req.send(null);
+    document.getElementById("visits").innerHTML = req.responseText;
+}, 1000)
+
+        </script>
     </body>
 </html>
