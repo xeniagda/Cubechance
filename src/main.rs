@@ -11,6 +11,8 @@ use std::fs::File;
 use rocket::{Request, Response, State};
 use rocket::http::{ContentType, Status};
 
+mod wca;
+
 #[derive(Debug, Default)]
 struct WebState {
     count: u32
@@ -83,9 +85,10 @@ fn not_found<'r>(_req: &Request) -> Response<'r> {
 }
 
 fn main() {
-    rocket::ignite()
-        .manage(MutWebState::default())
-        .mount("/", routes![count, index, index_])
-        .catch(errors![not_found])
-        .launch();
+    wca::download_wca();
+    // rocket::ignite()
+    //     .manage(MutWebState::default())
+    //     .mount("/", routes![count, index, index_])
+    //     .catch(errors![not_found])
+    //     .launch();
 }
