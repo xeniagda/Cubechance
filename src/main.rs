@@ -7,6 +7,7 @@ use std::io::Cursor;
 use std::sync::{Mutex, Arc};
 use std::path::{Path, PathBuf};
 use std::fs::File;
+use std::thread;
 
 use rocket::{Request, Response, State};
 use rocket::http::{ContentType, Status};
@@ -15,13 +16,10 @@ mod wca;
 
 #[derive(Debug, Default)]
 struct WebState {
-    count: u32
+    wca: Option<wca::WcaResults>
 }
 
-#[derive(Debug, Default)]
-struct MutWebState {
-    state: Arc<Mutex<WebState>>
-}
+type MutWebState = Arc<Mutex<WebState>>;
 
 const HTML_NOT_FOUND: &'static str = include_str!("not_found.html");
 
@@ -35,16 +33,14 @@ fn make_html<'r>(content: String) -> Response<'r> {
 }
 
 #[get("/", rank=1)]
-fn index_<'r>(lstate: State<MutWebState>) -> Option<Response<'r>> {
+fn index_<'r>() -> Option<Response<'r>> {
     let mut path = PathBuf::new();
     path.push("index.html");
-    index(path, lstate)
+    index(path)
 }
 
 #[get("/<file..>", rank = 5)]
-fn index<'r>(file: PathBuf, lstate: State<MutWebState>) -> Option<Response<'r>> {
-    let mut state = lstate.state.lock().unwrap();
-    (*state).count += 1;
+fn index<'r>(file: PathBuf) -> Option<Response<'r>> {
 
     let path = Path::new("Static").join(file);
 
@@ -72,11 +68,18 @@ fn index<'r>(file: PathBuf, lstate: State<MutWebState>) -> Option<Response<'r>> 
     }
 }
 
-#[get("/api/count", rank = 0)]
-fn count<'r>(lstate: State<MutWebState>) -> Response<'r> {
-    let state = lstate.state.lock().unwrap();
+#[get("/api/wca/<id>", rank = 0)]
+fn count<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
+    let state = state.lock().unwrap();
 
-    make_html(format!("{}", state.count))
+    match state.wca {
+        Some(ref wca) => {
+            make_html(format!("{:?}", wca.people.get(&id)))
+        }
+        None => {
+            make_html("wait".to_string())
+        }
+    }
 }
 
 #[error(404)]
@@ -85,10 +88,23 @@ fn not_found<'r>(_req: &Request) -> Response<'r> {
 }
 
 fn main() {
-    wca::download_wca();
-    // rocket::ignite()
-    //     .manage(MutWebState::default())
-    //     .mount("/", routes![count, index, index_])
-    //     .catch(errors![not_found])
-    //     .launch();
+    // Setup WCA reading in background
+    //
+    let state = MutWebState::default();
+
+    let thread_state = state.clone();
+    thread::spawn(move || {
+        loop {
+            println!("Downloading wca...");
+            let comp = wca::download_wca().expect("No compressed data!");
+            let mut state = thread_state.lock().unwrap();
+            state.wca = Some(comp);
+        }
+    });
+
+    rocket::ignite()
+        .manage(state)
+        .mount("/", routes![count, index, index_])
+        .catch(errors![not_found])
+        .launch();
 }
