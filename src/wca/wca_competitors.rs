@@ -10,18 +10,16 @@ use self::select::predicate as p;
 use super::*;
 
 
-fn download_html<'a>(comp: &'a str) -> Result<(), WcaError> {
+pub fn download_competitors<'a>(comp: &'a str) -> Result<Vec<Competitor>, WcaError> {
     let url = format!("http://www.worldcubeassociation.org/competitions/{}/registrations", comp);
     let resp = reqwest::get(reqwest::Url::parse(&*url)?)?;
 
     let doc = Document::from_read(resp)?;
 
-    find_comp_table(doc)?;
-
-    Ok(())
+    parse_competitors(doc)
 }
 
-fn find_comp_table<'a>(doc: Document) -> Result<Vec<Competitor>, WcaError> {
+fn parse_competitors<'a>(doc: Document) -> Result<Vec<Competitor>, WcaError> {
     let table =
             doc.find(p::Class("wca-results"))
             .filter_map(|table| table.children().nth(3)) // The third child is the competitors table
@@ -34,16 +32,21 @@ fn find_comp_table<'a>(doc: Document) -> Result<Vec<Competitor>, WcaError> {
 
 fn parse_competitor(node: Node) -> Result<Competitor, WcaError> {
     let id = parse_competitor_id(node).ok_or(WcaError::CompE("No id".to_string()))?;
-    println!("Id: {}", id);
 
-    let events = parse_events(node).ok_or(WcaError::CompE("No events".to_string()))?;
-    println!("Events: {:?}", events);
+    let events = parse_events(node);
 
     Ok(Competitor{id: id, events: events})
 }
 
-fn parse_events(node: Node) -> Option<Vec<String>> {
-    Some(vec![])
+fn parse_events(node: Node) -> Vec<String> {
+    node.children()
+        .filter(|node| node.name().is_some()) // Remove all whitespace
+        .skip(2) // Skip name and country.
+        .flat_map(|node| node.find(p::Class("cubing-icon")))
+        .filter_map(|event| event.attr("class")) // Extract the class
+        .filter_map(|class| class.split("-").last()) // Class is in form cubing-icon event-xxx, we extract the xxx
+        .map(|event| event.to_string())
+        .collect()
 }
 
 fn parse_competitor_id(node: Node) -> Option<String> {
@@ -56,8 +59,13 @@ fn parse_competitor_id(node: Node) -> Option<String> {
 
 #[test]
 fn test_download() {
-    if let Err(e) = download_html("SkillCon2017") {
-        eprintln!("Error: {:?}", e);
-        assert!(false);
+    match download_competitors("SkillCon2017") {
+        Err(e) => {
+            eprintln!("Error: {:?}", e);
+            assert!(false);
+        }
+        Ok(res) => {
+            println!("Res: {:?}", res);
+        }
     }
 }

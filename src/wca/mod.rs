@@ -72,6 +72,7 @@ pub struct WcaPerson {
 pub struct Competition {
     pub name: String,
     pub id: String,
+    pub competitors: Vec<Competitor>,
     pub start: Date<offset::Utc>,
     pub end: Date<offset::Utc>,
 }

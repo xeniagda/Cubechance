@@ -12,7 +12,7 @@ use self::zip::read::{ZipArchive, ZipFile};
 use std::io::{Read, Cursor, BufReader, BufRead};
 use std::vec::Vec;
 
-use self::chrono::{Date, NaiveDate, offset};
+use self::chrono::{Duration, Date, NaiveDate, offset};
 
 use super::*;
 
@@ -133,11 +133,34 @@ fn insert_comp<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), WcaErr
     let e_n_date = NaiveDate::from_ymd(e_year.parse()?, e_month.parse()?, e_day.parse()?);
     let e_date: Date<offset::Utc> = Date::from_utc(e_n_date, offset::Utc);
 
+    let time_left = offset::Utc::today().signed_duration_since(s_date);
+    let has_been = time_left < Duration::zero();
 
-    let comp = Competition {name: comp_name.to_string(), id: comp_id.to_string(), start: s_date, end: e_date};
+    println!("Time left: {}", time_left);
+
+
+    let comp = 
+            if has_been {
+                Competition {
+                    name: comp_name.to_string(),
+                    id: comp_id.to_string(),
+                    start: s_date,
+                    end: e_date,
+                    competitors: vec![]
+                }
+            } else {
+                Competition {
+                    name: comp_name.to_string(),
+                    id: comp_id.to_string(),
+                    start: s_date,
+                    end: e_date,
+                    competitors: wca_competitors::download_competitors(comp_id)?
+                }
+            };
     results.comps.push(comp);
-    
+
     Ok(())
+
 }
 
 
@@ -153,7 +176,7 @@ pub fn test_result() {
 
 #[cfg(test)]
 
-const TEST_COMP_LINE: &'static str = "ArenaCurucaOpen2018\tArena Curuçá Open 2018\tSão Paulo - SP\tBrazil\tA inscrição é **gratuita** e aberta a qualquer pessoa de qualquer nacionalidade. As inscrições para todas as modalidades poderão ser feitas até o dia 21 de janeiro de 2018. No dia do campeonato, as inscrições estarão abertas somente para o 3x3. Mais informações na aba \"Inscrições\".\t2018\t1\t27\t1\t27\t222 333 pyram\t[{Ronan Felipe Jorge}{mailto:ronan.jorge@hotmail.com}]\t[{Mauricio Paulino Marques Fernandes}{mailto:mauriciopmf@yahoo.com.br}]\t[Arena Curuçá](http://www.curucafutsal.com.br)\tRua Grapira, 70 - Vila Curuçá, São Miguel Paulista\t\thttps://sites.google.com/prod/view/arenaopen\tArena Curuçá Open 2018\t-23496048\t-46422484";
+const TEST_COMP_LINE: &'static str = "ArenaCurucaOpen2018\tArena Curuçá Open 2018\tSão Paulo - SP\tBrazil\tA inscrição é **gratuita** e aberta a qualquer pessoa de qualquer nacionalidade. As inscrições para todas as modalidades poderão ser feitas até o dia 21 de janeiro de 2018. No dia do campeonato, as inscrições estarão abertas somente para o 3x3. Mais informações na aba \"Inscrições\".\t2016\t1\t27\t1\t27\t222 333 pyram\t[{Ronan Felipe Jorge}{mailto:ronan.jorge@hotmail.com}]\t[{Mauricio Paulino Marques Fernandes}{mailto:mauriciopmf@yahoo.com.br}]\t[Arena Curuçá](http://www.curucafutsal.com.br)\tRua Grapira, 70 - Vila Curuçá, São Miguel Paulista\t\thttps://sites.google.com/prod/view/arenaopen\tArena Curuçá Open 2018\t-23496048\t-46422484";
 #[test]
 pub fn test_comp() {
     let mut wca = WcaResults::default();
@@ -164,6 +187,7 @@ pub fn test_comp() {
     assert_eq!(wca.comps.len(), 1);
     assert_eq!(wca.comps[0].id, "ArenaCurucaOpen2018");
     assert_eq!(wca.comps[0].name, "Arena Curuçá Open 2018");
+    println!("Comp: {:?}", wca.comps[0]);
 }
 
 #[cfg(test)]
