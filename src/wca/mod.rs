@@ -77,6 +77,7 @@ pub struct Competition {
     pub id: String,
     pub events: Vec<String>,
     pub competitors: Vec<Competitor>,
+    pub has_been: bool,
     pub start: Date<offset::Utc>,
     pub end: Date<offset::Utc>,
 }

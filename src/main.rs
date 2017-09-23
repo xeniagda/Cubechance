@@ -103,6 +103,29 @@ fn wca_id<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
     }
 }
 
+#[get("/api/upcoming")]
+fn upcoming<'r>(state: State<MutWebState>) -> Response<'r> {
+    let state = state.lock().unwrap();
+    match state.wca {
+        Some(ref wca) => {
+            let comps: Vec<&wca::Competition> = wca.comps.iter()
+                    .filter(|comp| !comp.has_been)
+                    .collect();
+            match serde_json::to_string(&comps) {
+                Ok(json) => {
+                    make_html(json)
+                }
+                Err(e) => {
+                    make_html(format!("e2 {}", e))
+                }
+            }
+        }
+        None => {
+            make_html("e0".to_string())
+        }
+    }
+}
+
 #[get("/api/comp/<id>", rank = 0)]
 fn comp<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
     let state = state.lock().unwrap();
@@ -111,6 +134,7 @@ fn comp<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
             let comp = wca.comps.iter()
                         .filter(|comp| comp.id == id)
                         .nth(0);
+
             match comp {
                 Some(comp) => {
                     match serde_json::to_string(comp) {
@@ -165,7 +189,7 @@ fn main() {
 
     rocket::ignite()
         .manage(state)
-        .mount("/", routes![wca_id, comp, index, index_])
+        .mount("/", routes![wca_id, upcoming, comp, index, index_])
         .catch(errors![not_found])
         .launch();
 }

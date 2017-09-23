@@ -200,6 +200,7 @@ fn insert_comp<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), WcaErr
                     name: comp_name.to_string(),
                     id: comp_id.to_string(),
                     events: events,
+                    has_been: has_been,
                     start: s_date,
                     end: e_date,
                     competitors: vec![]
@@ -210,6 +211,7 @@ fn insert_comp<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), WcaErr
                     name: comp_name.to_string(),
                     id: comp_id.to_string(),
                     events: events,
+                    has_been: has_been,
                     start: s_date,
                     end: e_date,
                     competitors: wca_competitors::download_competitors(comp_id)?
