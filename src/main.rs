@@ -2,6 +2,10 @@
 #![plugin(rocket_codegen)]
 
 extern crate rocket;
+extern crate serde_json;
+
+#[macro_use]
+extern crate serde_derive;
 
 use std::io::Cursor;
 use std::sync::{Mutex, Arc};
@@ -76,10 +80,25 @@ fn wca_id<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
 
     match state.wca {
         Some(ref wca) => {
-            make_html(format!("{:?}", wca.people.get(&id.to_uppercase())))
+            let person = wca.people.get(&id);
+            match person {
+                Some(person) => {
+                    match serde_json::to_string(person) {
+                        Ok(json) => {
+                            make_html(json)
+                        }
+                        Err(e) => {
+                            make_html(format!("e2 {}", e))
+                        }
+                    }
+                }
+                None => {
+                    make_html("e1".to_string())
+                }
+            }
         }
         None => {
-            make_html("wait".to_string())
+            make_html("e0".to_string())
         }
     }
 }
@@ -87,25 +106,32 @@ fn wca_id<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
 #[get("/api/comp/<id>", rank = 0)]
 fn comp<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
     let state = state.lock().unwrap();
-
     match state.wca {
         Some(ref wca) => {
             let comp = wca.comps.iter()
-                    .filter(|comp| comp.id == id)
-                    .nth(0);
+                        .filter(|comp| comp.id == id)
+                        .nth(0);
             match comp {
                 Some(comp) => {
-                    make_html(format!("{:?}", comp))
+                    match serde_json::to_string(comp) {
+                        Ok(json) => {
+                            make_html(json)
+                        }
+                        Err(e) => {
+                            make_html(format!("e2 {}", e))
+                        }
+                    }
                 }
                 None => {
-                    make_html("Not found".to_string())
+                    make_html("e1".to_string())
                 }
             }
         }
         None => {
-            make_html("wait".to_string())
+            make_html("e0".to_string())
         }
     }
+
 }
 
 #[error(404)]

@@ -2,7 +2,6 @@
 extern crate select;
 extern crate reqwest;
 
-use std::io::{Read};
 use self::select::document::Document;
 use self::select::node::Node;
 use self::select::predicate as p;

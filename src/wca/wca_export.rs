@@ -12,16 +12,20 @@ use self::zip::read::{ZipArchive, ZipFile};
 use std::io::{Read, Cursor, BufReader, BufRead};
 use std::vec::Vec;
 
-use self::chrono::{Duration, Date, NaiveDate, offset};
+use self::chrono::{Date, NaiveDate, offset};
 
 use super::*;
-
 
 const WCA_TSV_URL: &'static str = "https://www.worldcubeassociation.org/results/misc/WCA_export.tsv.zip";
 
 
+#[cfg(skip_comps)]
+const SKILLCON: &'static str = "Skillcon2017\tSkillcon 2017\tLas Vegas, Nevada\tUSA\tThis is a WCA competition presented in conjunction with SkillCon 2017. Registration fees will cover admission for SkillCon; check the [SkillCon website](http://skillcon.org/) for more info on the other events and seminars that will be going on. Registration will cost a flat $50 per competitor. **Before registering, you must read the \"Competitor Responsibilities\" tab.** This tab details the responsibilites of all competitors at this competition.\t2017\t12\t16\t12\t17\t222 333 333bf 333mbf 333oh 444 444bf 555 555bf 666 minx pyram\t[{Shelley Chang}{mailto:shelley.chang@cubingusa.org}] [{Kit Clement}{mailto:kit@cubingusa.org}]\t[{Shelley Chang}{mailto:shelley.chang@cubingusa.org}] [{Kit Clement}{mailto:kit@cubingusa.org}] [{Ryan Jew}{mailto:ryan@icnc.com}]\t[Rio Hotel and Casino](https://www.caesars.com/rio-las-vegas)\t3700 W. Flamingo Road Las Vegas, NV 89103\t\t\tSkillcon 2017\t36117521\t-115188177";
+
 // Downloads and parses the current WCA results.
 pub fn download_wca<'a>() -> Result<WcaResults, WcaError> {
+    println!("Loading zip");
+
     let mut resp = reqwest::get(WCA_TSV_URL)?;
 
     let mut res = Vec::new(); // Resulting ZIP content
@@ -33,8 +37,19 @@ pub fn download_wca<'a>() -> Result<WcaResults, WcaError> {
  
     let mut results = WcaResults::default();
 
-    println!("Parsing comps...");
-    parse_wca_comps(zip.by_name("WCA_export_Competitions.tsv")?, &mut results)?;
+    println!("Skip comps: {}", cfg!(skip_comps));
+
+    #[cfg(skip_comps)]
+    {
+        println!("Skipping comps, adding SkillCon!");
+        insert_comp(SKILLCON, &mut results)?;
+    }
+    #[cfg(not(skip_comps))]
+    {
+        println!("Parsing comps...");
+        parse_wca_comps(zip.by_name("WCA_export_Competitions.tsv")?, &mut results)?;
+    }
+
     println!("Parsing results...");
     parse_wca_results(zip.by_name("WCA_export_Results.tsv")?, &mut results)?;
 
@@ -174,6 +189,8 @@ fn insert_comp<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), WcaErr
     let e_n_date = NaiveDate::from_ymd(e_year.parse()?, e_month.parse()?, e_day.parse()?);
     let e_date: Date<offset::Utc> = Date::from_utc(e_n_date, offset::Utc);
 
+    let events = stuff[8].split(" ").map(|e| e.to_string()).collect();
+
     let has_been = s_date < offset::Utc::today();
 
 
@@ -182,6 +199,7 @@ fn insert_comp<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), WcaErr
                 Competition {
                     name: comp_name.to_string(),
                     id: comp_id.to_string(),
+                    events: events,
                     start: s_date,
                     end: e_date,
                     competitors: vec![]
@@ -191,6 +209,7 @@ fn insert_comp<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), WcaErr
                 Competition {
                     name: comp_name.to_string(),
                     id: comp_id.to_string(),
+                    events: events,
                     start: s_date,
                     end: e_date,
                     competitors: wca_competitors::download_competitors(comp_id)?
@@ -214,7 +233,6 @@ pub fn test_result() {
 }
 
 #[cfg(test)]
-
 const TEST_COMP_LINE: &'static str = "ArenaCurucaOpen2018\tArena Curuçá Open 2018\tSão Paulo - SP\tBrazil\tA inscrição é **gratuita** e aberta a qualquer pessoa de qualquer nacionalidade. As inscrições para todas as modalidades poderão ser feitas até o dia 21 de janeiro de 2018. No dia do campeonato, as inscrições estarão abertas somente para o 3x3. Mais informações na aba \"Inscrições\".\t2016\t1\t27\t1\t27\t222 333 pyram\t[{Ronan Felipe Jorge}{mailto:ronan.jorge@hotmail.com}]\t[{Mauricio Paulino Marques Fernandes}{mailto:mauriciopmf@yahoo.com.br}]\t[Arena Curuçá](http://www.curucafutsal.com.br)\tRua Grapira, 70 - Vila Curuçá, São Miguel Paulista\t\thttps://sites.google.com/prod/view/arenaopen\tArena Curuçá Open 2018\t-23496048\t-46422484";
 #[test]
 pub fn test_comp() {
