@@ -30,12 +30,20 @@ pub fn download_wca<'a>() -> Result<WcaResults, WcaError> {
     let cur = Cursor::new(res);
     let mut zip = ZipArchive::new(cur)?;
 
-    let results = zip.by_name("WCA_export_Results.tsv")?;
+ 
+    let mut results = WcaResults::default();
 
-    parse_wca(results)
+    println!("Parsing comps...");
+    parse_wca_comps(zip.by_name("WCA_export_Competitions.tsv")?, &mut results)?;
+    println!("Parsing results...");
+    parse_wca_results(zip.by_name("WCA_export_Results.tsv")?, &mut results)?;
+
+    println!("Done");
+
+    Ok(results)
 }
 
-fn parse_wca<'a>(file: ZipFile) -> Result<WcaResults, WcaError> {
+fn parse_wca_results<'a>(file: ZipFile, mut results: &mut WcaResults) -> Result<(), WcaError> {
     let mut reader = BufReader::new(file);
 
     let mut i = 0;
@@ -43,8 +51,6 @@ fn parse_wca<'a>(file: ZipFile) -> Result<WcaResults, WcaError> {
     if let Err(e) = reader.read_line(&mut _fl) { // Skip the first line
         return Err(WcaError::ReadE(format!("Error reading file: {:?}", e)));
     }
- 
-    let mut results = WcaResults::default();
 
     loop {
         let mut line = String::new();
@@ -53,6 +59,10 @@ fn parse_wca<'a>(file: ZipFile) -> Result<WcaResults, WcaError> {
             Ok(_) => {
                 if line == "" {
                     break;
+                }
+
+                if i % 10000 == 0 {
+                    println!("Line {}: {}", i, line);
                 }
 
                 if let Err(e) = insert_result(&line, &mut results) {
@@ -65,7 +75,38 @@ fn parse_wca<'a>(file: ZipFile) -> Result<WcaResults, WcaError> {
         }
     }
 
-    Ok(results)
+    Ok(())
+}
+
+fn parse_wca_comps<'a>(file: ZipFile, mut results: &mut WcaResults) -> Result<(), WcaError> {
+    let mut reader = BufReader::new(file);
+
+    let mut i = 0;
+    let mut _fl = String::new();
+    if let Err(e) = reader.read_line(&mut _fl) { // Skip the first line
+        return Err(WcaError::ReadE(format!("Error reading file: {:?}", e)));
+    }
+
+    loop {
+        let mut line = String::new();
+        i += 1;
+        match reader.read_line(&mut line) {
+            Ok(_) => {
+                if line == "" {
+                    break;
+                }
+
+                if let Err(e) = insert_comp(&line, &mut results) {
+                    eprintln!("Error on line {}: {:?}", i, e);
+                }
+            }
+            Err(e) => {
+                return Err(WcaError::ReadE(format!("Error reading line {}: {:?}", i, e)));
+            }
+        }
+    }
+
+    Ok(())
 }
 
 fn insert_result<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), WcaError> {
@@ -133,13 +174,10 @@ fn insert_comp<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), WcaErr
     let e_n_date = NaiveDate::from_ymd(e_year.parse()?, e_month.parse()?, e_day.parse()?);
     let e_date: Date<offset::Utc> = Date::from_utc(e_n_date, offset::Utc);
 
-    let time_left = offset::Utc::today().signed_duration_since(s_date);
-    let has_been = time_left < Duration::zero();
-
-    println!("Time left: {}", time_left);
+    let has_been = s_date < offset::Utc::today();
 
 
-    let comp = 
+    let comp =
             if has_been {
                 Competition {
                     name: comp_name.to_string(),
@@ -149,6 +187,7 @@ fn insert_comp<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), WcaErr
                     competitors: vec![]
                 }
             } else {
+                println!("Downloading {}", comp_name);
                 Competition {
                     name: comp_name.to_string(),
                     id: comp_id.to_string(),
@@ -190,31 +229,32 @@ pub fn test_comp() {
     println!("Comp: {:?}", wca.comps[0]);
 }
 
-#[cfg(test)]
-use std::fs::File;
-use std::io::Write;
+// #[cfg(test)]
+// use std::fs::File;
+// #[cfg(test)]
+// use std::io::Write;
 
-//#[test]
-pub fn test_download() {
-    let wca = download_wca();
+// #[test]
+// pub fn test_download() {
+//     let wca = download_wca();
 
-    match wca {
-        Ok(wca) => {
-            println!("Me: {:?}", wca.people.get("2015LOOV01"));
-            let mut file = File::create("Wca.obj");
-            match file {
-                Ok(ref mut file) => {
-                    file.write_all(format!("{:?}", wca).as_bytes()).expect("Couldn't write!");
-                }
-                Err(e) => {
-                    eprintln!("Error writing: {:?}", e);
-                }
-            }
-        }
-        Err(e) => {
-            eprintln!("Something failed: {:?}", e);
-            assert!(false);
-        }
-    }
+//     match wca {
+//         Ok(wca) => {
+//             println!("Me: {:?}", wca.people.get("2015LOOV01"));
+//             let mut file = File::create("Wca.obj");
+//             match file {
+//                 Ok(ref mut file) => {
+//                     file.write_all(format!("{:?}", wca).as_bytes()).expect("Couldn't write!");
+//                 }
+//                 Err(e) => {
+//                     eprintln!("Error writing: {:?}", e);
+//                 }
+//             }
+//         }
+//         Err(e) => {
+//             eprintln!("Something failed: {:?}", e);
+//             assert!(false);
+//         }
+//     }
 
-}
+// }

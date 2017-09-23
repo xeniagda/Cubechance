@@ -8,6 +8,7 @@ use std::sync::{Mutex, Arc};
 use std::path::{Path, PathBuf};
 use std::fs::File;
 use std::thread;
+use std::time::Duration;
 
 use rocket::{Request, Response, State};
 use rocket::http::{ContentType, Status};
@@ -70,12 +71,36 @@ fn index<'r>(file: PathBuf) -> Option<Response<'r>> {
 }
 
 #[get("/api/wca/<id>", rank = 0)]
-fn count<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
+fn wca_id<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
     let state = state.lock().unwrap();
 
     match state.wca {
         Some(ref wca) => {
             make_html(format!("{:?}", wca.people.get(&id.to_uppercase())))
+        }
+        None => {
+            make_html("wait".to_string())
+        }
+    }
+}
+
+#[get("/api/comp/<id>", rank = 0)]
+fn comp<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
+    let state = state.lock().unwrap();
+
+    match state.wca {
+        Some(ref wca) => {
+            let comp = wca.comps.iter()
+                    .filter(|comp| comp.id == id)
+                    .nth(0);
+            match comp {
+                Some(comp) => {
+                    make_html(format!("{:?}", comp))
+                }
+                None => {
+                    make_html("Not found".to_string())
+                }
+            }
         }
         None => {
             make_html("wait".to_string())
@@ -108,12 +133,13 @@ fn main() {
                     println!("Compressed download failed! Error: {:?}", e);
                 }
             }
+            thread::sleep(Duration::new(3600, 0)); // Sleep for an hour
         }
     });
 
     rocket::ignite()
         .manage(state)
-        .mount("/", routes![count, index, index_])
+        .mount("/", routes![wca_id, comp, index, index_])
         .catch(errors![not_found])
         .launch();
 }

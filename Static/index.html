@@ -6,21 +6,30 @@
     </head>
     <body>
         <input placeholder="Wca id, Eg. 2015LOOV01" id="wca_id" />
-        <pre id="info">
-        </pre>
+        <input placeholder="Comp id, eg. Skillcon2017" id="comp_id" />
+        <pre id="info"></pre>
         <script>
 
-last = "";
+last_id = "";
+last_comp = "";
 
 setInterval(function() {
     id = document.getElementById("wca_id").value;
+    comp = document.getElementById("comp_id").value;
 
-    if (id !== last) {
+    if (id !== last_id) {
         var req = new XMLHttpRequest();
         req.open("GET", "api/wca/" + id, false);
         req.send(null);
         document.getElementById("info").innerHTML = req.responseText;
-        last = id
+        last_id = id
+    }
+    if (comp !== last_comp) {
+        var req = new XMLHttpRequest();
+        req.open("GET", "api/comp/" + comp, false);
+        req.send(null);
+        document.getElementById("info").innerHTML = req.responseText;
+        last_comp = comp
     }
 
 }, 500)
