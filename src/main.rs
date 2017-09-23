@@ -13,6 +13,7 @@ use rocket::{Request, Response, State};
 use rocket::http::{ContentType, Status};
 
 mod wca;
+use wca::wca_export;
 
 #[derive(Debug, Default)]
 struct WebState {
@@ -74,7 +75,7 @@ fn count<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
 
     match state.wca {
         Some(ref wca) => {
-            make_html(format!("{:?}", wca.people.get(&id)))
+            make_html(format!("{:?}", wca.people.get(&id.to_uppercase())))
         }
         None => {
             make_html("wait".to_string())
@@ -96,9 +97,17 @@ fn main() {
     thread::spawn(move || {
         loop {
             println!("Downloading wca...");
-            let comp = wca::download_wca().expect("No compressed data!");
-            let mut state = thread_state.lock().unwrap();
-            state.wca = Some(comp);
+            let comp = wca_export::download_wca();
+
+            match comp {
+                Ok(comp) => {
+                    let mut state = thread_state.lock().unwrap();
+                    state.wca = Some(comp);
+                }
+                Err(e) => {
+                    println!("Compressed download failed! Error: {:?}", e);
+                }
+            }
         }
     });
 

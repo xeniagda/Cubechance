@@ -9,3 +9,5 @@ rocket_codegen = "0.3.2"
 
 zip = "0.2.6"
 reqwest = "0.7.3"
+chrono = "0.4"
+select = "0.4.2"

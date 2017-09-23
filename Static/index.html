@@ -5,16 +5,24 @@
         <title> Index </title>
     </head>
     <body>
-        <input placeholder="Wca id" id="wca_id" />
+        <input placeholder="Wca id, Eg. 2015LOOV01" id="wca_id" />
         <pre id="info">
         </pre>
         <script>
 
+last = "";
+
 setInterval(function() {
-    var req = new XMLHttpRequest();
-    req.open("GET", "api/wca/" + document.getElementById("wca_id").value, false);
-    req.send(null);
-    document.getElementById("info").innerHTML = req.responseText;
+    id = document.getElementById("wca_id").value;
+
+    if (id !== last) {
+        var req = new XMLHttpRequest();
+        req.open("GET", "api/wca/" + id, false);
+        req.send(null);
+        document.getElementById("info").innerHTML = req.responseText;
+        last = id
+    }
+
 }, 500)
         </script>
     </body>
