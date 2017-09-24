@@ -183,13 +183,12 @@ fn insert_comp<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), WcaErr
     let s_date: Date<offset::Utc> = Date::from_utc(s_n_date, offset::Utc);
 
     // End date
-    let e_year = stuff[5];
-    let e_month = stuff[6];
-    let e_day = stuff[7];
-    let e_n_date = NaiveDate::from_ymd(e_year.parse()?, e_month.parse()?, e_day.parse()?);
+    let e_month = stuff[8];
+    let e_day = stuff[9];
+    let e_n_date = NaiveDate::from_ymd(s_year.parse()?, e_month.parse()?, e_day.parse()?);
     let e_date: Date<offset::Utc> = Date::from_utc(e_n_date, offset::Utc);
 
-    let events = stuff[8].split(" ").map(|e| e.to_string()).collect();
+    let events = stuff[10].split(" ").map(|e| e.to_string()).collect();
 
     let has_been = s_date < offset::Utc::today();
 
@@ -235,7 +234,7 @@ pub fn test_result() {
 }
 
 #[cfg(test)]
-const TEST_COMP_LINE: &'static str = "ArenaCurucaOpen2018\tArena Curuçá Open 2018\tSão Paulo - SP\tBrazil\tA inscrição é **gratuita** e aberta a qualquer pessoa de qualquer nacionalidade. As inscrições para todas as modalidades poderão ser feitas até o dia 21 de janeiro de 2018. No dia do campeonato, as inscrições estarão abertas somente para o 3x3. Mais informações na aba \"Inscrições\".\t2016\t1\t27\t1\t27\t222 333 pyram\t[{Ronan Felipe Jorge}{mailto:ronan.jorge@hotmail.com}]\t[{Mauricio Paulino Marques Fernandes}{mailto:mauriciopmf@yahoo.com.br}]\t[Arena Curuçá](http://www.curucafutsal.com.br)\tRua Grapira, 70 - Vila Curuçá, São Miguel Paulista\t\thttps://sites.google.com/prod/view/arenaopen\tArena Curuçá Open 2018\t-23496048\t-46422484";
+const TEST_COMP_LINE: &'static str = "ArenaCurucaOpen2018\tArena Curuçá Open 2018\tSão Paulo - SP\tBrazil\tA inscrição é **gratuita** e aberta a qualquer pessoa de qualquer nacionalidade. As inscrições para todas as modalidades poderão ser feitas até o dia 21 de janeiro de 2018. No dia do campeonato, as inscrições estarão abertas somente para o 3x3. Mais informações na aba \"Inscrições\".\t2018\t1\t27\t1\t27\t222 333 pyram\t[{Ronan Felipe Jorge}{mailto:ronan.jorge@hotmail.com}]\t[{Mauricio Paulino Marques Fernandes}{mailto:mauriciopmf@yahoo.com.br}]\t[Arena Curuçá](http://www.curucafutsal.com.br)\tRua Grapira, 70 - Vila Curuçá, São Miguel Paulista\t\thttps://sites.google.com/prod/view/arenaopen\tArena Curuçá Open 2018\t-23496048\t-46422484";
 #[test]
 pub fn test_comp() {
     let mut wca = WcaResults::default();
@@ -246,6 +245,7 @@ pub fn test_comp() {
     assert_eq!(wca.comps.len(), 1);
     assert_eq!(wca.comps[0].id, "ArenaCurucaOpen2018");
     assert_eq!(wca.comps[0].name, "Arena Curuçá Open 2018");
+    assert_eq!(wca.comps[0].events, vec!["222", "333", "pyram"]);
     println!("Comp: {:?}", wca.comps[0]);
 }
 
