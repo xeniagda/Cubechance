@@ -1,7 +1,6 @@
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Task
 import Json.Decode as D
 import Date
 
@@ -80,7 +79,7 @@ renderComps comps =
     table [] <|
         List.map (\comp ->
             tr []
-            [ a [href <| "/comp.html?" ++ comp.id] [ td [] [text comp.name] ]
+            [ a [href <| "/Comp.html?" ++ comp.id] [ td [] [text comp.name] ]
             , td [] [text comp.id]
             , td [] [text <| toString comp.date]
             ]

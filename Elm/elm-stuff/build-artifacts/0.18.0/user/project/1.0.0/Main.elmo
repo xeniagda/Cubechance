@@ -18,7 +18,7 @@ var _user$project$Main$renderComps = function (comps) {
 							{
 								ctor: '::',
 								_0: _elm_lang$html$Html_Attributes$href(
-									A2(_elm_lang$core$Basics_ops['++'], '/comp.html?', comp.id)),
+									A2(_elm_lang$core$Basics_ops['++'], '/Comp.html?', comp.id)),
 								_1: {ctor: '[]'}
 							},
 							{

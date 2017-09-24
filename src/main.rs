@@ -125,6 +125,16 @@ fn upcoming<'r>(state: State<MutWebState>) -> Response<'r> {
         }
     }
 }
+#[derive(Serialize)]
+struct CompWithPeople<'a> {
+    comp: &'a wca::Competition,
+    people: Vec<PersonWithId<'a>>
+}
+#[derive(Serialize)]
+struct PersonWithId<'a> {
+    person: &'a wca::WcaPerson,
+    id: String
+}
 
 #[get("/api/comp/<id>", rank = 0)]
 fn comp<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
@@ -137,7 +147,26 @@ fn comp<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
 
             match comp {
                 Some(comp) => {
-                    match serde_json::to_string(comp) {
+                    let people: Vec<PersonWithId> = 
+                            comp.competitors.iter()
+                                .filter_map(|competitor|
+                                    match wca.people.get(&competitor.id) {
+                                        Some(person) => {
+                                            Some(
+                                                PersonWithId {
+                                                    person: person,
+                                                    id: competitor.id.clone()
+                                                }
+                                            )
+                                        }
+                                        None => {
+                                            None
+                                        }
+                                    }
+                                )
+                                .collect();
+
+                    match serde_json::to_string(&CompWithPeople {comp: comp, people: people}) {
                         Ok(json) => {
                             make_html(json)
                         }

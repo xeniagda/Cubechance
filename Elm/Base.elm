@@ -4,7 +4,7 @@ import Dict exposing (..)
 import Date
 
 import Json.Decode as D
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, required, requiredAt, optional, hardcoded)
 
 
 type alias Competition =
@@ -23,12 +23,18 @@ type alias Competitor =
 type alias Person =
     { id : String
     , name : String
-    , times : Dict String Time -- Event: [Time]
+    , times : Dict String (List Time) -- Event: [Time]
     }
 
 type Time 
     = Time Float
     | DNF
+
+stringify : Time -> String
+stringify x = 
+    case x of
+        Time y -> toString y
+        DNF -> "DNF"
 
 decodeComp =
     decode Competition
@@ -38,6 +44,23 @@ decodeComp =
         |> required "start" decodeDate
         |> required "people" (D.list decompCompetitor)
 
+decodePerson =
+    decode Person
+        |> required "id" D.string
+        |> requiredAt [ "person", "name" ] D.string
+        |> requiredAt [ "person", "times" ] (D.dict <| D.list decodeTime)
+
+decodeTime =
+    D.oneOf
+        [ D.float |> D.map Time
+        , D.string 
+            |> D.andThen 
+                (\x -> 
+                    case x of
+                        "DNF" -> D.succeed DNF
+                        _ -> D.fail "Wasn't DNF"
+                )
+        ]
 decompCompetitor =
     decode Competitor
         |> required "id" D.string
