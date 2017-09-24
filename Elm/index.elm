@@ -79,7 +79,7 @@ renderComps comps =
     table [] <|
         List.map (\comp ->
             tr []
-            [ a [href <| "/Comp.html?" ++ comp.id] [ td [] [text comp.name] ]
+            [ a [href <| "/comp.html?" ++ comp.id] [ td [] [text comp.name] ]
             , td [] [text comp.id]
             , td [] [text <| toString comp.date]
             ]
