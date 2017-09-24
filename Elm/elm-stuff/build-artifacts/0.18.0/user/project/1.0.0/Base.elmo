@@ -1,0 +1,57 @@
+var _user$project$Base$decodeDate = A2(
+	_elm_lang$core$Json_Decode$andThen,
+	function (st) {
+		var _p0 = _elm_lang$core$Date$fromString(st);
+		if (_p0.ctor === 'Ok') {
+			return _elm_lang$core$Json_Decode$succeed(_p0._0);
+		} else {
+			return _elm_lang$core$Json_Decode$fail(_p0._0);
+		}
+	},
+	_elm_lang$core$Json_Decode$string);
+var _user$project$Base$Competition = F5(
+	function (a, b, c, d, e) {
+		return {id: a, name: b, events: c, date: d, competitors: e};
+	});
+var _user$project$Base$Competitor = F2(
+	function (a, b) {
+		return {id: a, events: b};
+	});
+var _user$project$Base$decompCompetitor = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'events',
+	_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'id',
+		_elm_lang$core$Json_Decode$string,
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Competitor)));
+var _user$project$Base$decodeComp = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'people',
+	_elm_lang$core$Json_Decode$list(_user$project$Base$decompCompetitor),
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'start',
+		_user$project$Base$decodeDate,
+		A3(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+			'events',
+			_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+			A3(
+				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+				'name',
+				_elm_lang$core$Json_Decode$string,
+				A3(
+					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+					'id',
+					_elm_lang$core$Json_Decode$string,
+					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Competition))))));
+var _user$project$Base$Person = F3(
+	function (a, b, c) {
+		return {id: a, name: b, times: c};
+	});
+var _user$project$Base$DNF = {ctor: 'DNF'};
+var _user$project$Base$Time = function (a) {
+	return {ctor: 'Time', _0: a};
+};
