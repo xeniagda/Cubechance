@@ -6326,13 +6326,98 @@ var _user$project$Base$decodeDate = A2(
 		}
 	},
 	_elm_lang$core$Json_Decode$string);
-var _user$project$Base$stringify = function (x) {
+var _user$project$Base$stf2 = function (x) {
+	var base = _elm_lang$core$Basics$toString(
+		_elm_lang$core$Basics$floor(x * 100));
+	var base_ = A2(
+		_elm_lang$core$Basics_ops['++'],
+		A2(
+			_elm_lang$core$String$repeat,
+			3 - _elm_lang$core$String$length(base),
+			'0'),
+		base);
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		A2(_elm_lang$core$String$dropRight, 2, base_),
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			'.',
+			A2(
+				_elm_lang$core$String$dropLeft,
+				_elm_lang$core$String$length(base_) - 2,
+				base_)));
+};
+var _user$project$Base$sti2 = function (x) {
+	var base = _elm_lang$core$Basics$toString(x);
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		A2(
+			_elm_lang$core$String$repeat,
+			2 - _elm_lang$core$String$length(base),
+			'0'),
+		base);
+};
+var _user$project$Base$fmod = F2(
+	function (x, y) {
+		return x - (y * _elm_lang$core$Basics$toFloat(
+			_elm_lang$core$Basics$floor(x / y)));
+	});
+var _user$project$Base$viewTime_ = function (x) {
+	var second_ = _user$project$Base$stf2(
+		A2(_user$project$Base$fmod, x, 60));
+	var second = ((_elm_lang$core$Native_Utils.cmp(x, 60) > -1) && (_elm_lang$core$Native_Utils.cmp(
+		A2(_user$project$Base$fmod, x, 60),
+		10) < 0)) ? A2(_elm_lang$core$Basics_ops['++'], '0', second_) : second_;
+	var min = (_elm_lang$core$Native_Utils.cmp(x, 60) > -1) ? A2(
+		_elm_lang$core$Basics_ops['++'],
+		_user$project$Base$sti2(
+			A2(
+				_elm_lang$core$Basics_ops['%'],
+				(_elm_lang$core$Basics$floor(x) / 60) | 0,
+				60)),
+		':') : '';
+	var hour = (_elm_lang$core$Native_Utils.cmp(x, 3600) > -1) ? A2(
+		_elm_lang$core$Basics_ops['++'],
+		_user$project$Base$sti2(
+			(_elm_lang$core$Basics$floor(x) / 3600) | 0),
+		':') : '';
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		hour,
+		A2(_elm_lang$core$Basics_ops['++'], min, second));
+};
+var _user$project$Base$viewTime = function (x) {
 	var _p1 = x;
 	if (_p1.ctor === 'Time') {
-		return _elm_lang$core$Basics$toString(_p1._0);
+		return _user$project$Base$viewTime_(_p1._0);
 	} else {
 		return 'DNF';
 	}
+};
+var _user$project$Base$viewDate = function (date) {
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		_elm_lang$core$Basics$toString(
+			_elm_lang$core$Date$dayOfWeek(date)),
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			', ',
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				_elm_lang$core$Basics$toString(
+					_elm_lang$core$Date$month(date)),
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					' ',
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						_elm_lang$core$Basics$toString(
+							_elm_lang$core$Date$day(date)),
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							' ',
+							_elm_lang$core$Basics$toString(
+								_elm_lang$core$Date$year(date))))))));
 };
 var _user$project$Base$Competition = F5(
 	function (a, b, c, d, e) {

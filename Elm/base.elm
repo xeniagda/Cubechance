@@ -30,11 +30,53 @@ type Time
     = Time Float
     | DNF
 
-stringify : Time -> String
-stringify x = 
+viewDate : Date.Date -> String
+viewDate date =
+    (toString <| Date.dayOfWeek date)
+    ++ ", " ++
+    (toString <| Date.month date)
+    ++ " " ++
+    (toString <| Date.day date)
+    ++ " " ++
+    (toString <| Date.year date)
+
+viewTime : Time -> String
+viewTime x =
     case x of
-        Time y -> toString y
+        Time y -> viewTime_ y
         DNF -> "DNF"
+
+viewTime_ : Float -> String
+viewTime_ x =
+    let hour =
+            if x >= 3600
+                then sti2 (floor x // 3600) ++ ":"
+                else ""
+        min =
+            if x >= 60
+                then sti2 ((floor x // 60) % 60) ++ ":"
+                else ""
+        second_ =  (stf2 <| fmod x 60)
+        second = if x >= 60 && fmod x 60 < 10
+                    then "0" ++ second_
+                    else second_
+    in hour ++ min ++ second
+
+fmod : Float -> Float -> Float
+fmod x y =
+    x - y * (toFloat <| floor <| x / y)
+
+sti2 : Int -> String -- Int to string with 2 decimals
+sti2 x =
+    let base = toString x
+    in (String.repeat (2 - String.length base) "0") ++ base
+
+stf2 : Float -> String -- Float to string with 2 decimals
+stf2 x =
+    let base = toString <| floor <| x * 100
+        base_ = (String.repeat (3 - String.length base) "0") ++ base
+    in String.dropRight 2 base_
+    ++ "." ++ String.dropLeft (String.length base_ - 2) base_
 
 decodeComp =
     decode Competition

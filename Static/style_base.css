@@ -1,0 +1,27 @@
+body {
+    background: white;
+    font-size: 19px;
+    font-family: Helvetica;
+}
+
+/* table {
+    border: 1px solid black;
+} */
+
+table {
+    width: 100%;
+    background: #FC9;
+}
+
+tr:nth-child(even) {
+    background-color: #FFF5CB;
+}
+tr:nth-child(odd) {
+    background-color: #FFEDA1;
+}
+tr {
+    text-align: left;
+}
+th {
+    text-align: center;
+}

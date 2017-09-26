@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="64"
+   height="64"
+   viewBox="0 0 64.000001 64.000001"
+   id="svg6036"
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="555.svg">
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="7.2257474"
+     inkscape:cx="32"
+     inkscape:cy="32"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     units="px"
+     inkscape:window-width="1436"
+     inkscape:window-height="856"
+     inkscape:window-x="4"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:snap-page="true"
+     inkscape:object-nodes="true"
+     inkscape:snap-intersection-paths="true">
+    <sodipodi:guide
+       id="guide6587"
+       position="12.8,0"
+       orientation="64.0,0" />
+    <sodipodi:guide
+       id="guide6589"
+       position="25.6,0"
+       orientation="64.0,0" />
+    <sodipodi:guide
+       id="guide6591"
+       position="38.4,0"
+       orientation="64.0,0" />
+    <sodipodi:guide
+       id="guide6593"
+       position="51.2,0"
+       orientation="64.0,0" />
+    <sodipodi:guide
+       id="guide6595"
+       position="0,12.8"
+       orientation="0,64.0" />
+    <sodipodi:guide
+       id="guide6597"
+       position="0,25.6"
+       orientation="0,64.0" />
+    <sodipodi:guide
+       id="guide6599"
+       position="0,38.4"
+       orientation="0,64.0" />
+    <sodipodi:guide
+       id="guide6601"
+       position="0,51.2"
+       orientation="0,64.0" />
+  </sodipodi:namedview>
+  <defs
+     id="defs6038" />
+  <metadata
+     id="metadata6041">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     transform="translate(0,-988.36216)"
+     id="layer1"
+     inkscape:groupmode="layer"
+     inkscape:label="Layer 1">
+    <path
+       style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="M 1.5 1.5 L 1.5 11.300781 L 11.300781 11.300781 L 11.300781 1.5 L 1.5 1.5 z M 14.300781 1.5 L 14.300781 11.300781 L 24.099609 11.300781 L 24.099609 1.5 L 14.300781 1.5 z M 27.099609 1.5 L 27.099609 11.300781 L 36.900391 11.300781 L 36.900391 1.5 L 27.099609 1.5 z M 39.900391 1.5 L 39.900391 11.300781 L 49.699219 11.300781 L 49.699219 1.5 L 39.900391 1.5 z M 52.699219 1.5 L 52.699219 11.300781 L 62.5 11.300781 L 62.5 1.5 L 52.699219 1.5 z M 1.5 14.300781 L 1.5 24.101562 L 11.300781 24.101562 L 11.300781 14.300781 L 1.5 14.300781 z M 14.300781 14.300781 L 14.300781 24.101562 L 24.099609 24.101562 L 24.099609 14.300781 L 14.300781 14.300781 z M 27.099609 14.300781 L 27.099609 24.101562 L 36.900391 24.101562 L 36.900391 14.300781 L 27.099609 14.300781 z M 39.900391 14.300781 L 39.900391 24.101562 L 49.699219 24.101562 L 49.699219 14.300781 L 39.900391 14.300781 z M 52.699219 14.300781 L 52.699219 24.101562 L 62.5 24.101562 L 62.5 14.300781 L 52.699219 14.300781 z M 1.5 27.101562 L 1.5 36.900391 L 11.300781 36.900391 L 11.300781 27.101562 L 1.5 27.101562 z M 14.300781 27.101562 L 14.300781 36.900391 L 24.099609 36.900391 L 24.099609 27.101562 L 14.300781 27.101562 z M 27.099609 27.101562 L 27.099609 36.900391 L 36.900391 36.900391 L 36.900391 27.101562 L 27.099609 27.101562 z M 39.900391 27.101562 L 39.900391 36.900391 L 49.699219 36.900391 L 49.699219 27.101562 L 39.900391 27.101562 z M 52.699219 27.101562 L 52.699219 36.900391 L 62.5 36.900391 L 62.5 27.101562 L 52.699219 27.101562 z M 1.5 39.900391 L 1.5 49.701172 L 11.300781 49.701172 L 11.300781 39.900391 L 1.5 39.900391 z M 14.300781 39.900391 L 14.300781 49.701172 L 24.099609 49.701172 L 24.099609 39.900391 L 14.300781 39.900391 z M 27.099609 39.900391 L 27.099609 49.701172 L 36.900391 49.701172 L 36.900391 39.900391 L 27.099609 39.900391 z M 39.900391 39.900391 L 39.900391 49.701172 L 49.699219 49.701172 L 49.699219 39.900391 L 39.900391 39.900391 z M 52.699219 39.900391 L 52.699219 49.701172 L 62.5 49.701172 L 62.5 39.900391 L 52.699219 39.900391 z M 1.5 52.701172 L 1.5 62.5 L 11.300781 62.5 L 11.300781 52.701172 L 1.5 52.701172 z M 14.300781 52.701172 L 14.300781 62.5 L 24.099609 62.5 L 24.099609 52.701172 L 14.300781 52.701172 z M 27.099609 52.701172 L 27.099609 62.5 L 36.900391 62.5 L 36.900391 52.701172 L 27.099609 52.701172 z M 39.900391 52.701172 L 39.900391 62.5 L 49.699219 62.5 L 49.699219 52.701172 L 39.900391 52.701172 z M 52.699219 52.701172 L 52.699219 62.5 L 62.5 62.5 L 62.5 52.701172 L 52.699219 52.701172 z "
+       transform="translate(0,988.36216)"
+       id="rect6620" />
+  </g>
+</svg>

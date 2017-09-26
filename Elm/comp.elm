@@ -79,33 +79,48 @@ view model =
         _ ->
             p [id "loading"] [text "Loading..."]
 
-viewCompetitors comp people =
+viewCompetitors competition people =
     table [id "competitors"]
-        <| List.filterMap
+        <| genHeader competition
+        :: List.filterMap
             (\competitor ->
                 case findPerson competitor.id people of
                     Nothing -> Nothing
                     Just person ->
-                        Just <| viewCompetitor competitor person
+                        Just <| viewCompetitor competition competitor person
             )
-            comp.competitors
+            competition.competitors
 
-viewCompetitor comp person =
+viewCompetitor competition competitor person =
     tr [class "competitor"]
         <|
         [ td [class "comp_name"] [text person.name]
         , td [class "comp_id"] [text person.id]
-        ] ++ List.map (\event -> displayEvent event comp person) comp.events
+        ] ++ List.map (\event -> displayEvent event competition person) competition.events
+
+genHeader competition =
+    tr [class "comp-events" ] <|
+        th [ class "comp-name"] [ text competition.name ]
+     :: th [ class "comp-id"] [ text competition.id ]
+     :: List.map
+            (\event ->
+                th [ class "event" ]
+                [ span [class <| "cubing-icon event-" ++ event ] []
+                ]
+            )
+            competition.events
 
 displayEvent event comp person =
     let times = Dict.get event person.times
     in case times of
-        Just times ->
-            td [class "event"]
-                [ text <| event ++ ": " ++ ( Base.stringify <| average times )
-                ]
-        Nothing ->
-            td [class "event"] [ text <| toString event]
+           Nothing -> td [class "event"] []
+           Just times ->
+               td [class "event"]
+                   [ text <| Base.viewTime <| average times
+                   ]
+
+genIcon event =
+    span [ class <| "cubing-icon event-" ++ event ] []
 
 average : List Base.Time -> Base.Time
 average times =

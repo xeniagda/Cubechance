@@ -9190,13 +9190,98 @@ var _user$project$Base$decodeDate = A2(
 		}
 	},
 	_elm_lang$core$Json_Decode$string);
-var _user$project$Base$stringify = function (x) {
+var _user$project$Base$stf2 = function (x) {
+	var base = _elm_lang$core$Basics$toString(
+		_elm_lang$core$Basics$floor(x * 100));
+	var base_ = A2(
+		_elm_lang$core$Basics_ops['++'],
+		A2(
+			_elm_lang$core$String$repeat,
+			3 - _elm_lang$core$String$length(base),
+			'0'),
+		base);
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		A2(_elm_lang$core$String$dropRight, 2, base_),
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			'.',
+			A2(
+				_elm_lang$core$String$dropLeft,
+				_elm_lang$core$String$length(base_) - 2,
+				base_)));
+};
+var _user$project$Base$sti2 = function (x) {
+	var base = _elm_lang$core$Basics$toString(x);
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		A2(
+			_elm_lang$core$String$repeat,
+			2 - _elm_lang$core$String$length(base),
+			'0'),
+		base);
+};
+var _user$project$Base$fmod = F2(
+	function (x, y) {
+		return x - (y * _elm_lang$core$Basics$toFloat(
+			_elm_lang$core$Basics$floor(x / y)));
+	});
+var _user$project$Base$viewTime_ = function (x) {
+	var second_ = _user$project$Base$stf2(
+		A2(_user$project$Base$fmod, x, 60));
+	var second = ((_elm_lang$core$Native_Utils.cmp(x, 60) > -1) && (_elm_lang$core$Native_Utils.cmp(
+		A2(_user$project$Base$fmod, x, 60),
+		10) < 0)) ? A2(_elm_lang$core$Basics_ops['++'], '0', second_) : second_;
+	var min = (_elm_lang$core$Native_Utils.cmp(x, 60) > -1) ? A2(
+		_elm_lang$core$Basics_ops['++'],
+		_user$project$Base$sti2(
+			A2(
+				_elm_lang$core$Basics_ops['%'],
+				(_elm_lang$core$Basics$floor(x) / 60) | 0,
+				60)),
+		':') : '';
+	var hour = (_elm_lang$core$Native_Utils.cmp(x, 3600) > -1) ? A2(
+		_elm_lang$core$Basics_ops['++'],
+		_user$project$Base$sti2(
+			(_elm_lang$core$Basics$floor(x) / 3600) | 0),
+		':') : '';
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		hour,
+		A2(_elm_lang$core$Basics_ops['++'], min, second));
+};
+var _user$project$Base$viewTime = function (x) {
 	var _p1 = x;
 	if (_p1.ctor === 'Time') {
-		return _elm_lang$core$Basics$toString(_p1._0);
+		return _user$project$Base$viewTime_(_p1._0);
 	} else {
 		return 'DNF';
 	}
+};
+var _user$project$Base$viewDate = function (date) {
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		_elm_lang$core$Basics$toString(
+			_elm_lang$core$Date$dayOfWeek(date)),
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			', ',
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				_elm_lang$core$Basics$toString(
+					_elm_lang$core$Date$month(date)),
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					' ',
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						_elm_lang$core$Basics$toString(
+							_elm_lang$core$Date$day(date)),
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							' ',
+							_elm_lang$core$Basics$toString(
+								_elm_lang$core$Date$year(date))))))));
 };
 var _user$project$Base$Competition = F5(
 	function (a, b, c, d, e) {
@@ -9331,11 +9416,22 @@ var _user$project$Main$average = function (times) {
 				_elm_lang$core$Basics$round(avg * 100)) / 100);
 	}
 };
+var _user$project$Main$genIcon = function (event) {
+	return A2(
+		_elm_lang$html$Html$span,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class(
+				A2(_elm_lang$core$Basics_ops['++'], 'cubing-icon event-', event)),
+			_1: {ctor: '[]'}
+		},
+		{ctor: '[]'});
+};
 var _user$project$Main$displayEvent = F3(
 	function (event, comp, person) {
 		var times = A2(_elm_lang$core$Dict$get, event, person.times);
 		var _p2 = times;
-		if (_p2.ctor === 'Just') {
+		if (_p2.ctor === 'Nothing') {
 			return A2(
 				_elm_lang$html$Html$td,
 				{
@@ -9343,19 +9439,7 @@ var _user$project$Main$displayEvent = F3(
 					_0: _elm_lang$html$Html_Attributes$class('event'),
 					_1: {ctor: '[]'}
 				},
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html$text(
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							event,
-							A2(
-								_elm_lang$core$Basics_ops['++'],
-								': ',
-								_user$project$Base$stringify(
-									_user$project$Main$average(_p2._0))))),
-					_1: {ctor: '[]'}
-				});
+				{ctor: '[]'});
 		} else {
 			return A2(
 				_elm_lang$html$Html$td,
@@ -9367,13 +9451,78 @@ var _user$project$Main$displayEvent = F3(
 				{
 					ctor: '::',
 					_0: _elm_lang$html$Html$text(
-						_elm_lang$core$Basics$toString(event)),
+						_user$project$Base$viewTime(
+							_user$project$Main$average(_p2._0))),
 					_1: {ctor: '[]'}
 				});
 		}
 	});
-var _user$project$Main$viewCompetitor = F2(
-	function (comp, person) {
+var _user$project$Main$genHeader = function (competition) {
+	return A2(
+		_elm_lang$html$Html$tr,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('comp-events'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$th,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('comp-name'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(competition.name),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$th,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('comp-id'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(competition.id),
+						_1: {ctor: '[]'}
+					}),
+				_1: A2(
+					_elm_lang$core$List$map,
+					function (event) {
+						return A2(
+							_elm_lang$html$Html$th,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('event'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$span,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class(
+											A2(_elm_lang$core$Basics_ops['++'], 'cubing-icon event-', event)),
+										_1: {ctor: '[]'}
+									},
+									{ctor: '[]'}),
+								_1: {ctor: '[]'}
+							});
+					},
+					competition.events)
+			}
+		});
+};
+var _user$project$Main$viewCompetitor = F3(
+	function (competition, competitor, person) {
 		return A2(
 			_elm_lang$html$Html$tr,
 			{
@@ -9417,12 +9566,12 @@ var _user$project$Main$viewCompetitor = F2(
 				A2(
 					_elm_lang$core$List$map,
 					function (event) {
-						return A3(_user$project$Main$displayEvent, event, comp, person);
+						return A3(_user$project$Main$displayEvent, event, competition, person);
 					},
-					comp.events)));
+					competition.events)));
 	});
 var _user$project$Main$viewCompetitors = F2(
-	function (comp, people) {
+	function (competition, people) {
 		return A2(
 			_elm_lang$html$Html$table,
 			{
@@ -9430,18 +9579,22 @@ var _user$project$Main$viewCompetitors = F2(
 				_0: _elm_lang$html$Html_Attributes$id('competitors'),
 				_1: {ctor: '[]'}
 			},
-			A2(
-				_elm_lang$core$List$filterMap,
-				function (competitor) {
-					var _p3 = A2(_user$project$Main$findPerson, competitor.id, people);
-					if (_p3.ctor === 'Nothing') {
-						return _elm_lang$core$Maybe$Nothing;
-					} else {
-						return _elm_lang$core$Maybe$Just(
-							A2(_user$project$Main$viewCompetitor, competitor, _p3._0));
-					}
-				},
-				comp.competitors));
+			{
+				ctor: '::',
+				_0: _user$project$Main$genHeader(competition),
+				_1: A2(
+					_elm_lang$core$List$filterMap,
+					function (competitor) {
+						var _p3 = A2(_user$project$Main$findPerson, competitor.id, people);
+						if (_p3.ctor === 'Nothing') {
+							return _elm_lang$core$Maybe$Nothing;
+						} else {
+							return _elm_lang$core$Maybe$Just(
+								A3(_user$project$Main$viewCompetitor, competition, competitor, _p3._0));
+						}
+					},
+					competition.competitors)
+			});
 	});
 var _user$project$Main$view = function (model) {
 	var _p4 = model.comp;

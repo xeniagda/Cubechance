@@ -81,7 +81,7 @@ renderComps comps =
             tr []
             [ a [href <| "/comp.html?" ++ comp.id] [ td [] [text comp.name] ]
             , td [] [text comp.id]
-            , td [] [text <| toString comp.date]
+            , td [] [text <| Base.viewDate comp.date]
             ]
         ) comps
 
