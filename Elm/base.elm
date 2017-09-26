@@ -26,7 +26,7 @@ type alias Person =
     , times : Dict String (List Time) -- Event: [Time]
     }
 
-type Time 
+type Time
     = Time Float
     | DNF
 
@@ -95,9 +95,9 @@ decodePerson =
 decodeTime =
     D.oneOf
         [ D.float |> D.map Time
-        , D.string 
-            |> D.andThen 
-                (\x -> 
+        , D.string
+            |> D.andThen
+                (\x ->
                     case x of
                         "DNF" -> D.succeed DNF
                         _ -> D.fail "Wasn't DNF"
@@ -110,8 +110,8 @@ decompCompetitor =
 
 decodeDate : D.Decoder Date.Date
 decodeDate =
-    D.string 
-        |> D.andThen 
+    D.string
+        |> D.andThen
             (\st ->
                 case Date.fromString st of
                     Ok date -> D.succeed date

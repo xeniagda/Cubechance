@@ -53,14 +53,14 @@ update msg model =
             model !
             [
                 Http.send ParseComp
-                    <| Http.getString 
+                    <| Http.getString
                         <| "api/comp/" ++ model.compId
             ]
 
         ParseComp (Ok text) ->
             case D.decodeString decodeCompAndPeople text of
                 Ok (comp, people) ->
-                    { model 
+                    { model
                         | comp = Just comp
                         , people = people
                     } ! []
@@ -126,7 +126,7 @@ average : List Base.Time -> Base.Time
 average times =
     let non_dnfs =
             List.filterMap
-                (\x -> 
+                (\x ->
                     case x of
                         Base.DNF -> Nothing
                         Base.Time n -> Just n
@@ -134,11 +134,11 @@ average times =
             times
     in case non_dnfs of
         [] -> Base.DNF
-        _ -> 
+        _ ->
             let avg = List.sum non_dnfs / toFloat (List.length non_dnfs)
             in Base.Time <| toFloat (round <| avg * 100) / 100
 
-        
+
 
 findPerson : String -> List Base.Person -> Maybe Base.Person
 findPerson id people =
