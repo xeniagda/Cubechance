@@ -4,6 +4,7 @@ import Html.Events exposing (..)
 import Json.Decode as D
 import Date
 import Dict
+import Time
 
 import Http
 
@@ -38,7 +39,7 @@ init flags =
         , comp = Nothing
         , people = []
         , error = Nothing
-    }
+        }
 
 decodeCompAndPeople =
     D.map2
@@ -145,4 +146,4 @@ findPerson id people =
     List.head
         <| List.filter (\person -> person.id == id) people
 
-subs model = Sub.none
+subs model = Time.every (Time.second * 10) <| always LoadComp

@@ -9380,9 +9380,6 @@ var _user$project$Base$decodePerson = A3(
 			_elm_lang$core$Json_Decode$string,
 			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Person))));
 
-var _user$project$Main$subs = function (model) {
-	return _elm_lang$core$Platform_Sub$none;
-};
 var _user$project$Main$findPerson = F2(
 	function (id, people) {
 		return _elm_lang$core$List$head(
@@ -9693,6 +9690,12 @@ var _user$project$Main$init = function (flags) {
 			people: {ctor: '[]'},
 			error: _elm_lang$core$Maybe$Nothing
 		});
+};
+var _user$project$Main$subs = function (model) {
+	return A2(
+		_elm_lang$core$Time$every,
+		_elm_lang$core$Time$second * 10,
+		_elm_lang$core$Basics$always(_user$project$Main$LoadComp));
 };
 var _user$project$Main$main = _elm_lang$html$Html$programWithFlags(
 	{init: _user$project$Main$init, update: _user$project$Main$update, view: _user$project$Main$view, subscriptions: _user$project$Main$subs})(
