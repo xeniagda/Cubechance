@@ -9479,46 +9479,31 @@ var _user$project$Main$genHeader = function (competition) {
 					_0: _elm_lang$html$Html$text(competition.name),
 					_1: {ctor: '[]'}
 				}),
-			_1: {
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$th,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('comp-id'),
-						_1: {ctor: '[]'}
-					},
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html$text(competition.id),
-						_1: {ctor: '[]'}
-					}),
-				_1: A2(
-					_elm_lang$core$List$map,
-					function (event) {
-						return A2(
-							_elm_lang$html$Html$th,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('event'),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$span,
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$class(
-											A2(_elm_lang$core$Basics_ops['++'], 'cubing-icon event-', event)),
-										_1: {ctor: '[]'}
-									},
-									{ctor: '[]'}),
-								_1: {ctor: '[]'}
-							});
-					},
-					competition.events)
-			}
+			_1: A2(
+				_elm_lang$core$List$map,
+				function (event) {
+					return A2(
+						_elm_lang$html$Html$th,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('event'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$span,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class(
+										A2(_elm_lang$core$Basics_ops['++'], 'cubing-icon event-', event)),
+									_1: {ctor: '[]'}
+								},
+								{ctor: '[]'}),
+							_1: {ctor: '[]'}
+						});
+				},
+				competition.events)
 		});
 };
 var _user$project$Main$viewCompetitor = F3(
@@ -9546,22 +9531,7 @@ var _user$project$Main$viewCompetitor = F3(
 							_0: _elm_lang$html$Html$text(person.name),
 							_1: {ctor: '[]'}
 						}),
-					_1: {
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$td,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('comp_id'),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text(person.id),
-								_1: {ctor: '[]'}
-							}),
-						_1: {ctor: '[]'}
-					}
+					_1: {ctor: '[]'}
 				},
 				A2(
 					_elm_lang$core$List$map,

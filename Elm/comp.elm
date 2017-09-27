@@ -95,13 +95,13 @@ viewCompetitor competition competitor person =
     tr [class "competitor"]
         <|
         [ td [class "comp_name"] [text person.name]
-        , td [class "comp_id"] [text person.id]
+        --, td [class "comp_id"] [text person.id]
         ] ++ List.map (\event -> displayEvent event competition person) competition.events
 
 genHeader competition =
     tr [class "comp-events" ] <|
         th [ class "comp-name"] [ text competition.name ]
-     :: th [ class "comp-id"] [ text competition.id ]
+     --:: th [ class "comp-id"] [ text competition.id ]
      :: List.map
             (\event ->
                 th [ class "event" ]
