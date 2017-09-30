@@ -71,14 +71,18 @@ update msg model =
             { model | error = Just <| toString err } ! []
 
 view model =
-    case model.comp of
-        Just comp ->
-            div []
-                [ h1 [id "title"] [text comp.name]
-                , viewCompetitors comp model.people
-                ]
-        _ ->
-            p [id "loading"] [text "Loading..."]
+    div [] 
+        [ a [ href "/index.html" ] [ text "←" ]
+        , br [] []
+        , case model.comp of
+            Just comp ->
+                div []
+                    [ h1 [id "title"] [text comp.name]
+                    , viewCompetitors comp model.people
+                    ]
+            _ ->
+                p [id "loading"] [text "Loading..."]
+        ]
 
 viewCompetitors competition people =
     table [id "competitors"]

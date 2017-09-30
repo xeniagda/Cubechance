@@ -118,7 +118,12 @@ viewDropdown model =
 renderComps : List Base.Competition -> Html Msg
 renderComps comps =
     table [] <|
-        List.map (\comp ->
+    tr [] 
+        [ th [] [ text "Competition" ]
+        , th [] [ text "Competition ID" ]
+        , th [] [ text "Date" ]
+        ]
+     :: List.map (\comp ->
             tr []
             [ a [href <| "/comp.html?" ++ comp.id] [ td [] [text comp.name] ]
             , td [] [text comp.id]

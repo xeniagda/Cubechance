@@ -9384,42 +9384,71 @@ var _user$project$Main$renderComps = function (comps) {
 	return A2(
 		_elm_lang$html$Html$table,
 		{ctor: '[]'},
-		A2(
-			_elm_lang$core$List$map,
-			function (comp) {
-				return A2(
-					_elm_lang$html$Html$tr,
-					{ctor: '[]'},
-					{
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$tr,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$th,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('Competition'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
 						ctor: '::',
 						_0: A2(
-							_elm_lang$html$Html$a,
+							_elm_lang$html$Html$th,
+							{ctor: '[]'},
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$href(
-									A2(_elm_lang$core$Basics_ops['++'], '/comp.html?', comp.id)),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$td,
-									{ctor: '[]'},
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html$text(comp.name),
-										_1: {ctor: '[]'}
-									}),
+								_0: _elm_lang$html$Html$text('Competition ID'),
 								_1: {ctor: '[]'}
 							}),
 						_1: {
 							ctor: '::',
 							_0: A2(
-								_elm_lang$html$Html$td,
+								_elm_lang$html$Html$th,
 								{ctor: '[]'},
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html$text(comp.id),
+									_0: _elm_lang$html$Html$text('Date'),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}
+					}
+				}),
+			_1: A2(
+				_elm_lang$core$List$map,
+				function (comp) {
+					return A2(
+						_elm_lang$html$Html$tr,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$a,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$href(
+										A2(_elm_lang$core$Basics_ops['++'], '/comp.html?', comp.id)),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$td,
+										{ctor: '[]'},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text(comp.name),
+											_1: {ctor: '[]'}
+										}),
 									_1: {ctor: '[]'}
 								}),
 							_1: {
@@ -9429,16 +9458,27 @@ var _user$project$Main$renderComps = function (comps) {
 									{ctor: '[]'},
 									{
 										ctor: '::',
-										_0: _elm_lang$html$Html$text(
-											_user$project$Base$viewDate(comp.date)),
+										_0: _elm_lang$html$Html$text(comp.id),
 										_1: {ctor: '[]'}
 									}),
-								_1: {ctor: '[]'}
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$td,
+										{ctor: '[]'},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text(
+												_user$project$Base$viewDate(comp.date)),
+											_1: {ctor: '[]'}
+										}),
+									_1: {ctor: '[]'}
+								}
 							}
-						}
-					});
-			},
-			comps));
+						});
+				},
+				comps)
+		});
 };
 var _user$project$Main$getMatchingComps = function (_p0) {
 	var _p1 = _p0;

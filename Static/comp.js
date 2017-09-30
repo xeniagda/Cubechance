@@ -9564,46 +9564,77 @@ var _user$project$Main$viewCompetitors = F2(
 			});
 	});
 var _user$project$Main$view = function (model) {
-	var _p4 = model.comp;
-	if (_p4.ctor === 'Just') {
-		var _p5 = _p4._0;
-		return A2(
-			_elm_lang$html$Html$div,
-			{ctor: '[]'},
-			{
+	return A2(
+		_elm_lang$html$Html$div,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$a,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$href('/index.html'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('←'),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
 				ctor: '::',
 				_0: A2(
-					_elm_lang$html$Html$h1,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$id('title'),
-						_1: {ctor: '[]'}
-					},
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html$text(_p5.name),
-						_1: {ctor: '[]'}
-					}),
+					_elm_lang$html$Html$br,
+					{ctor: '[]'},
+					{ctor: '[]'}),
 				_1: {
 					ctor: '::',
-					_0: A2(_user$project$Main$viewCompetitors, _p5, model.people),
+					_0: function () {
+						var _p4 = model.comp;
+						if (_p4.ctor === 'Just') {
+							var _p5 = _p4._0;
+							return A2(
+								_elm_lang$html$Html$div,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$h1,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$id('title'),
+											_1: {ctor: '[]'}
+										},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text(_p5.name),
+											_1: {ctor: '[]'}
+										}),
+									_1: {
+										ctor: '::',
+										_0: A2(_user$project$Main$viewCompetitors, _p5, model.people),
+										_1: {ctor: '[]'}
+									}
+								});
+						} else {
+							return A2(
+								_elm_lang$html$Html$p,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$id('loading'),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('Loading...'),
+									_1: {ctor: '[]'}
+								});
+						}
+					}(),
 					_1: {ctor: '[]'}
 				}
-			});
-	} else {
-		return A2(
-			_elm_lang$html$Html$p,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$id('loading'),
-				_1: {ctor: '[]'}
-			},
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html$text('Loading...'),
-				_1: {ctor: '[]'}
-			});
-	}
+			}
+		});
 };
 var _user$project$Main$decodeCompAndPeople = A3(
 	_elm_lang$core$Json_Decode$map2,

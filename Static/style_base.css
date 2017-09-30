@@ -4,11 +4,17 @@ body {
     font-family: Helvetica;
 }
 
+h1 {
+    text-align: center;
+    color: #111;
+}
+
 /* table {
     border: 1px solid black;
 } */
 
 table {
+    margin-top: 10px;
     width: 100%;
     background: #FC9;
 }
