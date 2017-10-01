@@ -1,3 +1,5 @@
+port module Main exposing (..)
+
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -17,6 +19,8 @@ main =
         , view = view
         , subscriptions = subs
         }
+
+port title : String -> Cmd a
 
 type alias Flags =
     { compId : String }
@@ -52,10 +56,9 @@ update msg model =
     case msg of
         LoadComp ->
             model !
-            [
-                Http.send ParseComp
-                    <| Http.getString
-                        <| "api/comp/" ++ model.compId
+            [ Http.send ParseComp
+                <| Http.getString
+                    <| "api/comp/" ++ model.compId
             ]
 
         ParseComp (Ok text) ->
@@ -64,7 +67,9 @@ update msg model =
                     { model
                         | comp = Just comp
                         , people = people
-                    } ! []
+                    } ! 
+                    [ title <| comp.name
+                    ]
                 Err err ->
                     { model | error = Just <| toString err } ! []
         ParseComp (Err err) ->

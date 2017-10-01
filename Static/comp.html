@@ -11,5 +11,6 @@
     </body>
     <script>
 var app = Elm.Main.fullscreen({compId: window.location.search.substring(1)})
+app.ports.title.subscribe(title => document.title = title);
     </script>
 </html>

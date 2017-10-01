@@ -9647,6 +9647,11 @@ var _user$project$Main$decodeCompAndPeople = A3(
 		_elm_lang$core$Json_Decode$field,
 		'people',
 		_elm_lang$core$Json_Decode$list(_user$project$Base$decodePerson)));
+var _user$project$Main$title = _elm_lang$core$Native_Platform.outgoingPort(
+	'title',
+	function (v) {
+		return v;
+	});
 var _user$project$Main$Flags = function (a) {
 	return {compId: a};
 };
@@ -9677,15 +9682,20 @@ var _user$project$Main$update = F2(
 			if (_p6._0.ctor === 'Ok') {
 				var _p7 = A2(_elm_lang$core$Json_Decode$decodeString, _user$project$Main$decodeCompAndPeople, _p6._0._0);
 				if (_p7.ctor === 'Ok') {
+					var _p8 = _p7._0._0;
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
 							{
-								comp: _elm_lang$core$Maybe$Just(_p7._0._0),
+								comp: _elm_lang$core$Maybe$Just(_p8),
 								people: _p7._0._1
 							}),
-						{ctor: '[]'});
+						{
+							ctor: '::',
+							_0: _user$project$Main$title(_p8.name),
+							_1: {ctor: '[]'}
+						});
 				} else {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
