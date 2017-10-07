@@ -84,7 +84,7 @@ decodeComp =
         |> required "name" D.string
         |> required "events" (D.list D.string)
         |> required "start" decodeDate
-        |> required "people" (D.list decompCompetitor)
+        |> required "competitors" (D.list decompCompetitor)
 
 decodePerson =
     decode Person

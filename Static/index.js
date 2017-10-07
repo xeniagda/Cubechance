@@ -9302,7 +9302,7 @@ var _user$project$Base$decompCompetitor = A3(
 		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Competitor)));
 var _user$project$Base$decodeComp = A3(
 	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-	'people',
+	'competitors',
 	_elm_lang$core$Json_Decode$list(_user$project$Base$decompCompetitor),
 	A3(
 		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
