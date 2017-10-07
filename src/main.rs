@@ -50,11 +50,7 @@ fn index<'r>(file: PathBuf) -> Option<Response<'r>> {
 
     let path = Path::new("Static").join(file);
 
-    println!("Path: {:?}", path);
-
     if let Ok(file) = File::open(&path) {
-        println!("Found content");
-
         let mut resp = Response::new();
         resp.set_status(Status::Ok);
         resp.set_sized_body(file);
@@ -80,10 +76,10 @@ fn wca_id<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
 
     match state.wca {
         Some(ref wca) => {
-            let person = wca.people.get(&id);
+            let person = wca.ext_person(&id);
             match person {
                 Some(person) => {
-                    match serde_json::to_string(person) {
+                    match serde_json::to_string(&person) {
                         Ok(json) => {
                             make_html(json)
                         }
@@ -108,7 +104,7 @@ fn upcoming<'r>(state: State<MutWebState>) -> Response<'r> {
     let state = state.lock().unwrap();
     match state.wca {
         Some(ref wca) => {
-            let comps: Vec<&wca::Competition> = wca.comps.iter()
+            let comps: Vec<&wca::Competition> = wca.comps.values()
                     .filter(|comp| !comp.has_been)
                     .collect();
             match serde_json::to_string(&comps) {
@@ -125,48 +121,20 @@ fn upcoming<'r>(state: State<MutWebState>) -> Response<'r> {
         }
     }
 }
-#[derive(Serialize)]
-struct CompWithPeople<'a> {
-    comp: &'a wca::Competition,
-    people: Vec<PersonWithId<'a>>
-}
-#[derive(Serialize)]
-struct PersonWithId<'a> {
-    person: &'a wca::WcaPerson,
-    id: String
-}
 
 #[get("/api/comp/<id>", rank = 0)]
 fn comp<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
     let state = state.lock().unwrap();
     match state.wca {
         Some(ref wca) => {
-            let comp = wca.comps.iter()
+            let comp = wca.comps.values()
                         .filter(|comp| comp.id == id)
                         .nth(0);
 
             match comp {
                 Some(comp) => {
-                    let people: Vec<PersonWithId> = 
-                            comp.competitors.iter()
-                                .filter_map(|competitor|
-                                    match wca.people.get(&competitor.id) {
-                                        Some(person) => {
-                                            Some(
-                                                PersonWithId {
-                                                    person: person,
-                                                    id: competitor.id.clone()
-                                                }
-                                            )
-                                        }
-                                        None => {
-                                            None
-                                        }
-                                    }
-                                )
-                                .collect();
 
-                    match serde_json::to_string(&CompWithPeople {comp: comp, people: people}) {
+                    match serde_json::to_string(&wca.comp_info(&comp.id)) {
                         Ok(json) => {
                             make_html(json)
                         }
@@ -206,6 +174,7 @@ fn main() {
             match comp {
                 Ok(comp) => {
                     let mut state = thread_state.lock().unwrap();
+                    println!("Me: {:?}", comp.people.get("2015LOOV01"));
                     state.wca = Some(comp);
                 }
                 Err(e) => {

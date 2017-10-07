@@ -11,6 +11,7 @@ extern crate chrono;
 use self::zip::read::{ZipArchive, ZipFile};
 use std::io::{Read, Cursor, BufReader, BufRead};
 use std::vec::Vec;
+use std::collections::HashMap;
 
 use self::chrono::{Date, NaiveDate, offset};
 
@@ -19,8 +20,11 @@ use super::*;
 const WCA_TSV_URL: &'static str = "https://www.worldcubeassociation.org/results/misc/WCA_export.tsv.zip";
 
 
+// Two default comps when you compile with skip_comps
 #[cfg(skip_comps)]
 const SKILLCON: &'static str = "Skillcon2017\tSkillcon 2017\tLas Vegas, Nevada\tUSA\tThis is a WCA competition presented in conjunction with SkillCon 2017. Registration fees will cover admission for SkillCon; check the [SkillCon website](http://skillcon.org/) for more info on the other events and seminars that will be going on. Registration will cost a flat $50 per competitor. **Before registering, you must read the \"Competitor Responsibilities\" tab.** This tab details the responsibilites of all competitors at this competition.\t2017\t12\t16\t12\t17\t222 333 333bf 333mbf 333oh 444 444bf 555 555bf 666 minx pyram\t[{Shelley Chang}{mailto:shelley.chang@cubingusa.org}] [{Kit Clement}{mailto:kit@cubingusa.org}]\t[{Shelley Chang}{mailto:shelley.chang@cubingusa.org}] [{Kit Clement}{mailto:kit@cubingusa.org}] [{Ryan Jew}{mailto:ryan@icnc.com}]\t[Rio Hotel and Casino](https://www.caesars.com/rio-las-vegas)\t3700 W. Flamingo Road Las Vegas, NV 89103\t\t\tSkillcon 2017\t36117521\t-115188177";
+#[cfg(skip_comps)]
+const SSL: &'static str = "SSL2Stockholm2017	SSL 2 Stockholm 2017	Stockholm	Sweden	The competition is a part of the Swedish Speedcubing League 2017. This is the second out of four competitions, followed by a final competiton later this year. The entry fee is set to 150 SEK and must be payed in advance by swedish competitors. Foreigners may pay at the competition venue. A competitor limit has been set to 100 competitors due to venue constraints. More information and payment details can be found on the competition website.	2017	4	8	4	9	222 333 333bf 333fm 333mbf 333oh 444 444bf 555 555bf 666 777 pyram skewb	[{Kåre Krig}{mailto:karekrig@gmail.com}] [{Anders Berggren}{mailto:anders_berggren-sjoblom@hotmail.com}]	[{Daniel Wallin}{mailto:danne_wallain@live.se}] [{Timothy Edegran Gren}{mailto:timothy.edegran@edu.nacka.se}]	Nacka Gymnasium	Griffelvägen 17, 131 40, Nacka	The main hall will be the school dining hall of Nacka Gymnasium. Long events will be held in a side-room close to the ma	http://ssl-se.webnode.se/ssl-2-stockholm-2017/	SSL 2 Stockholm 2017	59310982	18150448";
 
 // Downloads and parses the current WCA results.
 pub fn download_wca<'a>() -> Result<WcaResults, WcaError> {
@@ -35,13 +39,12 @@ pub fn download_wca<'a>() -> Result<WcaResults, WcaError> {
     let mut zip = ZipArchive::new(cur)?;
 
  
-    let mut results = WcaResults::default();
-
-    println!("Skip comps: {}", cfg!(skip_comps));
+    let mut results = WcaResults { people: HashMap::new(), comps: HashMap::new(), download_date: DateW::new(offset::Utc::today()) };
 
     #[cfg(skip_comps)]
     {
         println!("Skipping comps, adding SkillCon!");
+        insert_comp(SSL, &mut results)?;
         insert_comp(SKILLCON, &mut results)?;
     }
     #[cfg(not(skip_comps))]
@@ -133,10 +136,12 @@ fn insert_result<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), WcaE
         return Err(WcaError::PersonE(format!("Expected 17 values, found {}", stuff.len())));
     }
 
+    let comp_id = stuff[0];
     let event = stuff[1];
     let name = stuff[6];
     let id = stuff[7];
     let mut times = Vec::new();
+
     for i in 10..15 {
         let time: Result<i32, _> = stuff[i].parse();
         match time {
@@ -145,7 +150,13 @@ fn insert_result<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), WcaE
                     times.push(Time::DNF);
                 }
                 else if x != 0 {
-                    times.push(Time::Time(x as u16));
+                    let comp = results.comps.get(comp_id);
+                    match comp {
+                        None => { times.push(Time::Time(x as u16)); }
+                        Some(&ref comp) => {
+                            times.push(Time::TimeWithDate(x as u16, comp.start.clone()));
+                        }
+                    }
                 }
             }
             Err(e) => {
@@ -180,17 +191,17 @@ fn insert_comp<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), WcaErr
     let s_month = stuff[6];
     let s_day = stuff[7];
     let s_n_date = NaiveDate::from_ymd(s_year.parse()?, s_month.parse()?, s_day.parse()?);
-    let s_date: Date<offset::Utc> = Date::from_utc(s_n_date, offset::Utc);
+    let s_date = DateW::new(Date::from_utc(s_n_date, offset::Utc));
 
     // End date
     let e_month = stuff[8];
     let e_day = stuff[9];
     let e_n_date = NaiveDate::from_ymd(s_year.parse()?, e_month.parse()?, e_day.parse()?);
-    let e_date: Date<offset::Utc> = Date::from_utc(e_n_date, offset::Utc);
+    let e_date = DateW::new(Date::from_utc(e_n_date, offset::Utc));
 
     let events = stuff[10].split(" ").map(|e| e.to_string()).collect();
 
-    let has_been = s_date < offset::Utc::today();
+    let has_been = *s_date < offset::Utc::today();
 
 
     let comp =
@@ -216,7 +227,7 @@ fn insert_comp<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), WcaErr
                     competitors: wca_competitors::download_competitors(comp_id)?
                 }
             };
-    results.comps.push(comp);
+    results.comps.insert(comp_id.to_string(), comp);
 
     Ok(())
 
