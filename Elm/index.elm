@@ -98,6 +98,7 @@ view model =
         [ input [ placeholder "Search", value model.search, onInput Search ] []
         , viewDropdown model
         , renderComps <| List.sortWith (Tuple.second model.sorting) <| getMatchingComps model
+        , wcaDisc
         ] ++ (
             case model.error of
                 Just err -> [p [ style [("color", "red")] ] [ text err ]]
@@ -130,6 +131,15 @@ renderComps comps =
             , td [] [text <| Base.viewDate comp.date]
             ]
         ) comps
+
+wcaDisc =
+    p [style [( "font-size", "9pt" )]]
+        [ text "Data taken from World Cube Association ("
+        , a [ href "https://www.worldcubeassociation.org" ] [ text "https://www.worldcubeassociation.org" ]
+        , text ") daily. This is not the actual information, it can be found "
+        , a [ href "https://www.worldcubeassociation.org/results" ] [ text "here" ]
+        , text ". "
+        ]
 
 
 subs model = Time.every (Time.second * 10) <| always LoadUpcoming

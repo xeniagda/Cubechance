@@ -174,7 +174,6 @@ fn main() {
             match comp {
                 Ok(comp) => {
                     let mut state = thread_state.lock().unwrap();
-                    println!("Me: {:?}", comp.people.get("2015LOOV01"));
                     state.wca = Some(comp);
                 }
                 Err(e) => {

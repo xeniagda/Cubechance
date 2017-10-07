@@ -9380,6 +9380,61 @@ var _user$project$Base$decodePerson = A3(
 			_elm_lang$core$Json_Decode$string,
 			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Person))));
 
+var _user$project$Main$wcaDisc = A2(
+	_elm_lang$html$Html$p,
+	{
+		ctor: '::',
+		_0: _elm_lang$html$Html_Attributes$style(
+			{
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: 'font-size', _1: '9pt'},
+				_1: {ctor: '[]'}
+			}),
+		_1: {ctor: '[]'}
+	},
+	{
+		ctor: '::',
+		_0: _elm_lang$html$Html$text('Data taken from World Cube Association ('),
+		_1: {
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$a,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$href('https://www.worldcubeassociation.org'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('https://www.worldcubeassociation.org'),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html$text(') daily. This is not the actual information, it can be found '),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$a,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$href('https://www.worldcubeassociation.org/results'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('here'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html$text('. '),
+						_1: {ctor: '[]'}
+					}
+				}
+			}
+		}
+	});
 var _user$project$Main$renderComps = function (comps) {
 	return A2(
 		_elm_lang$html$Html$table,
@@ -9622,7 +9677,11 @@ var _user$project$Main$view = function (model) {
 								_elm_lang$core$List$sortWith,
 								_elm_lang$core$Tuple$second(model.sorting),
 								_user$project$Main$getMatchingComps(model))),
-						_1: {ctor: '[]'}
+						_1: {
+							ctor: '::',
+							_0: _user$project$Main$wcaDisc,
+							_1: {ctor: '[]'}
+						}
 					}
 				}
 			},
