@@ -111,21 +111,44 @@ pub struct CompInfo<'a> {
 pub struct ExtendedPerson<'a> {
     pub person: &'a WcaPerson,
     pub id: String,
-    pub current_avgs: HashMap<String, Time>, // Event: avg
+    pub current_avgs: HashMap<String, (Time, f64)>, // Event: (avg, dev)
 }
 
 impl WcaPerson {
-    pub fn get_avgs(&self) -> HashMap<String, Time> {
+    pub fn get_avgs(&self) -> HashMap<String, (Time, f64)> {
         let mut res = HashMap::new();
         for (event, times) in (*self).times.iter() {
-            let avg: f64 = times.iter()
-                        .filter_map(|t| t.to_option_sec())
-                        .map(|t| t / (times.len() as f64))
-                        .sum();
-            res.insert(event.clone(), Time::Time((avg * 100f64) as u16));
+            let ( avg, dev ) = get_avg_stddev(times);
+            res.insert(event.clone(), ( Time::Time((avg * 100f64) as u16), dev ));
         }
         res
     }
+
+}
+pub fn get_avg_stddev(times: &[Time]) -> (f64, f64) {
+    let times_weight: Vec<(f64, f64)> = times.iter()
+            .filter_map(|t| {
+                match t {
+                    &Time::DNF => None,
+                    &Time::Time(ref x) => Some((*x as f64 / 100f64, 0.01)),
+                    &Time::TimeWithDate(ref x, ref d) => {
+                        let date_diff = (*d).signed_duration_since(offset::Utc::today()).num_weeks();
+                        Some((*x as f64 / 100f64, 1f64 / date_diff as f64))
+                    }
+                }
+            })
+            .collect();
+    let weighted_sum: f64 = times_weight.iter()
+            .map(|t| t.0 * t.1)
+            .sum();
+    let total_weight: f64 = times_weight.iter()
+            .map(|t| t.1)
+            .sum();
+    let avg = weighted_sum / total_weight;
+    let weighted_stddev: f64 = times_weight.iter()
+            .map(|t| (t.0 - avg) * (t.0 - avg) * t.1)
+            .sum();
+    (avg, f64::sqrt(weighted_stddev / total_weight))
 }
 
 impl WcaResults {
