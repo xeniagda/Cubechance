@@ -5,8 +5,8 @@ body {
 }
 
 h1 {
-    text-align: center;
     color: #111;
+    margin: 0px;
 }
 
 /* table {
@@ -30,4 +30,10 @@ tr {
 }
 th {
     text-align: center;
+}
+#center {
+    text-align: center;
+}
+#compLink {
+    font-size: 9px;
 }
