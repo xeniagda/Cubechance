@@ -76,13 +76,17 @@ update msg model =
             { model | error = Just <| toString err } ! []
 
 view model =
-    div [] 
+    let compLink = "https://www.worldcubeassociation.org/competitions/" ++ model.compId
+    in div [] 
         [ a [ href "/index.html" ] [ text "←" ]
         , br [] []
         , case model.comp of
             Just comp ->
                 div []
-                    [ h1 [id "title"] [text comp.name]
+                    [ div [id "center"] [
+                        h1 [id "title"] [text comp.name]
+                        , a [ id "compLink", href compLink ] [ text "(On WCA)" ]
+                    ]
                     , viewCompetitors comp model.people
                     ]
             _ ->
@@ -102,10 +106,12 @@ viewCompetitors competition people =
             competition.competitors
 
 viewCompetitor competition competitor person =
-    tr [class "competitor"]
+    let personLink = "https://www.worldcubeassociation.org/persons/" ++ person.id
+    in tr [class "competitor"]
         <|
-        [ td [class "comp_name"] [text person.name]
-        --, td [class "comp_id"] [text person.id]
+        [ td [class "comp_name"] [
+            a [ href personLink ] [ text person.name]
+        ]
         ] ++ List.map (\event -> displayEvent event competition person) competition.events
 
 genHeader competition =

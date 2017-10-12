@@ -9505,6 +9505,7 @@ var _user$project$Main$genHeader = function (competition) {
 };
 var _user$project$Main$viewCompetitor = F3(
 	function (competition, competitor, person) {
+		var personLink = A2(_elm_lang$core$Basics_ops['++'], 'https://www.worldcubeassociation.org/persons/', person.id);
 		return A2(
 			_elm_lang$html$Html$tr,
 			{
@@ -9525,7 +9526,18 @@ var _user$project$Main$viewCompetitor = F3(
 						},
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html$text(person.name),
+							_0: A2(
+								_elm_lang$html$Html$a,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$href(personLink),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(person.name),
+									_1: {ctor: '[]'}
+								}),
 							_1: {ctor: '[]'}
 						}),
 					_1: {ctor: '[]'}
@@ -9564,6 +9576,7 @@ var _user$project$Main$viewCompetitors = F2(
 			});
 	});
 var _user$project$Main$view = function (model) {
+	var compLink = A2(_elm_lang$core$Basics_ops['++'], 'https://www.worldcubeassociation.org/competitions/', model.compId);
 	return A2(
 		_elm_lang$html$Html$div,
 		{ctor: '[]'},
@@ -9599,16 +9612,46 @@ var _user$project$Main$view = function (model) {
 								{
 									ctor: '::',
 									_0: A2(
-										_elm_lang$html$Html$h1,
+										_elm_lang$html$Html$div,
 										{
 											ctor: '::',
-											_0: _elm_lang$html$Html_Attributes$id('title'),
+											_0: _elm_lang$html$Html_Attributes$id('center'),
 											_1: {ctor: '[]'}
 										},
 										{
 											ctor: '::',
-											_0: _elm_lang$html$Html$text(_p5.name),
-											_1: {ctor: '[]'}
+											_0: A2(
+												_elm_lang$html$Html$h1,
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$id('title'),
+													_1: {ctor: '[]'}
+												},
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html$text(_p5.name),
+													_1: {ctor: '[]'}
+												}),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_elm_lang$html$Html$a,
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html_Attributes$id('compLink'),
+														_1: {
+															ctor: '::',
+															_0: _elm_lang$html$Html_Attributes$href(compLink),
+															_1: {ctor: '[]'}
+														}
+													},
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html$text('(On WCA)'),
+														_1: {ctor: '[]'}
+													}),
+												_1: {ctor: '[]'}
+											}
 										}),
 									_1: {
 										ctor: '::',
