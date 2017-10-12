@@ -49,6 +49,15 @@ update msg model =
                     { model | tetrisState = move model.tetrisState DRight } ! []
                 38 -> -- Up
                     { model | tetrisState = rotate_ model.tetrisState } ! []
+                40 -> -- Down
+                    let (newState, cmd) = updateTetris 0 model.tetrisState
+                    in 
+                        (
+                            { model
+                            | tetrisState = newState
+                            }
+                        , cmd
+                        )
                 _ -> always (model ! []) <| Debug.log "Key down" code
         Update time -> 
             case model.lastTime of

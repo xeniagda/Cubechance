@@ -10861,8 +10861,8 @@ var _user$project$Main$update = F2(
 						}),
 					{ctor: '[]'});
 			case 'Key':
-				var _p25 = _p23._0;
-				var _p24 = _p25;
+				var _p26 = _p23._0;
+				var _p24 = _p26;
 				switch (_p24) {
 					case 37:
 						return A2(
@@ -10891,6 +10891,17 @@ var _user$project$Main$update = F2(
 									tetrisState: _user$project$Main$rotate_(model.tetrisState)
 								}),
 							{ctor: '[]'});
+					case 40:
+						var _p25 = A2(_user$project$Main$updateTetris, 0, model.tetrisState);
+						var newState = _p25._0;
+						var cmd = _p25._1;
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{tetrisState: newState}),
+							_1: cmd
+						};
 					default:
 						return A2(
 							_elm_lang$core$Basics$always,
@@ -10898,31 +10909,31 @@ var _user$project$Main$update = F2(
 								_elm_lang$core$Platform_Cmd_ops['!'],
 								model,
 								{ctor: '[]'}),
-							A2(_elm_lang$core$Debug$log, 'Key down', _p25));
+							A2(_elm_lang$core$Debug$log, 'Key down', _p26));
 				}
 			default:
-				var _p28 = _p23._0;
-				var _p26 = model.lastTime;
-				if (_p26.ctor === 'Nothing') {
+				var _p29 = _p23._0;
+				var _p27 = model.lastTime;
+				if (_p27.ctor === 'Nothing') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
 							{
-								lastTime: _elm_lang$core$Maybe$Just(_p28)
+								lastTime: _elm_lang$core$Maybe$Just(_p29)
 							}),
 						{ctor: '[]'});
 				} else {
-					var delta = (_p28 - _p26._0) / 1000;
-					var _p27 = A2(_user$project$Main$updateTetris, delta, model.tetrisState);
-					var newState = _p27._0;
-					var cmd = _p27._1;
+					var delta = (_p29 - _p27._0) / 1000;
+					var _p28 = A2(_user$project$Main$updateTetris, delta, model.tetrisState);
+					var newState = _p28._0;
+					var cmd = _p28._1;
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
 							{
-								lastTime: _elm_lang$core$Maybe$Just(_p28),
+								lastTime: _elm_lang$core$Maybe$Just(_p29),
 								tetrisState: newState
 							}),
 						_1: cmd
