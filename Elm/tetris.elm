@@ -8,8 +8,13 @@ import Svg.Attributes as Sa
 import Time
 import Keyboard
 import Random
+import Random.Extra as Re
+import Random.List as Rl
 
 import Base
+
+
+size = 24
 
 main =
     program
@@ -27,19 +32,19 @@ type alias Model =
 type Msg
     = Update Time.Time
     | Key Int
-    | SetDropping Dropping
+    | SetDroppings (List Dropping)
 
 init : (Model, Cmd Msg)
-init = { lastTime = Nothing, tetrisState = { blocks = defaultTetris, dropping = Nothing } } ! []
+init = { lastTime = Nothing, tetrisState = { blocks = defaultTetris, dropping = Nothing, nexts = [] } } ! []
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
-        SetDropping d ->
+        SetDroppings d ->
             let state = model.tetrisState
             in 
                 { model 
-                | tetrisState = { state | dropping = Just d } 
+                | tetrisState = { state | nexts = d }
                 } ! []
         Key code ->
             case code of
@@ -73,10 +78,23 @@ update msg model =
                             }
                         , cmd
                         )
-
+view : Model -> Html Msg
 view model =
-    div [] [
-        S.svg [Sa.width "500px", Sa.height "500px"] <| renderTetris model.tetrisState
+    div [ id "game", align "center" ] 
+        [ 
+        S.svg
+            [ id "gameS"
+            , Sa.height <| toString <| size * List.length model.tetrisState.blocks
+            , Sa.width <| toString <| size * width model.tetrisState.blocks
+            ]
+            <| renderTetris model.tetrisState
+        ,
+        S.svg 
+            [ id "blur"
+            , Sa.height <| toString <| size * List.length model.tetrisState.blocks
+            , Sa.width <| toString <| size * width model.tetrisState.blocks
+            ]
+            <| renderTetris model.tetrisState
         ]
 
 subs model = 
@@ -88,7 +106,29 @@ subs model =
 
 type BlockState 
     = Empty
-    | DownLeft
+    | Filled FilledBlockState Color
+
+type Color
+    = Red
+    | Blue
+    | Green
+    | White
+    | Yellow
+    | LBlue
+    | Orange
+
+colStr c =
+    case c of
+        Red -> "red"
+        Blue -> "rgb(0,0,255)"
+        Green -> "rgb(0,255,0)"
+        White -> "rgb(255,255,255)"
+        Yellow -> "rgb(255,255,0)"
+        LBlue -> "rgb(0,255,255)"
+        Orange -> "rgb(255,120,0)"
+
+type FilledBlockState
+    = DownLeft
     | DownRight
     | UpLeft
     | UpRight
@@ -105,6 +145,7 @@ type alias Dropping =
 type alias TetrisState = 
     { blocks : Blocks
     , dropping : Maybe Dropping
+    , nexts : List Dropping
     }
 
 
@@ -151,16 +192,18 @@ defaultTetris =
     List.repeat 32 <|
     List.repeat 10 Empty
 
-defaultDropping =
-    { x = 1
-    , y = 0
-    , shape = [[ Full, Empty ], [ Full, Empty ], [ Full, Full ]]
-    }
-
 updateTetris : Float -> TetrisState -> (TetrisState, Cmd Msg)
 updateTetris delta state =
     case state.dropping of
-        Nothing -> state ! [ Random.generate SetDropping <| droppingGenerator state ]
+        Nothing ->
+            case state.nexts of
+                (p::rest) ->
+                    { state
+                    | dropping = Just p
+                    , nexts = rest
+                    } ! []
+                [] ->
+                    state ! [ Random.generate SetDroppings <| nextsGenerator state ]
         Just dropping ->
             let newDropping = { dropping | y = dropping.y + 1 }
             in
@@ -176,10 +219,13 @@ updateTetris delta state =
                             removeWholeLines
                             <| Maybe.withDefault state.blocks
                             <| place state.blocks dropping
-                        } ! [ Random.generate SetDropping <| droppingGenerator state ]
+                        } ! []
+
 removeWholeLines : Blocks -> Blocks
 removeWholeLines =
-    List.filter <| not << List.all (\k -> k == Full)
+    List.filter 
+        <| not << 
+            List.all (\k -> k /= Empty)
 
 fits : Blocks -> Dropping -> Bool
 fits board piece =
@@ -257,67 +303,70 @@ renderTetris state =
             case state.dropping of
                 Nothing -> state.blocks
                 Just dropping -> Maybe.withDefault state.blocks <| place state.blocks dropping
-    in List.concat <|
+    in renderGrid 0 0 placed
+
+renderGrid oy ox =
+    List.concat <<
         List.indexedMap (\y line ->
             List.indexedMap (\x blk ->
-                renderBlock state y x blk
+                renderBlock (y + oy) (x + ox) blk
             )
             line
         )
-        placed
 
-renderBlock : TetrisState -> Int -> Int -> BlockState -> S.Svg msg
-renderBlock state y x blk =
+renderBlock : Int -> Int -> BlockState -> S.Svg msg
+renderBlock y x blk =
     case blk of
-        Full -> S.rect
-                [ Sa.x <| toString <| x * 10
-                , Sa.y <| toString <| y * 10
-                , Sa.width "10"
-                , Sa.height "10"
-                , Sa.style "fill:red"
+        Filled _ col -> S.rect
+                [ Sa.x <| toString <| x * size
+                , Sa.y <| toString <| y * size
+                , Sa.width <| toString size
+                , Sa.height <| toString size
+                , Sa.style <| "fill:" ++ colStr col
                 ] []
         _ -> S.rect
-                [ Sa.x <| toString <| x * 10
-                , Sa.y <| toString <| y * 10
-                , Sa.width "10"
-                , Sa.height "10"
-                , Sa.style "fill:gray"
+                [ Sa.x <| toString <| x * size
+                , Sa.y <| toString <| y * size
+                , Sa.width <| toString size
+                , Sa.height <| toString size
+                , Sa.style "stroke-width:0.3;stroke:white"
+                , Sa.fillOpacity "0"
                 ] []
 
-droppingGenerator : TetrisState -> Random.Generator Dropping
-droppingGenerator state =
+nextsGenerator : TetrisState -> Random.Generator (List Dropping)
+nextsGenerator state =
+    Random.andThen
+        Rl.shuffle
+        <| Re.combine
+        <| List.map
+            (droppingGenerator state)
+            pieces
+
+
+droppingGenerator : TetrisState -> Blocks -> Random.Generator Dropping
+droppingGenerator state block =
     Random.map3
         Dropping
         (rConst 0)
         (Random.int 3 <| width state.blocks - 3)
-        blockGenerator
-
-blockGenerator : Random.Generator Blocks
-blockGenerator =
-    Random.andThen
-    (\x ->
-        case getAt x pieces of
-            Just p -> rConst p
-            Nothing -> blockGenerator
-    )
-    (Random.int 0 6)
+        (rConst block)
 
 rConst x = Random.map (always x) Random.bool
 
 
 pieces =
     [ -- O
-        [ [ Full, Full ], [ Full, Full ] ]
+        [ [ Filled Full Red, Filled Full Red ], [ Filled Full Red, Filled Full Red ] ]
     , -- I
-        [ [ Full, Full, Full, Full ] ]
+        [ [ Filled Full Blue, Filled Full Blue, Filled Full Blue, Filled Full Blue ] ]
     , -- T
-        [ [ Empty, Full, Empty ], [ Full, Full, Full ] ]
+        [ [ Empty, Filled Full Green, Empty ], [ Filled Full Green, Filled Full Green, Filled Full Green ] ]
     , -- S
-        [ [ Empty, Full, Full ], [ Full, Full, Empty ] ]
+        [ [ Empty, Filled Full LBlue, Filled Full LBlue ], [ Filled Full LBlue, Filled Full LBlue, Empty ] ]
     , -- Z
-        [ [ Full, Full, Empty ], [ Empty, Full, Full ]]
+        [ [ Filled Full Orange, Filled Full Orange, Empty ], [ Empty, Filled Full Orange, Filled Full Orange ]]
     , -- J
-        [ [ Full, Empty, Empty ], [ Full, Full, Full ] ]
+        [ [ Filled Full White, Empty, Empty ], [ Filled Full White, Filled Full White, Filled Full White ] ]
     , -- L
-        [ [ Full, Full, Full ], [ Full, Empty, Empty ] ]
+        [ [ Filled Full Yellow, Filled Full Yellow, Filled Full Yellow ], [ Filled Full Yellow, Empty, Empty ] ]
     ]
