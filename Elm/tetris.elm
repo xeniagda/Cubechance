@@ -42,8 +42,8 @@ update msg model =
     case msg of
         SetDroppings d ->
             let state = model.tetrisState
-            in 
-                { model 
+            in
+                { model
                 | tetrisState = { state | nexts = d }
                 } ! []
         Key code ->
@@ -56,7 +56,7 @@ update msg model =
                     { model | tetrisState = rotate_ model.tetrisState } ! []
                 40 -> -- Down
                     let (newState, cmd) = updateTetris 0 model.tetrisState
-                    in 
+                    in
                         (
                             { model
                             | tetrisState = newState
@@ -64,24 +64,24 @@ update msg model =
                         , cmd
                         )
                 _ -> always (model ! []) <| Debug.log "Key down" code
-        Update time -> 
+        Update time ->
             case model.lastTime of
                 Nothing -> { model | lastTime = Just time } ! []
                 Just last ->
                     let delta = (time - last) / 1000
                         (newState, cmd) = updateTetris delta model.tetrisState
-                    in 
+                    in
                         (
                             { model
-                            | lastTime = Just time 
+                            | lastTime = Just time
                             , tetrisState = newState
                             }
                         , cmd
                         )
 view : Model -> Html Msg
 view model =
-    div [ id "game", align "center" ] 
-        [ 
+    div [ id "game", align "center" ]
+        [
         S.svg
             [ id "gameS"
             , Sa.height <| toString <| size * List.length model.tetrisState.blocks
@@ -89,7 +89,7 @@ view model =
             ]
             <| renderTetris model.tetrisState
         ,
-        S.svg 
+        S.svg
             [ id "blur"
             , Sa.height <| toString <| size * List.length model.tetrisState.blocks
             , Sa.width <| toString <| size * width model.tetrisState.blocks
@@ -97,14 +97,14 @@ view model =
             <| renderTetris model.tetrisState
         ]
 
-subs model = 
+subs model =
     Sub.batch
         [ Time.every (Time.second / 3) Update
         , Keyboard.downs Key
         ]
 
 
-type BlockState 
+type BlockState
     = Empty
     | Filled FilledBlockState Color
 
@@ -116,6 +116,9 @@ type Color
     | Yellow
     | LBlue
     | Orange
+    | Purple
+
+cols = [Red, Blue, Green, White, LBlue, Orange, Purple]
 
 colStr c =
     case c of
@@ -126,6 +129,7 @@ colStr c =
         Yellow -> "rgb(255,255,0)"
         LBlue -> "rgb(0,255,255)"
         Orange -> "rgb(255,120,0)"
+        Purple -> "rgb(255,0,200)"
 
 type FilledBlockState
     = DownLeft
@@ -142,7 +146,7 @@ type alias Dropping =
     , shape : Blocks
     }
 
-type alias TetrisState = 
+type alias TetrisState =
     { blocks : Blocks
     , dropping : Maybe Dropping
     , nexts : List Dropping
@@ -176,6 +180,17 @@ setBlock y x block blocks =
                         setAt blocks y <|
                             setAt line x block
 
+merge : BlockState -> BlockState -> Maybe BlockState
+merge a b =
+    case (a, b) of
+        (x, Empty) -> Just x
+        (Empty, x) -> Just x
+        (Filled DownLeft c, Filled UpRight _) -> Just <| Filled Full c
+        (Filled UpRight c, Filled DownLeft _) -> Just <| Filled Full c
+        (Filled DownRight c, Filled UpLeft _) -> Just <| Filled Full c
+        (Filled UpLeft c, Filled DownRight _) -> Just <| Filled Full c
+        _ -> Nothing
+
 mmap : (a -> b) -> Maybe a -> Maybe b
 mmap f m =
     case m of
@@ -208,14 +223,14 @@ updateTetris delta state =
             let newDropping = { dropping | y = dropping.y + 1 }
             in
                 if fits state.blocks newDropping
-                    then 
+                    then
                         { state
                         | dropping = Just newDropping
                         } ! []
                     else
                         { state
                         | dropping = Nothing
-                        , blocks = 
+                        , blocks =
                             removeWholeLines
                             <| Maybe.withDefault state.blocks
                             <| place state.blocks dropping
@@ -223,9 +238,13 @@ updateTetris delta state =
 
 removeWholeLines : Blocks -> Blocks
 removeWholeLines =
-    List.filter 
-        <| not << 
-            List.all (\k -> k /= Empty)
+    List.filter
+        <|
+            List.any
+                (\k -> case k of
+                    Filled Full _ -> False
+                    _ -> True
+                )
 
 fits : Blocks -> Dropping -> Bool
 fits board piece =
@@ -250,9 +269,9 @@ placeLine board y x line =
             case getAt y board of
                 Nothing -> Nothing
                 Just bLine ->
-                    case getAt x bLine of
-                        Just Empty ->
-                            let placed = setAt board y (setAt bLine x p)
+                    case merge p <|| getAt x bLine of
+                        Just merged ->
+                            let placed = setAt board y (setAt bLine x merged)
                             in placeLine placed y (x + 1) rest
                         _ -> Nothing
 
@@ -288,6 +307,7 @@ rotate piece =
                 (\x ->
                     List.map
                         (\y ->
+                            rotatePiece <|
                             Maybe.withDefault Empty <|
                             getAt x <||
                             getAt (List.length piece.shape - y - 1) piece.shape
@@ -296,6 +316,20 @@ rotate piece =
                 )
                 <| List.range 0 <| width piece.shape - 1
     in { piece | shape = rotated }
+
+rotatePiece : BlockState -> BlockState
+rotatePiece p =
+    case p of
+        Empty -> Empty
+        Filled x c ->
+            let x_ =
+                case x of
+                    Full -> Full
+                    DownRight -> DownLeft
+                    DownLeft -> UpLeft
+                    UpLeft -> UpRight
+                    UpRight -> DownRight
+            in Filled x_ c
 
 renderTetris : TetrisState -> List (S.Svg msg)
 renderTetris state =
@@ -315,23 +349,170 @@ renderGrid oy ox =
         )
 
 renderBlock : Int -> Int -> BlockState -> S.Svg msg
-renderBlock y x blk =
-    case blk of
-        Filled _ col -> S.rect
-                [ Sa.x <| toString <| x * size
-                , Sa.y <| toString <| y * size
+renderBlock yp xp blk =
+    let y = yp * size
+        x = xp * size
+    in case blk of
+        Filled Full col -> S.rect
+                [ Sa.x <| toString x
+                , Sa.y <| toString y
                 , Sa.width <| toString size
                 , Sa.height <| toString size
                 , Sa.style <| "fill:" ++ colStr col
                 ] []
+        Filled DownLeft col -> S.polygon
+                [ Sa.points <|
+                    String.join " "
+                    [ toString x ++ "," ++ toString y
+                    , toString x ++ "," ++ toString (y + size)
+                    , toString (x + size) ++ "," ++ toString (y + size)
+                    ]
+                , Sa.style <| "fill:" ++ colStr col
+                ] []
+        Filled DownRight col -> S.polygon
+                [ Sa.points <|
+                    String.join " "
+                    [ toString (x + size) ++ "," ++ toString y
+                    , toString x ++ "," ++ toString (y + size)
+                    , toString (x + size) ++ "," ++ toString (y + size)
+                    ]
+                , Sa.style <| "fill:" ++ colStr col
+                ] []
+        Filled UpLeft col -> S.polygon
+                [ Sa.points <|
+                    String.join " "
+                    [ toString x ++ "," ++ toString y
+                    , toString x ++ "," ++ toString (y + size)
+                    , toString (x + size) ++ "," ++ toString y
+                    ]
+                , Sa.style <| "fill:" ++ colStr col
+                ] []
+        Filled UpRight col -> S.polygon
+                [ Sa.points <|
+                    String.join " "
+                    [ toString x ++ "," ++ toString y
+                    , toString (x + size) ++ "," ++ toString y
+                    , toString (x + size) ++ "," ++ toString (y + size)
+                    ]
+                , Sa.style <| "fill:" ++ colStr col
+                ] []
         _ -> S.rect
-                [ Sa.x <| toString <| x * size
-                , Sa.y <| toString <| y * size
+                [ Sa.x <| toString x
+                , Sa.y <| toString y
                 , Sa.width <| toString size
                 , Sa.height <| toString size
                 , Sa.style "stroke-width:0.3;stroke:white"
                 , Sa.fillOpacity "0"
                 ] []
+
+-- Generate a piece with the area of the argument. One area unit is the same as half a square.
+generatePieceWithArea : Int -> Random.Generator Dropping
+generatePieceWithArea area =
+    Random.andThen randomRot
+    <| case area of
+        1 -> Re.constant ( Dropping 0 0 [ [ Filled DownRight Purple ] ] )
+        _ ->
+            let prev = generatePieceWithArea ( area - 1 )
+                adder = Re.choices [ Random.andThen addTri prev, Random.andThen fillTri prev ]
+            in adder
+
+
+-- Helper for generatePieceWithArea. Adds one random triangle to a piece
+addTri : Dropping -> Random.Generator Dropping
+addTri piece =
+    let fullPlaces =
+            List.concat <|
+                List.indexedMap
+                    (\y line ->
+                        let line = Maybe.withDefault [] <| getAt y piece.shape
+                        in
+                            List.filterMap
+                            (\x ->
+                                case getAt x line of
+                                    Just (Filled Full _) -> Just (y, x)
+                                    _ -> Nothing
+                            ) <| List.range 0 <| List.length line - 1
+                    ) piece.shape
+        chooser =
+            Re.sample fullPlaces
+    in
+        Random.andThen
+            (\p -> case p of
+                Nothing -> fillTri piece
+                Just (y, x) ->
+                    let shape =
+                            if y == 0
+                                then (List.map (always Empty) <| Maybe.withDefault [] <| List.head piece.shape)
+                                    :: piece.shape
+                                else piece.shape
+                        yPlace =
+                            if y == 0
+                                then 0
+                                else y - 1
+                        at = getAt x <|| getAt yPlace shape
+                        newPieceGen =
+                            Random.map (\x -> Filled x Purple)
+                                <| Re.choice DownRight DownLeft
+                    in case at of
+                        Just (Filled _ _) -> fillTri piece
+                        _ -> Random.andThen
+                                (\newPiece ->
+                                    let newShape = Debug.log "newShape" <|
+                                            setBlock yPlace x newPiece shape
+                                    in case newShape of
+                                        Nothing -> fillTri piece
+                                        Just shape -> Re.constant
+                                            { piece
+                                            | shape = shape }
+                                )
+                                newPieceGen
+            )
+        chooser
+
+-- Also a helper for generatePieceWithArea. Fills a random triangle to a square
+fillTri : Dropping -> Random.Generator Dropping
+fillTri piece =
+    let halfPlaces =
+            List.concat <|
+                List.indexedMap
+                    (\y line ->
+                        let line = Maybe.withDefault [] <| getAt y piece.shape
+                        in
+                            List.filterMap
+                            (\x ->
+                                case getAt x line of
+                                    Just (Filled Full _) -> Nothing
+                                    Just (Filled _ _) -> Just (y, x)
+                                    _ -> Nothing
+                            ) <| List.range 0 <| List.length line - 1
+                    ) piece.shape
+        chooser =
+            Re.sample halfPlaces
+    in
+        Random.andThen
+            (\p -> case p of
+                Nothing -> addTri piece
+                Just (y, x) ->
+                    let newShape =
+                            setBlock y x (Filled Full Purple) piece.shape
+                    in case newShape of
+                        Nothing -> addTri piece
+                        Just shape -> Re.constant
+                            { piece
+                            | shape = shape }
+            )
+        chooser
+
+
+randomRot : Dropping -> Random.Generator Dropping
+randomRot x =
+    Random.map (Maybe.withDefault x)
+        <| Re.sample
+            [ x
+            , rotate x
+            , rotate <| rotate x
+            , rotate <| rotate <| rotate x
+            ]
 
 nextsGenerator : TetrisState -> Random.Generator (List Dropping)
 nextsGenerator state =
@@ -339,13 +520,39 @@ nextsGenerator state =
         Rl.shuffle
         <| Re.combine
         <| List.map
-            (droppingGenerator state)
-            pieces
+            (always <| Random.andThen (setProps state) <| generatePieceWithArea 8)
+            (List.range 0 5)
+
+setProps : TetrisState -> Dropping -> Random.Generator Dropping
+setProps state piece =
+    let x = Random.int 0 <| width state.blocks - width piece.shape - 1
+        col =
+            Random.map (Maybe.withDefault Purple)
+                <| Re.sample cols
+    in
+        Random.map2
+            (\x col ->
+                { piece
+                | x = x
+                , shape =
+                    List.map
+                        ( List.map
+                            (\p -> case p of
+                                Empty -> Empty
+                                Filled t _ -> Filled t col
+                            )
+                        )
+                        piece.shape
+                }
+            )
+            x
+            col
 
 
 droppingGenerator : TetrisState -> Blocks -> Random.Generator Dropping
 droppingGenerator state block =
-    Random.map3
+    Random.andThen randomRot
+    <| Random.map3
         Dropping
         (rConst 0)
         (Random.int 3 <| width state.blocks - 3)
