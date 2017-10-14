@@ -10560,6 +10560,21 @@ var _user$project$Main$width = function (x) {
 			{ctor: '[]'},
 			_elm_lang$core$List$head(x)));
 };
+var _user$project$Main$setPos = F2(
+	function (state, piece) {
+		var x = A2(
+			_elm_lang$core$Random$int,
+			0,
+			(_user$project$Main$width(state.blocks) - _user$project$Main$width(piece.shape)) - 1);
+		return A2(
+			_elm_lang$core$Random$map,
+			function (x) {
+				return _elm_lang$core$Native_Utils.update(
+					piece,
+					{x: x, y: 0});
+			},
+			x);
+	});
 var _user$project$Main$colStr = function (c) {
 	var _p7 = c;
 	switch (_p7.ctor) {
@@ -10614,9 +10629,59 @@ var _user$project$Main$Dropping = F3(
 	function (a, b, c) {
 		return {y: a, x: b, shape: c};
 	});
-var _user$project$Main$TetrisState = F3(
-	function (a, b, c) {
-		return {blocks: a, dropping: b, nexts: c};
+var _user$project$Main$TetrisState = F4(
+	function (a, b, c, d) {
+		return {blocks: a, dropping: b, nexts: c, hold: d};
+	});
+var _user$project$Main$SetDropping = function (a) {
+	return {ctor: 'SetDropping', _0: a};
+};
+var _user$project$Main$holdPiece = F2(
+	function (idx, state) {
+		var _p10 = {
+			ctor: '_Tuple2',
+			_0: A2(_user$project$Main$getAt, idx, state.hold),
+			_1: state.dropping
+		};
+		if (((_p10.ctor === '_Tuple2') && (_p10._0.ctor === 'Just')) && (_p10._1.ctor === 'Just')) {
+			return A2(
+				_elm_lang$core$Platform_Cmd_ops['!'],
+				_elm_lang$core$Native_Utils.update(
+					state,
+					{
+						hold: A2(
+							_elm_lang$core$Debug$log,
+							'Hold',
+							A3(
+								_user$project$Main$setAt,
+								state.hold,
+								idx,
+								_elm_lang$core$Maybe$Just(_p10._1._0))),
+						dropping: _elm_lang$core$Maybe$Nothing
+					}),
+				function () {
+					var _p11 = _p10._0._0;
+					if (_p11.ctor === 'Just') {
+						return {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$core$Random$generate,
+								_user$project$Main$SetDropping,
+								A2(_user$project$Main$setPos, state, _p11._0)),
+							_1: {ctor: '[]'}
+						};
+					} else {
+						return {ctor: '[]'};
+					}
+				}());
+		} else {
+			return _elm_lang$core$Basics$always(
+				A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					state,
+					{ctor: '[]'}))(
+				A2(_elm_lang$core$Debug$log, 'Nope', _p10));
+		}
 	});
 var _user$project$Main$SetDroppings = function (a) {
 	return {ctor: 'SetDroppings', _0: a};
@@ -10659,7 +10724,8 @@ var _user$project$Main$init = A2(
 		tetrisState: {
 			blocks: _user$project$Main$defaultTetris,
 			dropping: _elm_lang$core$Maybe$Nothing,
-			nexts: {ctor: '[]'}
+			nexts: {ctor: '[]'},
+			hold: A2(_elm_lang$core$List$repeat, 3, _elm_lang$core$Maybe$Nothing)
 		}
 	},
 	{ctor: '[]'});
@@ -10670,67 +10736,67 @@ var _user$project$Main$DownRight = {ctor: 'DownRight'};
 var _user$project$Main$DownLeft = {ctor: 'DownLeft'};
 var _user$project$Main$merge = F2(
 	function (a, b) {
-		var _p10 = {ctor: '_Tuple2', _0: a, _1: b};
-		_v10_6:
+		var _p12 = {ctor: '_Tuple2', _0: a, _1: b};
+		_v12_6:
 		do {
-			_v10_1:
+			_v12_1:
 			do {
-				if (_p10.ctor === '_Tuple2') {
-					switch (_p10._1.ctor) {
+				if (_p12.ctor === '_Tuple2') {
+					switch (_p12._1.ctor) {
 						case 'Empty':
-							return _elm_lang$core$Maybe$Just(_p10._0);
+							return _elm_lang$core$Maybe$Just(_p12._0);
 						case 'Filled':
-							switch (_p10._0.ctor) {
+							switch (_p12._0.ctor) {
 								case 'Empty':
-									break _v10_1;
+									break _v12_1;
 								case 'Filled':
-									switch (_p10._0._0.ctor) {
+									switch (_p12._0._0.ctor) {
 										case 'DownLeft':
-											if (_p10._1._0.ctor === 'UpRight') {
+											if (_p12._1._0.ctor === 'UpRight') {
 												return _elm_lang$core$Maybe$Just(
-													A3(_user$project$Main$Split, _user$project$Main$DownLeft, _p10._0._1, _p10._1._1));
+													A3(_user$project$Main$Split, _user$project$Main$DownLeft, _p12._0._1, _p12._1._1));
 											} else {
-												break _v10_6;
+												break _v12_6;
 											}
 										case 'UpRight':
-											if (_p10._1._0.ctor === 'DownLeft') {
+											if (_p12._1._0.ctor === 'DownLeft') {
 												return _elm_lang$core$Maybe$Just(
-													A3(_user$project$Main$Split, _user$project$Main$DownLeft, _p10._1._1, _p10._0._1));
+													A3(_user$project$Main$Split, _user$project$Main$DownLeft, _p12._1._1, _p12._0._1));
 											} else {
-												break _v10_6;
+												break _v12_6;
 											}
 										case 'DownRight':
-											if (_p10._1._0.ctor === 'UpLeft') {
+											if (_p12._1._0.ctor === 'UpLeft') {
 												return _elm_lang$core$Maybe$Just(
-													A3(_user$project$Main$Split, _user$project$Main$DownRight, _p10._0._1, _p10._1._1));
+													A3(_user$project$Main$Split, _user$project$Main$DownRight, _p12._0._1, _p12._1._1));
 											} else {
-												break _v10_6;
+												break _v12_6;
 											}
 										case 'UpLeft':
-											if (_p10._1._0.ctor === 'DownRight') {
+											if (_p12._1._0.ctor === 'DownRight') {
 												return _elm_lang$core$Maybe$Just(
-													A3(_user$project$Main$Split, _user$project$Main$DownRight, _p10._1._1, _p10._0._1));
+													A3(_user$project$Main$Split, _user$project$Main$DownRight, _p12._1._1, _p12._0._1));
 											} else {
-												break _v10_6;
+												break _v12_6;
 											}
 										default:
-											break _v10_6;
+											break _v12_6;
 									}
 								default:
-									break _v10_6;
+									break _v12_6;
 							}
 						default:
-							if (_p10._0.ctor === 'Empty') {
-								break _v10_1;
+							if (_p12._0.ctor === 'Empty') {
+								break _v12_1;
 							} else {
-								break _v10_6;
+								break _v12_6;
 							}
 					}
 				} else {
-					break _v10_6;
+					break _v12_6;
 				}
 			} while(false);
-			return _elm_lang$core$Maybe$Just(_p10._1);
+			return _elm_lang$core$Maybe$Just(_p12._1);
 		} while(false);
 		return _elm_lang$core$Maybe$Nothing;
 	});
@@ -10738,44 +10804,44 @@ var _user$project$Main$placeLine = F4(
 	function (board, y, x, line) {
 		placeLine:
 		while (true) {
-			var _p11 = line;
-			if (_p11.ctor === '[]') {
+			var _p13 = line;
+			if (_p13.ctor === '[]') {
 				return _elm_lang$core$Maybe$Just(board);
 			} else {
-				if (_p11._0.ctor === 'Empty') {
-					var _v12 = board,
-						_v13 = y,
-						_v14 = x + 1,
-						_v15 = _p11._1;
-					board = _v12;
-					y = _v13;
-					x = _v14;
-					line = _v15;
+				if (_p13._0.ctor === 'Empty') {
+					var _v14 = board,
+						_v15 = y,
+						_v16 = x + 1,
+						_v17 = _p13._1;
+					board = _v14;
+					y = _v15;
+					x = _v16;
+					line = _v17;
 					continue placeLine;
 				} else {
-					var _p12 = A2(_user$project$Main$getAt, y, board);
-					if (_p12.ctor === 'Nothing') {
+					var _p14 = A2(_user$project$Main$getAt, y, board);
+					if (_p14.ctor === 'Nothing') {
 						return _elm_lang$core$Maybe$Nothing;
 					} else {
-						var _p14 = _p12._0;
-						var _p13 = A2(
+						var _p16 = _p14._0;
+						var _p15 = A2(
 							_user$project$Main_ops['<||'],
-							_user$project$Main$merge(_p11._0),
-							A2(_user$project$Main$getAt, x, _p14));
-						if (_p13.ctor === 'Just') {
+							_user$project$Main$merge(_p13._0),
+							A2(_user$project$Main$getAt, x, _p16));
+						if (_p15.ctor === 'Just') {
 							var placed = A3(
 								_user$project$Main$setAt,
 								board,
 								y,
-								A3(_user$project$Main$setAt, _p14, x, _p13._0));
-							var _v18 = placed,
-								_v19 = y,
-								_v20 = x + 1,
-								_v21 = _p11._1;
-							board = _v18;
-							y = _v19;
-							x = _v20;
-							line = _v21;
+								A3(_user$project$Main$setAt, _p16, x, _p15._0));
+							var _v20 = placed,
+								_v21 = y,
+								_v22 = x + 1,
+								_v23 = _p13._1;
+							board = _v20;
+							y = _v21;
+							x = _v22;
+							line = _v23;
 							continue placeLine;
 						} else {
 							return _elm_lang$core$Maybe$Nothing;
@@ -10789,20 +10855,20 @@ var _user$project$Main$place = F2(
 	function (board, piece) {
 		place:
 		while (true) {
-			var _p15 = piece.shape;
-			if (_p15.ctor === '[]') {
+			var _p17 = piece.shape;
+			if (_p17.ctor === '[]') {
 				return _elm_lang$core$Maybe$Just(board);
 			} else {
-				var _p16 = A4(_user$project$Main$placeLine, board, piece.y, piece.x, _p15._0);
-				if (_p16.ctor === 'Nothing') {
+				var _p18 = A4(_user$project$Main$placeLine, board, piece.y, piece.x, _p17._0);
+				if (_p18.ctor === 'Nothing') {
 					return _elm_lang$core$Maybe$Nothing;
 				} else {
-					var _v24 = _p16._0,
-						_v25 = _elm_lang$core$Native_Utils.update(
+					var _v26 = _p18._0,
+						_v27 = _elm_lang$core$Native_Utils.update(
 						piece,
-						{shape: _p15._1, y: piece.y + 1});
-					board = _v24;
-					piece = _v25;
+						{shape: _p17._1, y: piece.y + 1});
+					board = _v26;
+					piece = _v27;
 					continue place;
 				}
 			}
@@ -10815,8 +10881,8 @@ var _user$project$Main$fits = F2(
 			_elm_lang$core$Maybe$Nothing);
 	});
 var _user$project$Main$rotateFill = function (x) {
-	var _p17 = x;
-	switch (_p17.ctor) {
+	var _p19 = x;
+	switch (_p19.ctor) {
 		case 'Full':
 			return _user$project$Main$Full;
 		case 'DownRight':
@@ -10830,21 +10896,21 @@ var _user$project$Main$rotateFill = function (x) {
 	}
 };
 var _user$project$Main$rotatePiece = function (p) {
-	var _p18 = p;
-	switch (_p18.ctor) {
+	var _p20 = p;
+	switch (_p20.ctor) {
 		case 'Empty':
 			return _user$project$Main$Empty;
 		case 'Filled':
 			return A2(
 				_user$project$Main$Filled,
-				_user$project$Main$rotateFill(_p18._0),
-				_p18._1);
+				_user$project$Main$rotateFill(_p20._0),
+				_p20._1);
 		default:
 			return A3(
 				_user$project$Main$Split,
-				_user$project$Main$rotateFill(_p18._0),
-				_p18._1,
-				_p18._2);
+				_user$project$Main$rotateFill(_p20._0),
+				_p20._1,
+				_p20._2);
 	}
 };
 var _user$project$Main$rotate = function (piece) {
@@ -10880,15 +10946,15 @@ var _user$project$Main$rotate = function (piece) {
 		{shape: rotated});
 };
 var _user$project$Main$rotate_ = function (state) {
-	var _p19 = state.dropping;
-	if (_p19.ctor === 'Just') {
-		var _p20 = _p19._0;
-		var rotated = _user$project$Main$rotate(_p20);
+	var _p21 = state.dropping;
+	if (_p21.ctor === 'Just') {
+		var _p22 = _p21._0;
+		var rotated = _user$project$Main$rotate(_p22);
 		return A2(_user$project$Main$fits, state.blocks, rotated) ? _elm_lang$core$Native_Utils.update(
 			state,
 			{
 				dropping: _elm_lang$core$Maybe$Just(
-					_user$project$Main$rotate(_p20))
+					_user$project$Main$rotate(_p22))
 			}) : state;
 	} else {
 		return state;
@@ -10939,10 +11005,10 @@ var _user$project$Main$renderBlock = F3(
 	function (yp, xp, blk) {
 		var x = xp * _user$project$Main$size;
 		var y = yp * _user$project$Main$size;
-		var _p21 = blk;
-		switch (_p21.ctor) {
+		var _p23 = blk;
+		switch (_p23.ctor) {
 			case 'Filled':
-				switch (_p21._0.ctor) {
+				switch (_p23._0.ctor) {
 					case 'Full':
 						return {
 							ctor: '::',
@@ -10970,7 +11036,7 @@ var _user$project$Main$renderBlock = F3(
 														A2(
 															_elm_lang$core$Basics_ops['++'],
 															'fill:',
-															_user$project$Main$colStr(_p21._1))),
+															_user$project$Main$colStr(_p23._1))),
 													_1: {ctor: '[]'}
 												}
 											}
@@ -11028,7 +11094,7 @@ var _user$project$Main$renderBlock = F3(
 											A2(
 												_elm_lang$core$Basics_ops['++'],
 												'fill:',
-												_user$project$Main$colStr(_p21._1))),
+												_user$project$Main$colStr(_p23._1))),
 										_1: {ctor: '[]'}
 									}
 								},
@@ -11083,7 +11149,7 @@ var _user$project$Main$renderBlock = F3(
 											A2(
 												_elm_lang$core$Basics_ops['++'],
 												'fill:',
-												_user$project$Main$colStr(_p21._1))),
+												_user$project$Main$colStr(_p23._1))),
 										_1: {ctor: '[]'}
 									}
 								},
@@ -11138,7 +11204,7 @@ var _user$project$Main$renderBlock = F3(
 											A2(
 												_elm_lang$core$Basics_ops['++'],
 												'fill:',
-												_user$project$Main$colStr(_p21._1))),
+												_user$project$Main$colStr(_p23._1))),
 										_1: {ctor: '[]'}
 									}
 								},
@@ -11193,7 +11259,7 @@ var _user$project$Main$renderBlock = F3(
 											A2(
 												_elm_lang$core$Basics_ops['++'],
 												'fill:',
-												_user$project$Main$colStr(_p21._1))),
+												_user$project$Main$colStr(_p23._1))),
 										_1: {ctor: '[]'}
 									}
 								},
@@ -11202,7 +11268,7 @@ var _user$project$Main$renderBlock = F3(
 						};
 				}
 			case 'Split':
-				var _p22 = _p21._0;
+				var _p24 = _p23._0;
 				var second = A3(
 					_user$project$Main$renderBlock,
 					yp,
@@ -11210,13 +11276,13 @@ var _user$project$Main$renderBlock = F3(
 					A2(
 						_user$project$Main$Filled,
 						_user$project$Main$rotateFill(
-							_user$project$Main$rotateFill(_p22)),
-						_p21._2));
+							_user$project$Main$rotateFill(_p24)),
+						_p23._2));
 				var first = A3(
 					_user$project$Main$renderBlock,
 					yp,
 					xp,
-					A2(_user$project$Main$Filled, _p22, _p21._1));
+					A2(_user$project$Main$Filled, _p24, _p23._1));
 				return A2(_elm_lang$core$Basics_ops['++'], first, second);
 			default:
 				return {
@@ -11259,7 +11325,7 @@ var _user$project$Main$renderBlock = F3(
 	});
 var _user$project$Main$renderGrid = F2(
 	function (oy, ox) {
-		return function (_p23) {
+		return function (_p25) {
 			return _elm_lang$core$List$concat(
 				A2(
 					_elm_lang$core$List$indexedMap,
@@ -11274,19 +11340,19 @@ var _user$project$Main$renderGrid = F2(
 										}),
 									line));
 						}),
-					_p23));
+					_p25));
 		};
 	});
 var _user$project$Main$renderTetris = function (state) {
 	var placed = function () {
-		var _p24 = state.dropping;
-		if (_p24.ctor === 'Nothing') {
+		var _p26 = state.dropping;
+		if (_p26.ctor === 'Nothing') {
 			return state.blocks;
 		} else {
 			return A2(
 				_elm_lang$core$Maybe$withDefault,
 				state.blocks,
-				A2(_user$project$Main$place, state.blocks, _p24._0));
+				A2(_user$project$Main$place, state.blocks, _p26._0));
 		}
 	}();
 	return A3(_user$project$Main$renderGrid, 0, 0, placed);
@@ -11294,59 +11360,120 @@ var _user$project$Main$renderTetris = function (state) {
 var _user$project$Main$view = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$id('game'),
-			_1: {
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$align('center'),
-				_1: {ctor: '[]'}
-			}
-		},
+		{ctor: '[]'},
 		{
 			ctor: '::',
 			_0: A2(
-				_elm_lang$svg$Svg$svg,
+				_elm_lang$html$Html$div,
 				{
 					ctor: '::',
 					_0: _elm_lang$html$Html_Attributes$id('gameS'),
 					_1: {
 						ctor: '::',
-						_0: _elm_lang$svg$Svg_Attributes$height(
-							_elm_lang$core$Basics$toString(
-								_user$project$Main$size * _elm_lang$core$List$length(model.tetrisState.blocks))),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$svg$Svg_Attributes$width(
-								_elm_lang$core$Basics$toString(
-									_user$project$Main$size * _user$project$Main$width(model.tetrisState.blocks))),
-							_1: {ctor: '[]'}
-						}
+						_0: _elm_lang$html$Html_Attributes$align('center'),
+						_1: {ctor: '[]'}
 					}
 				},
-				_user$project$Main$renderTetris(model.tetrisState)),
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$svg$Svg$svg,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$id('blur'),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$svg$Svg_Attributes$height(
+									_elm_lang$core$Basics$toString(
+										_user$project$Main$size * _elm_lang$core$List$length(model.tetrisState.blocks))),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$svg$Svg_Attributes$width(
+										_elm_lang$core$Basics$toString(
+											_user$project$Main$size * _user$project$Main$width(model.tetrisState.blocks))),
+									_1: {ctor: '[]'}
+								}
+							}
+						},
+						_user$project$Main$renderTetris(model.tetrisState)),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$svg$Svg$svg,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$id('game'),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$svg$Svg_Attributes$height(
+										_elm_lang$core$Basics$toString(
+											_user$project$Main$size * _elm_lang$core$List$length(model.tetrisState.blocks))),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$svg$Svg_Attributes$width(
+											_elm_lang$core$Basics$toString(
+												_user$project$Main$size * _user$project$Main$width(model.tetrisState.blocks))),
+										_1: {ctor: '[]'}
+									}
+								}
+							},
+							_user$project$Main$renderTetris(model.tetrisState)),
+						_1: {ctor: '[]'}
+					}
+				}),
 			_1: {
 				ctor: '::',
 				_0: A2(
-					_elm_lang$svg$Svg$svg,
+					_elm_lang$html$Html$div,
 					{
 						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$id('blur'),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$svg$Svg_Attributes$height(
-								_elm_lang$core$Basics$toString(
-									_user$project$Main$size * _elm_lang$core$List$length(model.tetrisState.blocks))),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$svg$Svg_Attributes$width(
-									_elm_lang$core$Basics$toString(
-										_user$project$Main$size * _user$project$Main$width(model.tetrisState.blocks))),
-								_1: {ctor: '[]'}
-							}
-						}
+						_0: _elm_lang$html$Html_Attributes$id('hold'),
+						_1: {ctor: '[]'}
 					},
-					_user$project$Main$renderTetris(model.tetrisState)),
+					A2(
+						_elm_lang$core$List$indexedMap,
+						F2(
+							function (i, hold) {
+								var _p27 = hold;
+								if (_p27.ctor === 'Nothing') {
+									return A2(
+										_elm_lang$html$Html$div,
+										{ctor: '[]'},
+										{ctor: '[]'});
+								} else {
+									return A2(
+										_elm_lang$html$Html$div,
+										{ctor: '[]'},
+										{
+											ctor: '::',
+											_0: A2(
+												_elm_lang$html$Html$div,
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$class('holdIdx'),
+													_1: {ctor: '[]'}
+												},
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html$text(
+														A2(
+															_elm_lang$core$Basics_ops['++'],
+															_elm_lang$core$Basics$toString(i + 1),
+															': ')),
+													_1: {ctor: '[]'}
+												}),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_elm_lang$svg$Svg$svg,
+													{ctor: '[]'},
+													A3(_user$project$Main$renderGrid, 0, 0, _p27._0.shape)),
+												_1: {ctor: '[]'}
+											}
+										});
+								}
+							}),
+						model.tetrisState.hold)),
 				_1: {ctor: '[]'}
 			}
 		});
@@ -11365,9 +11492,9 @@ var _user$project$Main$fillTri = function (piece) {
 					return A2(
 						_elm_lang$core$List$filterMap,
 						function (x) {
-							var _p25 = A2(_user$project$Main$getAt, x, line);
-							if ((_p25.ctor === 'Just') && (_p25._0.ctor === 'Filled')) {
-								if (_p25._0._0.ctor === 'Full') {
+							var _p28 = A2(_user$project$Main$getAt, x, line);
+							if ((_p28.ctor === 'Just') && (_p28._0.ctor === 'Filled')) {
+								if (_p28._0._0.ctor === 'Full') {
 									return _elm_lang$core$Maybe$Nothing;
 								} else {
 									return _elm_lang$core$Maybe$Just(
@@ -11387,24 +11514,24 @@ var _user$project$Main$fillTri = function (piece) {
 	return A2(
 		_elm_lang$core$Random$andThen,
 		function (p) {
-			var _p26 = p;
-			if (_p26.ctor === 'Nothing') {
+			var _p29 = p;
+			if (_p29.ctor === 'Nothing') {
 				return _user$project$Main$addTri(piece);
 			} else {
 				var newShape = A4(
 					_user$project$Main$setBlock,
-					_p26._0._0,
-					_p26._0._1,
+					_p29._0._0,
+					_p29._0._1,
 					A2(_user$project$Main$Filled, _user$project$Main$Full, _user$project$Main$Purple),
 					piece.shape);
-				var _p27 = newShape;
-				if (_p27.ctor === 'Nothing') {
+				var _p30 = newShape;
+				if (_p30.ctor === 'Nothing') {
 					return _user$project$Main$addTri(piece);
 				} else {
 					return _elm_community$random_extra$Random_Extra$constant(
 						_elm_lang$core$Native_Utils.update(
 							piece,
-							{shape: _p27._0}));
+							{shape: _p30._0}));
 				}
 			}
 		},
@@ -11423,8 +11550,8 @@ var _user$project$Main$addTri = function (piece) {
 					return A2(
 						_elm_lang$core$List$filterMap,
 						function (x) {
-							var _p28 = A2(_user$project$Main$getAt, x, line);
-							if (((_p28.ctor === 'Just') && (_p28._0.ctor === 'Filled')) && (_p28._0._0.ctor === 'Full')) {
+							var _p31 = A2(_user$project$Main$getAt, x, line);
+							if (((_p31.ctor === 'Just') && (_p31._0.ctor === 'Filled')) && (_p31._0._0.ctor === 'Full')) {
 								return _elm_lang$core$Maybe$Just(
 									{ctor: '_Tuple2', _0: y, _1: x});
 							} else {
@@ -11441,20 +11568,20 @@ var _user$project$Main$addTri = function (piece) {
 	return A2(
 		_elm_lang$core$Random$andThen,
 		function (p) {
-			var _p29 = p;
-			if (_p29.ctor === 'Nothing') {
+			var _p32 = p;
+			if (_p32.ctor === 'Nothing') {
 				return _user$project$Main$fillTri(piece);
 			} else {
-				var _p33 = _p29._0._0;
-				var _p32 = _p29._0._1;
+				var _p36 = _p32._0._0;
+				var _p35 = _p32._0._1;
 				var newPieceGen = A2(
 					_elm_lang$core$Random$map,
 					function (x) {
 						return A2(_user$project$Main$Filled, x, _user$project$Main$Purple);
 					},
 					A2(_elm_community$random_extra$Random_Extra$choice, _user$project$Main$DownRight, _user$project$Main$DownLeft));
-				var yPlace = _elm_lang$core$Native_Utils.eq(_p33, 0) ? 0 : (_p33 - 1);
-				var shape = _elm_lang$core$Native_Utils.eq(_p33, 0) ? {
+				var yPlace = _elm_lang$core$Native_Utils.eq(_p36, 0) ? 0 : (_p36 - 1);
+				var shape = _elm_lang$core$Native_Utils.eq(_p36, 0) ? {
 					ctor: '::',
 					_0: A2(
 						_elm_lang$core$List$map,
@@ -11467,10 +11594,10 @@ var _user$project$Main$addTri = function (piece) {
 				} : piece.shape;
 				var at = A2(
 					_user$project$Main_ops['<||'],
-					_user$project$Main$getAt(_p32),
+					_user$project$Main$getAt(_p35),
 					A2(_user$project$Main$getAt, yPlace, shape));
-				var _p30 = at;
-				if ((_p30.ctor === 'Just') && (_p30._0.ctor === 'Filled')) {
+				var _p33 = at;
+				if ((_p33.ctor === 'Just') && (_p33._0.ctor === 'Filled')) {
 					return _user$project$Main$fillTri(piece);
 				} else {
 					return A2(
@@ -11479,15 +11606,15 @@ var _user$project$Main$addTri = function (piece) {
 							var newShape = A2(
 								_elm_lang$core$Debug$log,
 								'newShape',
-								A4(_user$project$Main$setBlock, yPlace, _p32, newPiece, shape));
-							var _p31 = newShape;
-							if (_p31.ctor === 'Nothing') {
+								A4(_user$project$Main$setBlock, yPlace, _p35, newPiece, shape));
+							var _p34 = newShape;
+							if (_p34.ctor === 'Nothing') {
 								return _user$project$Main$fillTri(piece);
 							} else {
 								return _elm_community$random_extra$Random_Extra$constant(
 									_elm_lang$core$Native_Utils.update(
 										piece,
-										{shape: _p31._0}));
+										{shape: _p34._0}));
 							}
 						},
 						newPieceGen);
@@ -11501,8 +11628,8 @@ var _user$project$Main$generatePieceWithArea = function (area) {
 		_elm_lang$core$Random$andThen,
 		_user$project$Main$randomRot,
 		function () {
-			var _p34 = area;
-			if (_p34 === 1) {
+			var _p37 = area;
+			if (_p37 === 1) {
 				return _elm_community$random_extra$Random_Extra$constant(
 					A3(
 						_user$project$Main$Dropping,
@@ -11569,43 +11696,47 @@ var _user$project$Main$cols = {
 		}
 	}
 };
+var _user$project$Main$randCol = function (shape) {
+	var col = A2(
+		_elm_lang$core$Random$map,
+		_elm_lang$core$Maybe$withDefault(_user$project$Main$Purple),
+		_elm_community$random_extra$Random_Extra$sample(_user$project$Main$cols));
+	return A2(
+		_elm_lang$core$Random$map,
+		function (col) {
+			return A2(
+				_elm_lang$core$List$map,
+				_elm_lang$core$List$map(
+					function (p) {
+						var _p38 = p;
+						switch (_p38.ctor) {
+							case 'Empty':
+								return _user$project$Main$Empty;
+							case 'Filled':
+								return A2(_user$project$Main$Filled, _p38._0, col);
+							default:
+								return A2(_user$project$Main$Filled, _p38._0, col);
+						}
+					}),
+				shape);
+		},
+		col);
+};
 var _user$project$Main$setProps = F2(
 	function (state, piece) {
-		var col = A2(
-			_elm_lang$core$Random$map,
-			_elm_lang$core$Maybe$withDefault(_user$project$Main$Purple),
-			_elm_community$random_extra$Random_Extra$sample(_user$project$Main$cols));
-		var x = A2(
-			_elm_lang$core$Random$int,
-			0,
-			(_user$project$Main$width(state.blocks) - _user$project$Main$width(piece.shape)) - 1);
-		return A3(
-			_elm_lang$core$Random$map2,
-			F2(
-				function (x, col) {
-					return _elm_lang$core$Native_Utils.update(
-						piece,
-						{
-							x: x,
-							shape: A2(
-								_elm_lang$core$List$map,
-								_elm_lang$core$List$map(
-									function (p) {
-										var _p35 = p;
-										switch (_p35.ctor) {
-											case 'Empty':
-												return _user$project$Main$Empty;
-											case 'Filled':
-												return A2(_user$project$Main$Filled, _p35._0, col);
-											default:
-												return A2(_user$project$Main$Filled, _p35._0, col);
-										}
-									}),
-								piece.shape)
-						});
-				}),
-			x,
-			col);
+		return A2(
+			_elm_lang$core$Random$andThen,
+			function (piece) {
+				return A2(
+					_elm_lang$core$Random$map,
+					function (shape) {
+						return _elm_lang$core$Native_Utils.update(
+							piece,
+							{shape: shape});
+					},
+					_user$project$Main$randCol(piece.shape));
+			},
+			A2(_user$project$Main$setPos, state, piece));
 	});
 var _user$project$Main$nextsGenerator = function (state) {
 	return A2(
@@ -11623,17 +11754,17 @@ var _user$project$Main$nextsGenerator = function (state) {
 };
 var _user$project$Main$updateTetris = F2(
 	function (delta, state) {
-		var _p36 = state.dropping;
-		if (_p36.ctor === 'Nothing') {
-			var _p37 = state.nexts;
-			if (_p37.ctor === '::') {
+		var _p39 = state.dropping;
+		if (_p39.ctor === 'Nothing') {
+			var _p40 = state.nexts;
+			if (_p40.ctor === '::') {
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						state,
 						{
-							dropping: _elm_lang$core$Maybe$Just(_p37._0),
-							nexts: _p37._1
+							dropping: _elm_lang$core$Maybe$Just(_p40._0),
+							nexts: _p40._1
 						}),
 					{ctor: '[]'});
 			} else {
@@ -11650,10 +11781,10 @@ var _user$project$Main$updateTetris = F2(
 					});
 			}
 		} else {
-			var _p38 = _p36._0;
+			var _p41 = _p39._0;
 			var newDropping = _elm_lang$core$Native_Utils.update(
-				_p38,
-				{y: _p38.y + 1});
+				_p41,
+				{y: _p41.y + 1});
 			return A2(_user$project$Main$fits, state.blocks, newDropping) ? A2(
 				_elm_lang$core$Platform_Cmd_ops['!'],
 				_elm_lang$core$Native_Utils.update(
@@ -11671,7 +11802,7 @@ var _user$project$Main$updateTetris = F2(
 							A2(
 								_elm_lang$core$Maybe$withDefault,
 								state.blocks,
-								A2(_user$project$Main$place, state.blocks, _p38)))
+								A2(_user$project$Main$place, state.blocks, _p41)))
 					}),
 				{ctor: '[]'});
 		}
@@ -11913,13 +12044,13 @@ var _user$project$Main$DRight = {ctor: 'DRight'};
 var _user$project$Main$DLeft = {ctor: 'DLeft'};
 var _user$project$Main$move = F2(
 	function (state, d) {
-		var _p39 = state.dropping;
-		if (_p39.ctor === 'Just') {
-			var _p40 = _p39._0;
+		var _p42 = state.dropping;
+		if (_p42.ctor === 'Just') {
+			var _p43 = _p42._0;
 			var dir = _elm_lang$core$Native_Utils.eq(d, _user$project$Main$DLeft) ? -1 : 1;
 			var newDropping = _elm_lang$core$Native_Utils.update(
-				_p40,
-				{x: _p40.x + dir});
+				_p43,
+				{x: _p43.x + dir});
 			return A2(_user$project$Main$fits, state.blocks, newDropping) ? _elm_lang$core$Native_Utils.update(
 				state,
 				{
@@ -11931,8 +12062,8 @@ var _user$project$Main$move = F2(
 	});
 var _user$project$Main$update = F2(
 	function (msg, model) {
-		var _p41 = msg;
-		switch (_p41.ctor) {
+		var _p44 = msg;
+		switch (_p44.ctor) {
 			case 'SetDroppings':
 				var state = model.tetrisState;
 				return A2(
@@ -11943,14 +12074,28 @@ var _user$project$Main$update = F2(
 							tetrisState: _elm_lang$core$Native_Utils.update(
 								state,
 								{
-									nexts: A2(_elm_lang$core$Basics_ops['++'], state.nexts, _p41._0)
+									nexts: A2(_elm_lang$core$Basics_ops['++'], state.nexts, _p44._0)
+								})
+						}),
+					{ctor: '[]'});
+			case 'SetDropping':
+				var state = model.tetrisState;
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							tetrisState: _elm_lang$core$Native_Utils.update(
+								state,
+								{
+									dropping: _elm_lang$core$Maybe$Just(_p44._0)
 								})
 						}),
 					{ctor: '[]'});
 			case 'Key':
-				var _p44 = _p41._0;
-				var _p42 = _p44;
-				switch (_p42) {
+				var _p48 = _p44._0;
+				var _p45 = _p48;
+				switch (_p45) {
 					case 37:
 						return A2(
 							_elm_lang$core$Platform_Cmd_ops['!'],
@@ -11979,9 +12124,9 @@ var _user$project$Main$update = F2(
 								}),
 							{ctor: '[]'});
 					case 40:
-						var _p43 = A2(_user$project$Main$updateTetris, 0, model.tetrisState);
-						var newState = _p43._0;
-						var cmd = _p43._1;
+						var _p46 = A2(_user$project$Main$updateTetris, 0, model.tetrisState);
+						var newState = _p46._0;
+						var cmd = _p46._1;
 						return {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
@@ -11990,37 +12135,50 @@ var _user$project$Main$update = F2(
 							_1: cmd
 						};
 					default:
-						return A2(
-							_elm_lang$core$Basics$always,
-							A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								model,
-								{ctor: '[]'}),
-							A2(_elm_lang$core$Debug$log, 'Key down', _p44));
+						if ((_elm_lang$core$Native_Utils.cmp(_p48, 48) > 0) && (_elm_lang$core$Native_Utils.cmp(_p48, 58) < 0)) {
+							var _p47 = A2(_user$project$Main$holdPiece, _p48 - 49, model.tetrisState);
+							var newState = _p47._0;
+							var cmd = _p47._1;
+							return {
+								ctor: '_Tuple2',
+								_0: _elm_lang$core$Native_Utils.update(
+									model,
+									{tetrisState: newState}),
+								_1: cmd
+							};
+						} else {
+							return A2(
+								_elm_lang$core$Basics$always,
+								A2(
+									_elm_lang$core$Platform_Cmd_ops['!'],
+									model,
+									{ctor: '[]'}),
+								A2(_elm_lang$core$Debug$log, 'Key down', _p48));
+						}
 				}
 			default:
-				var _p47 = _p41._0;
-				var _p45 = model.lastTime;
-				if (_p45.ctor === 'Nothing') {
+				var _p51 = _p44._0;
+				var _p49 = model.lastTime;
+				if (_p49.ctor === 'Nothing') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
 							{
-								lastTime: _elm_lang$core$Maybe$Just(_p47)
+								lastTime: _elm_lang$core$Maybe$Just(_p51)
 							}),
 						{ctor: '[]'});
 				} else {
-					var delta = (_p47 - _p45._0) / 1000;
-					var _p46 = A2(_user$project$Main$updateTetris, delta, model.tetrisState);
-					var newState = _p46._0;
-					var cmd = _p46._1;
+					var delta = (_p51 - _p49._0) / 1000;
+					var _p50 = A2(_user$project$Main$updateTetris, delta, model.tetrisState);
+					var newState = _p50._0;
+					var cmd = _p50._1;
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
 							{
-								lastTime: _elm_lang$core$Maybe$Just(_p47),
+								lastTime: _elm_lang$core$Maybe$Just(_p51),
 								tetrisState: newState
 							}),
 						_1: cmd

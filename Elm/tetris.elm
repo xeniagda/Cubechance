@@ -33,9 +33,10 @@ type Msg
     = Update Time.Time
     | Key Int
     | SetDroppings (List Dropping)
+    | SetDropping Dropping
 
 init : (Model, Cmd Msg)
-init = { lastTime = Nothing, tetrisState = { blocks = defaultTetris, dropping = Nothing, nexts = [] } } ! []
+init = { lastTime = Nothing, tetrisState = { blocks = defaultTetris, dropping = Nothing, nexts = [], hold = List.repeat 3 Nothing } } ! []
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -45,6 +46,12 @@ update msg model =
             in
                 { model
                 | tetrisState = { state | nexts = state.nexts ++ d }
+                } ! []
+        SetDropping d ->
+            let state = model.tetrisState
+            in
+                { model
+                | tetrisState = { state | dropping = Just d }
                 } ! []
         Key code ->
             case code of
@@ -63,7 +70,12 @@ update msg model =
                             }
                         , cmd
                         )
-                _ -> always (model ! []) <| Debug.log "Key down" code
+                _ -> if code > 48 && code < 58  -- Is a number
+                    then 
+                        let (newState, cmd) = holdPiece (code - 49) model.tetrisState
+                        in ( { model | tetrisState = newState }, cmd)
+                    else always (model ! []) <| Debug.log "Key down" code
+
         Update time ->
             case model.lastTime of
                 Nothing -> { model | lastTime = Just time } ! []
@@ -80,22 +92,36 @@ update msg model =
                         )
 view : Model -> Html Msg
 view model =
-    div [ id "game", align "center" ]
+    div []
+    [ div [ id "gameS", align "center" ]
         [
-        S.svg
-            [ id "gameS"
-            , Sa.height <| toString <| size * List.length model.tetrisState.blocks
-            , Sa.width <| toString <| size * width model.tetrisState.blocks
-            ]
-            <| renderTetris model.tetrisState
-        ,
         S.svg
             [ id "blur"
             , Sa.height <| toString <| size * List.length model.tetrisState.blocks
             , Sa.width <| toString <| size * width model.tetrisState.blocks
             ]
             <| renderTetris model.tetrisState
+        ,
+        S.svg
+            [ id "game"
+            , Sa.height <| toString <| size * List.length model.tetrisState.blocks
+            , Sa.width <| toString <| size * width model.tetrisState.blocks
+            ]
+            <| renderTetris model.tetrisState
         ]
+    , div [ id "hold" ]
+        <| List.indexedMap
+            (\i hold ->
+                case hold of
+                    Nothing -> div [] []
+                    Just hold ->
+                        div []
+                            [ div [ class "holdIdx" ] [ text <| (toString <| i + 1) ++ ": " ]
+                            , S.svg [] <| renderGrid 0 0 hold.shape
+                            ]
+            )
+            model.tetrisState.hold
+    ]
 
 subs model =
     Sub.batch
@@ -157,6 +183,7 @@ type alias TetrisState =
     { blocks : Blocks
     , dropping : Maybe Dropping
     , nexts : List Dropping
+    , hold : List (Maybe Dropping)
     }
 
 
@@ -213,6 +240,22 @@ infixr 9 <||
 defaultTetris =
     List.repeat 32 <|
     List.repeat 10 Empty
+
+holdPiece : Int -> TetrisState -> (TetrisState, Cmd Msg)
+holdPiece idx state =
+    case (getAt idx state.hold, state.dropping) of
+        (Just piece, Just dropping) ->
+            { state
+            | hold =
+                Debug.log "Hold" <|
+                    setAt state.hold idx <| Just dropping
+            , dropping = Nothing
+            } ! 
+            case piece of
+                Just piece ->
+                    [ Random.generate SetDropping <| setPos state piece ]
+                Nothing -> []
+        a -> (always <| state ! []) <| Debug.log "Nope" a
 
 updateTetris : Float -> TetrisState -> (TetrisState, Cmd Msg)
 updateTetris delta state =
@@ -545,32 +588,49 @@ nextsGenerator state =
             (always <| Random.andThen (setProps state) <| generatePieceWithArea 8)
             (List.range 0 5)
 
-setProps : TetrisState -> Dropping -> Random.Generator Dropping
-setProps state piece =
-    let x = Random.int 0 <| width state.blocks - width piece.shape - 1
-        col =
+randCol : Blocks -> Random.Generator Blocks
+randCol shape =
+    let col =
             Random.map (Maybe.withDefault Purple)
                 <| Re.sample cols
+    in 
+        Random.map
+            (\col ->
+                List.map
+                    ( List.map
+                        (\p -> case p of
+                            Empty -> Empty
+                            Filled t _ -> Filled t col
+                            Split t _ _ -> Filled t col
+                        )
+                    )
+                    shape
+            )
+            col
+
+
+
+setPos : TetrisState -> Dropping -> Random.Generator Dropping
+setPos state piece =
+    let x = Random.int 0 <| width state.blocks - width piece.shape - 1
     in
-        Random.map2
-            (\x col ->
+        Random.map
+            (\x ->
                 { piece
                 | x = x
-                , shape =
-                    List.map
-                        ( List.map
-                            (\p -> case p of
-                                Empty -> Empty
-                                Filled t _ -> Filled t col
-                                Split t _ _ -> Filled t col
-                            )
-                        )
-                        piece.shape
+                , y = 0
                 }
             )
             x
-            col
 
+setProps : TetrisState -> Dropping -> Random.Generator Dropping
+setProps state piece =
+    Random.andThen
+        (\piece ->
+            Random.map (\shape -> {piece | shape = shape})
+            <| randCol piece.shape
+        )
+    <| setPos state piece
 
 droppingGenerator : TetrisState -> Blocks -> Random.Generator Dropping
 droppingGenerator state block =
