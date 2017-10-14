@@ -44,7 +44,7 @@ update msg model =
             let state = model.tetrisState
             in
                 { model
-                | tetrisState = { state | nexts = d }
+                | tetrisState = { state | nexts = state.nexts ++ d }
                 } ! []
         Key code ->
             case code of
@@ -107,6 +107,20 @@ subs model =
 type BlockState
     = Empty
     | Filled FilledBlockState Color
+    | Split FilledBlockState Color Color
+
+isFilled : BlockState -> Bool
+isFilled b = case b of
+    Filled Full _ -> True
+    Split _ _ _ -> True
+    _ -> False
+
+type FilledBlockState
+    = DownLeft
+    | DownRight
+    | UpLeft
+    | UpRight
+    | Full
 
 type Color
     = Red
@@ -130,13 +144,6 @@ colStr c =
         LBlue -> "rgb(0,255,255)"
         Orange -> "rgb(255,120,0)"
         Purple -> "rgb(255,0,200)"
-
-type FilledBlockState
-    = DownLeft
-    | DownRight
-    | UpLeft
-    | UpRight
-    | Full
 
 type alias Blocks = List (List BlockState)
 
@@ -185,10 +192,10 @@ merge a b =
     case (a, b) of
         (x, Empty) -> Just x
         (Empty, x) -> Just x
-        (Filled DownLeft c, Filled UpRight _) -> Just <| Filled Full c
-        (Filled UpRight c, Filled DownLeft _) -> Just <| Filled Full c
-        (Filled DownRight c, Filled UpLeft _) -> Just <| Filled Full c
-        (Filled UpLeft c, Filled DownRight _) -> Just <| Filled Full c
+        (Filled DownLeft c, Filled UpRight c2) -> Just <| Split DownLeft c c2
+        (Filled UpRight c, Filled DownLeft c2) -> Just <| Split DownLeft c2 c
+        (Filled DownRight c, Filled UpLeft c2) -> Just <| Split DownRight c c2
+        (Filled UpLeft c, Filled DownRight c2) -> Just <| Split DownRight c2 c
         _ -> Nothing
 
 mmap : (a -> b) -> Maybe a -> Maybe b
@@ -239,12 +246,8 @@ updateTetris delta state =
 removeWholeLines : Blocks -> Blocks
 removeWholeLines =
     List.filter
-        <|
-            List.any
-                (\k -> case k of
-                    Filled Full _ -> False
-                    _ -> True
-                )
+        <| List.any 
+            <| not << isFilled
 
 fits : Blocks -> Dropping -> Bool
 fits board piece =
@@ -321,15 +324,17 @@ rotatePiece : BlockState -> BlockState
 rotatePiece p =
     case p of
         Empty -> Empty
-        Filled x c ->
-            let x_ =
-                case x of
-                    Full -> Full
-                    DownRight -> DownLeft
-                    DownLeft -> UpLeft
-                    UpLeft -> UpRight
-                    UpRight -> DownRight
-            in Filled x_ c
+        Filled x c -> Filled (rotateFill x) c
+        Split x c1 c2 -> Split (rotateFill x) c1 c2
+
+rotateFill x =
+    case x of
+        Full -> Full
+        DownRight -> DownLeft
+        DownLeft -> UpLeft
+        UpLeft -> UpRight
+        UpRight -> DownRight
+        
 
 renderTetris : TetrisState -> List (S.Svg msg)
 renderTetris state =
@@ -342,68 +347,85 @@ renderTetris state =
 renderGrid oy ox =
     List.concat <<
         List.indexedMap (\y line ->
-            List.indexedMap (\x blk ->
-                renderBlock (y + oy) (x + ox) blk
-            )
-            line
+            List.concat <|
+                List.indexedMap (\x blk ->
+                    renderBlock (y + oy) (x + ox) blk
+                )
+                line
         )
 
-renderBlock : Int -> Int -> BlockState -> S.Svg msg
+renderBlock : Int -> Int -> BlockState -> List (S.Svg msg)
 renderBlock yp xp blk =
     let y = yp * size
         x = xp * size
     in case blk of
-        Filled Full col -> S.rect
-                [ Sa.x <| toString x
-                , Sa.y <| toString y
-                , Sa.width <| toString size
-                , Sa.height <| toString size
-                , Sa.style <| "fill:" ++ colStr col
-                ] []
-        Filled DownLeft col -> S.polygon
-                [ Sa.points <|
-                    String.join " "
-                    [ toString x ++ "," ++ toString y
-                    , toString x ++ "," ++ toString (y + size)
-                    , toString (x + size) ++ "," ++ toString (y + size)
-                    ]
-                , Sa.style <| "fill:" ++ colStr col
-                ] []
-        Filled DownRight col -> S.polygon
-                [ Sa.points <|
-                    String.join " "
-                    [ toString (x + size) ++ "," ++ toString y
-                    , toString x ++ "," ++ toString (y + size)
-                    , toString (x + size) ++ "," ++ toString (y + size)
-                    ]
-                , Sa.style <| "fill:" ++ colStr col
-                ] []
-        Filled UpLeft col -> S.polygon
-                [ Sa.points <|
-                    String.join " "
-                    [ toString x ++ "," ++ toString y
-                    , toString x ++ "," ++ toString (y + size)
-                    , toString (x + size) ++ "," ++ toString y
-                    ]
-                , Sa.style <| "fill:" ++ colStr col
-                ] []
-        Filled UpRight col -> S.polygon
-                [ Sa.points <|
-                    String.join " "
-                    [ toString x ++ "," ++ toString y
-                    , toString (x + size) ++ "," ++ toString y
-                    , toString (x + size) ++ "," ++ toString (y + size)
-                    ]
-                , Sa.style <| "fill:" ++ colStr col
-                ] []
-        _ -> S.rect
-                [ Sa.x <| toString x
-                , Sa.y <| toString y
-                , Sa.width <| toString size
-                , Sa.height <| toString size
-                , Sa.style "stroke-width:0.3;stroke:white"
-                , Sa.fillOpacity "0"
-                ] []
+        Filled Full col -> 
+                [ S.rect
+                    [ Sa.x <| toString x
+                    , Sa.y <| toString y
+                    , Sa.width <| toString size
+                    , Sa.height <| toString size
+                    , Sa.style <| "fill:" ++ colStr col
+                    ] []
+                ]
+        Filled DownLeft col ->
+                [ S.polygon
+                    [ Sa.points <|
+                        String.join " "
+                        [ toString x ++ "," ++ toString y
+                        , toString x ++ "," ++ toString (y + size)
+                        , toString (x + size) ++ "," ++ toString (y + size)
+                        ]
+                    , Sa.style <| "fill:" ++ colStr col
+                    ] []
+                ]
+        Filled DownRight col ->
+                [ S.polygon
+                    [ Sa.points <|
+                        String.join " "
+                        [ toString (x + size) ++ "," ++ toString y
+                        , toString x ++ "," ++ toString (y + size)
+                        , toString (x + size) ++ "," ++ toString (y + size)
+                        ]
+                    , Sa.style <| "fill:" ++ colStr col
+                    ] []
+                ]
+        Filled UpLeft col ->
+                [ S.polygon
+                    [ Sa.points <|
+                        String.join " "
+                        [ toString x ++ "," ++ toString y
+                        , toString x ++ "," ++ toString (y + size)
+                        , toString (x + size) ++ "," ++ toString y
+                        ]
+                    , Sa.style <| "fill:" ++ colStr col
+                    ] []
+                ]
+        Filled UpRight col ->
+                [ S.polygon
+                    [ Sa.points <|
+                        String.join " "
+                        [ toString x ++ "," ++ toString y
+                        , toString (x + size) ++ "," ++ toString y
+                        , toString (x + size) ++ "," ++ toString (y + size)
+                        ]
+                    , Sa.style <| "fill:" ++ colStr col
+                    ] []
+                ]
+        Split shape c1 c2 ->
+            let first  = renderBlock yp xp ( Filled shape c1 )
+                second = renderBlock yp xp ( Filled (rotateFill <| rotateFill shape) c2 )
+            in first ++ second
+        _ ->
+                [ S.rect
+                    [ Sa.x <| toString x
+                    , Sa.y <| toString y
+                    , Sa.width <| toString size
+                    , Sa.height <| toString size
+                    , Sa.style "stroke-width:0.3;stroke:white"
+                    , Sa.fillOpacity "0"
+                    ] []
+                ]
 
 -- Generate a piece with the area of the argument. One area unit is the same as half a square.
 generatePieceWithArea : Int -> Random.Generator Dropping
@@ -540,6 +562,7 @@ setProps state piece =
                             (\p -> case p of
                                 Empty -> Empty
                                 Filled t _ -> Filled t col
+                                Split t _ _ -> Filled t col
                             )
                         )
                         piece.shape
