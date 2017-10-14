@@ -37,7 +37,7 @@ type Msg
     | SetDropping Dropping
 
 init : (Model, Cmd Msg)
-init = { lastTime = Nothing, paused = False, tetrisState = { blocks = defaultTetris, dropping = Nothing, nexts = [], hold = List.repeat 3 Nothing } } ! []
+init = { lastTime = Nothing, paused = False, tetrisState = { blocks = defaultTetris, dropping = Nothing, nexts = [], hold = List.repeat 3 Nothing, score = 0 } } ! []
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -113,6 +113,9 @@ view model =
             , Sa.width <| toString <| size * width model.tetrisState.blocks
             ]
             <| renderTetris model.tetrisState
+        ]
+    , div [ id "score" ]
+        [ text <| "Score: " ++ toString model.tetrisState.score
         ]
     , div [ id "hold" ]
         <| List.indexedMap
@@ -197,6 +200,7 @@ type alias TetrisState =
     , dropping : Maybe Dropping
     , nexts : List Dropping
     , hold : List (Maybe Dropping)
+    , score : Int
     }
 
 
@@ -263,6 +267,7 @@ holdPiece idx state =
                 Debug.log "Hold" <|
                     setAt state.hold idx <| Just dropping
             , dropping = Nothing
+            , score = floor <| toFloat state.score * 0.99
             } !
             case piece of
                 Just piece ->
@@ -291,19 +296,30 @@ updateTetris delta state =
                         | dropping = Just newDropping
                         } ! []
                     else
-                        { state
-                        | dropping = Nothing
-                        , blocks =
-                            removeWholeLines
-                            <| Maybe.withDefault state.blocks
-                            <| place state.blocks dropping
-                        } ! []
+                        let (newLines, amount) =
+                                removeWholeLines
+                                <| Maybe.withDefault state.blocks
+                                <| place state.blocks dropping
+                        in 
+                            { state
+                            | dropping = Nothing
+                            , blocks = newLines
+                            , score = state.score + 100 * 2 ^ amount * amount + 5
+                            } ! []
 
-removeWholeLines : Blocks -> Blocks
-removeWholeLines =
-    List.filter
-        <| List.any
-            <| not << isFilled
+removeWholeLines : Blocks -> (Blocks, Int)
+removeWholeLines blocks =
+    let removed =
+            List.filter
+                ( List.any
+                    <| not << isFilled
+                ) blocks
+        removedAmount = List.length blocks - List.length removed
+        newLines =
+            List.repeat
+                removedAmount
+                ( List.repeat (width blocks) Empty )
+    in (newLines ++ removed, removedAmount)
 
 fits : Blocks -> Dropping -> Bool
 fits board piece =
