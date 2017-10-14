@@ -27,6 +27,7 @@ main =
 type alias Model =
     { lastTime : Maybe Time.Time
     , tetrisState : TetrisState
+    , paused : Bool
     }
 
 type Msg
@@ -36,7 +37,7 @@ type Msg
     | SetDropping Dropping
 
 init : (Model, Cmd Msg)
-init = { lastTime = Nothing, tetrisState = { blocks = defaultTetris, dropping = Nothing, nexts = [], hold = List.repeat 3 Nothing } } ! []
+init = { lastTime = Nothing, paused = False, tetrisState = { blocks = defaultTetris, dropping = Nothing, nexts = [], hold = List.repeat 3 Nothing } } ! []
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -70,26 +71,30 @@ update msg model =
                             }
                         , cmd
                         )
+                27 -> -- Escape
+                    { model | paused = not model.paused } ! []
                 _ -> if code > 48 && code < 58  -- Is a number
-                    then 
+                    then
                         let (newState, cmd) = holdPiece (code - 49) model.tetrisState
                         in ( { model | tetrisState = newState }, cmd)
                     else always (model ! []) <| Debug.log "Key down" code
 
         Update time ->
-            case model.lastTime of
-                Nothing -> { model | lastTime = Just time } ! []
-                Just last ->
-                    let delta = (time - last) / 1000
-                        (newState, cmd) = updateTetris delta model.tetrisState
-                    in
-                        (
-                            { model
-                            | lastTime = Just time
-                            , tetrisState = newState
-                            }
-                        , cmd
-                        )
+            if model.paused
+                then model ! []
+                else case model.lastTime of
+                    Nothing -> { model | lastTime = Just time } ! []
+                    Just last ->
+                        let delta = (time - last) / 1000
+                            (newState, cmd) = updateTetris delta model.tetrisState
+                        in
+                            (
+                                { model
+                                | lastTime = Just time
+                                , tetrisState = newState
+                                }
+                            , cmd
+                            )
 view : Model -> Html Msg
 view model =
     div []
@@ -113,11 +118,19 @@ view model =
         <| List.indexedMap
             (\i hold ->
                 case hold of
-                    Nothing -> div [] []
+                    Nothing ->
+                        div [] 
+                            [ div [ class "holdIdx" ]
+                                [ text <| (toString <| i + 1) ++ ": " ]
+                            , br [] []
+                            ]
                     Just hold ->
                         div []
-                            [ div [ class "holdIdx" ] [ text <| (toString <| i + 1) ++ ": " ]
-                            , S.svg [] <| renderGrid 0 0 hold.shape
+                            [ div [ class "holdIdx", class "active" ] [ text <| (toString <| i + 1) ++ ": " ]
+                            , S.svg 
+                                [ Sa.height <| toString <| size * List.length hold.shape
+                                , Sa.width <| toString <| size * width hold.shape
+                                ] <| renderGrid 0 0 hold.shape
                             ]
             )
             model.tetrisState.hold
@@ -250,7 +263,7 @@ holdPiece idx state =
                 Debug.log "Hold" <|
                     setAt state.hold idx <| Just dropping
             , dropping = Nothing
-            } ! 
+            } !
             case piece of
                 Just piece ->
                     [ Random.generate SetDropping <| setPos state piece ]
@@ -289,7 +302,7 @@ updateTetris delta state =
 removeWholeLines : Blocks -> Blocks
 removeWholeLines =
     List.filter
-        <| List.any 
+        <| List.any
             <| not << isFilled
 
 fits : Blocks -> Dropping -> Bool
@@ -377,7 +390,7 @@ rotateFill x =
         DownLeft -> UpLeft
         UpLeft -> UpRight
         UpRight -> DownRight
-        
+
 
 renderTetris : TetrisState -> List (S.Svg msg)
 renderTetris state =
@@ -402,7 +415,7 @@ renderBlock yp xp blk =
     let y = yp * size
         x = xp * size
     in case blk of
-        Filled Full col -> 
+        Filled Full col ->
                 [ S.rect
                     [ Sa.x <| toString x
                     , Sa.y <| toString y
@@ -585,7 +598,7 @@ nextsGenerator state =
         Rl.shuffle
         <| Re.combine
         <| List.map
-            (always <| Random.andThen (setProps state) <| generatePieceWithArea 8)
+            (always <| Random.andThen (setProps state) <| generatePieceWithArea 7)
             (List.range 0 5)
 
 randCol : Blocks -> Random.Generator Blocks
@@ -593,8 +606,7 @@ randCol shape =
     let col =
             Random.map (Maybe.withDefault Purple)
                 <| Re.sample cols
-    in 
-        Random.map
+    in Random.map
             (\col ->
                 List.map
                     ( List.map
@@ -613,8 +625,7 @@ randCol shape =
 setPos : TetrisState -> Dropping -> Random.Generator Dropping
 setPos state piece =
     let x = Random.int 0 <| width state.blocks - width piece.shape - 1
-    in
-        Random.map
+    in Random.map
             (\x ->
                 { piece
                 | x = x
