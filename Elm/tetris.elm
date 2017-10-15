@@ -37,7 +37,18 @@ type Msg
     | SetDropping Dropping
 
 init : (Model, Cmd Msg)
-init = { lastTime = Nothing, paused = False, tetrisState = { blocks = defaultTetris, dropping = Nothing, nexts = [], hold = List.repeat 3 Nothing, score = 0 } } ! []
+init =
+    { lastTime = Nothing
+    , paused = False
+    , tetrisState = 
+        { blocks = defaultTetris
+        , dropping = Nothing
+        , nexts = []
+        , hold = List.repeat 3 Nothing
+        , score = 0
+        , gameOver = False
+        } 
+    } ! []
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -114,6 +125,17 @@ view model =
             ]
             <| renderTetris model.tetrisState
         ]
+    , div [ id "nexts" ]
+        <| List.map 
+            (\piece ->
+                div [ class "next" ]
+                [ S.svg 
+                    [ Sa.height <| toString <| size * List.length piece.shape
+                    , Sa.width <| toString <| size * width piece.shape
+                    ] <| renderGrid 0 0 piece.shape
+                ]
+            )
+        <| List.take 3 model.tetrisState.nexts
     , div [ id "score" ]
         [ text <| "Score: " ++ toString model.tetrisState.score
         ]
@@ -137,6 +159,10 @@ view model =
                             ]
             )
             model.tetrisState.hold
+    , div [ id "pause" ]
+        <| if model.paused
+           then [ text "||" ]
+           else [ text "" ]
     ]
 
 subs model =
@@ -201,6 +227,7 @@ type alias TetrisState =
     , nexts : List Dropping
     , hold : List (Maybe Dropping)
     , score : Int
+    , gameOver : Bool
     }
 
 
@@ -277,35 +304,47 @@ holdPiece idx state =
 
 updateTetris : Float -> TetrisState -> (TetrisState, Cmd Msg)
 updateTetris delta state =
-    case state.dropping of
-        Nothing ->
-            case state.nexts of
-                (p::rest) ->
-                    { state
-                    | dropping = Just p
-                    , nexts = rest
-                    } ! []
-                [] ->
-                    state ! [ Random.generate SetDroppings <| nextsGenerator state ]
-        Just dropping ->
-            let newDropping = { dropping | y = dropping.y + 1 }
-            in
-                if fits state.blocks newDropping
-                    then
+    if state.gameOver
+        then 
+            { state
+            | dropping = Nothing
+            , nexts = []
+            } ! []
+        else case state.dropping of
+            Nothing ->
+                case state.nexts of
+                    (p::rest) ->
                         { state
-                        | dropping = Just newDropping
-                        } ! []
-                    else
-                        let (newLines, amount) =
-                                removeWholeLines
-                                <| Maybe.withDefault state.blocks
-                                <| place state.blocks dropping
-                        in 
+                        | dropping = Just p
+                        , nexts = rest
+                        , gameOver =
+                            Maybe.withDefault [] (List.head state.blocks)
+                            |> List.any (\p -> isFilled p)
+                        } !
+                        if List.length rest < 3
+                           then [ Random.generate SetDroppings <| nextsGenerator state ]
+                           else []
+                    [] ->
+                        state ! [ Random.generate SetDroppings <| nextsGenerator state ]
+            Just dropping ->
+                let newDropping = { dropping | y = dropping.y + 1 }
+                in
+                    if fits state.blocks newDropping
+                        then
                             { state
-                            | dropping = Nothing
-                            , blocks = newLines
-                            , score = state.score + 100 * 2 ^ amount * amount + 5
+                            | dropping = Just newDropping
                             } ! []
+                        else
+                            let (newLines, amount) =
+                                    removeWholeLines
+                                    <| Maybe.withDefault state.blocks
+                                    <| place state.blocks dropping
+                            in 
+                                { state
+                                | dropping = Nothing
+                                , blocks = newLines
+                                , score = state.score + 100 * 2 ^ amount * amount + 5
+                                } ! []
 
 removeWholeLines : Blocks -> (Blocks, Int)
 removeWholeLines blocks =
