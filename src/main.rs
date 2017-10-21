@@ -133,8 +133,8 @@ fn beating<'r>(id1: String, id2: String, event: String, state: State<MutWebState
     let state = state.lock().unwrap();
     match state.wca {
         Some(ref wca) => {
-            let p1 = wca.people.get(&id1);
-            let p2 = wca.people.get(&id2);
+            let p1 = wca.ext_person(&id1);
+            let p2 = wca.ext_person(&id2);
             match (p1, p2) {
                 (Some(ref p1), Some(ref p2)) => {
                     make_html(format!("{:?}", p1.chance_beating(p2, &event)))
@@ -155,12 +155,12 @@ fn place<'r>(comp: String, id: String, event: String, state: State<MutWebState>)
     let state = state.lock().unwrap();
     match state.wca {
         Some(ref wca) => {
-            match (wca.people.get(&id), wca.comps.get(&comp)) {
+            match (wca.ext_person(&id), wca.comps.get(&comp)) {
                 ( Some(ref person), Some(ref comp) ) => {
-                    let competitors: Vec<&wca::WcaPerson> = 
+                    let competitors: Vec<_> = 
                             comp.competitors.iter()
                             .filter(|p| p.id != id && p.events.iter().find(|e| e == &&event).is_some())
-                            .filter_map(|p| wca.people.get(&p.id))
+                            .filter_map(|p| wca.ext_person(&p.id))
                             .collect();
                     let res = person.place_prob(competitors.as_slice(), &event);
                     make_html(format!("{:?}", res))

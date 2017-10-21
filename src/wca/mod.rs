@@ -133,9 +133,12 @@ impl WcaPerson {
         res
     }
 
+}
+
+impl <'l> ExtendedPerson<'l> {
     // Algorithm taken from https://math.stackexchange.com/a/40236/244810
-    pub fn chance_beating<'a>(&self, other: &'a WcaPerson, event: &'a str) -> f64 {
-        match (self.get_avgs().get(event), other.get_avgs().get(event)) {
+    pub fn chance_beating<'a>(&self, other: &'a ExtendedPerson, event: &'a str) -> f64 {
+        match (self.current_avgs.get(event), other.current_avgs.get(event)) {
             (Some( &(ref m_avg_t, ref m_std) ), Some( &(ref o_avg_t, ref o_std) )) => {
                 match ( m_avg_t.to_option_sec(), o_avg_t.to_option_sec() ) {
                     ( Some(m_avg), Some(o_avg) ) => {
@@ -156,7 +159,7 @@ impl WcaPerson {
     }
 
     // Calculate the probability of placing in any place in a comp
-    pub fn place_prob(&self, others: &[&WcaPerson], event: &str) -> Vec<f64> {
+    pub fn place_prob(&self, others: &[ExtendedPerson], event: &str) -> Vec<f64> {
         if others.len() == 0 {
             return vec![1f64];
         }
@@ -235,18 +238,24 @@ impl WcaResults {
                 for event in comp.events.iter() {
                     let mut places = HashMap::new();
 
-                    let competitors: Vec<&WcaPerson> =
+                    let competitors: Vec<_> =
                             comp.competitors.iter()
                             .filter(|p| p.events.iter().find(|x| x == &event).is_some())
                             .filter_map(|p| self.ext_person(&p.id))
-                            .map(|p| p.person)
                             .collect();
 
                     for person in people.iter() {
-                        places.insert(
-                            person.id.clone(),
-                            person.person.place_prob(competitors.as_slice(), &event)
-                        );
+                        match self.ext_person(&person.id) {
+                            Some(p) => {
+                                places.insert(person.id.clone(),
+                                              p.place_prob(competitors.as_slice(), &event)
+                                             );
+
+                            }
+                            None => {
+                                continue;
+                            }
+                        }
                     }
                     event_places.insert(event.clone(), places);
 

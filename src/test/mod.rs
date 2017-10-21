@@ -27,13 +27,18 @@ lazy_static! {
 
 #[test]
 fn test_place() {
-    let people: Vec<_> = STATE.people.values().collect();
+    let people: Vec<_> = STATE.people.keys()
+            .filter_map(|id| STATE.ext_person(id))
+            .collect();
+
+    assert!(people.len() > 0, "There are people");
     
     let start = Instant::now();
     for person in people.iter() {
 
         let pp = person.place_prob(&people[1..], "333");
         assert!(pp[0] >= 0f64);
+
     }
     let dur = start.elapsed();
     
