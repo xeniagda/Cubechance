@@ -18,7 +18,7 @@ use std::sync::{Mutex, Arc};
 use std::path::{Path, PathBuf};
 use std::fs::File;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use rocket::{Request, Response, State};
 use rocket::http::{ContentType, Status};
@@ -222,12 +222,15 @@ fn main() {
     thread::spawn(move || {
         loop {
             println!("Downloading wca...");
+            let start = Instant::now();
+
             let comp = wca_export::download_wca();
+
+            println!("Downloaded the WCA in {} seconds", start.elapsed().as_secs());
 
             match comp {
                 Ok(comp) => {
                     let mut state = thread_state.lock().unwrap();
-                    println!("Me: {:?}", comp.ext_person("2015LOOV01"));
                     state.wca = Some(comp);
                 }
                 Err(e) => {
