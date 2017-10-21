@@ -4,6 +4,12 @@
 extern crate rocket;
 extern crate serde_json;
 
+#[cfg(test)]
+#[macro_use]
+extern crate lazy_static; // For testing
+#[cfg(test)]
+mod test;
+
 #[macro_use]
 extern crate serde_derive;
 
@@ -122,6 +128,54 @@ fn upcoming<'r>(state: State<MutWebState>) -> Response<'r> {
     }
 }
 
+#[get("/api/beat/<id1>/<id2>/<event>", rank = 0)]
+fn beating<'r>(id1: String, id2: String, event: String, state: State<MutWebState>) -> Response<'r> {
+    let state = state.lock().unwrap();
+    match state.wca {
+        Some(ref wca) => {
+            let p1 = wca.people.get(&id1);
+            let p2 = wca.people.get(&id2);
+            match (p1, p2) {
+                (Some(ref p1), Some(ref p2)) => {
+                    make_html(format!("{:?}", p1.chance_beating(p2, &event)))
+                }
+                _ => {
+                    make_html("e1".to_string())
+                }
+            }
+        }
+        None => {
+            make_html("e0".to_string())
+        }
+    }
+}
+
+#[get("/api/place/<comp>/<id>/<event>", rank = 0)]
+fn place<'r>(comp: String, id: String, event: String, state: State<MutWebState>) -> Response<'r> {
+    let state = state.lock().unwrap();
+    match state.wca {
+        Some(ref wca) => {
+            match (wca.people.get(&id), wca.comps.get(&comp)) {
+                ( Some(ref person), Some(ref comp) ) => {
+                    let competitors: Vec<&wca::WcaPerson> = 
+                            comp.competitors.iter()
+                            .filter(|p| p.id != id && p.events.iter().find(|e| e == &&event).is_some())
+                            .filter_map(|p| wca.people.get(&p.id))
+                            .collect();
+                    let res = person.place_prob(competitors.as_slice(), &event);
+                    make_html(format!("{:?}", res))
+                }
+                _ => {
+                    make_html("e1".to_string())
+                }
+            }
+        }
+        None => {
+            make_html("e0".to_string())
+        }
+    }
+}
+
 #[get("/api/comp/<id>", rank = 0)]
 fn comp<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
     let state = state.lock().unwrap();
@@ -162,7 +216,6 @@ fn not_found<'r>(_req: &Request) -> Response<'r> {
 
 fn main() {
     // Setup WCA reading in background
-    //
     let state = MutWebState::default();
 
     let thread_state = state.clone();
@@ -174,6 +227,7 @@ fn main() {
             match comp {
                 Ok(comp) => {
                     let mut state = thread_state.lock().unwrap();
+                    println!("Me: {:?}", comp.ext_person("2015LOOV01"));
                     state.wca = Some(comp);
                 }
                 Err(e) => {
@@ -186,7 +240,7 @@ fn main() {
 
     rocket::ignite()
         .manage(state)
-        .mount("/", routes![wca_id, upcoming, comp, index, index_])
+        .mount("/", routes![wca_id, upcoming, comp, beating, place, index, index_])
         .catch(errors![not_found])
         .launch();
 }

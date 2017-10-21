@@ -2,13 +2,11 @@ extern crate zip;
 extern crate reqwest;
 extern crate chrono;
 extern crate serde;
+extern crate statrs;
 
 pub mod wca_export;
 pub mod wca_competitors;
 
-use self::serde::{Serialize, Serializer};
-
-use self::zip::result::ZipError;
 use std::num::ParseIntError;
 use std::io;
 use std::collections::HashMap;
@@ -16,6 +14,9 @@ use std::convert::From;
 use std::vec::Vec;
 use std::ops::Deref;
 
+use self::serde::{Serialize, Serializer};
+use self::zip::result::ZipError;
+use self::statrs::function::erf;
 use self::chrono::Date;
 use self::chrono::offset;
 
@@ -30,6 +31,12 @@ impl DateW {
         DateW {
             date: date
         }
+    }
+}
+
+impl Default for DateW {
+    fn default() -> DateW {
+        DateW::new(offset::Utc::today())
     }
 }
 
@@ -88,7 +95,7 @@ impl From<reqwest::UrlError> for WcaError {
 }
 
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Default)]
 pub struct WcaResults {
     pub people: HashMap<String, WcaPerson>, // Id: Person
     pub comps: HashMap<String, Competition>, // Id: Comp
@@ -101,13 +108,14 @@ pub struct WcaPerson {
     pub times: HashMap<String, Vec<Time>> // Event: [times]
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct CompInfo<'a> {
     pub comp: &'a Competition,
-    pub people: Vec<ExtendedPerson<'a>>
+    pub people: Vec<ExtendedPerson<'a>>,
+    pub places_chances: HashMap<String, HashMap<String, Vec<f64>>> // Event: {id: [chances]...}
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct ExtendedPerson<'a> {
     pub person: &'a WcaPerson,
     pub id: String,
@@ -118,14 +126,59 @@ impl WcaPerson {
     pub fn get_avgs(&self) -> HashMap<String, (Time, f64)> {
         let mut res = HashMap::new();
         for (event, times) in (*self).times.iter() {
-            let ( avg, dev ) = get_avg_stddev(times);
-            res.insert(event.clone(), ( Time::Time((avg * 100f64) as u16), dev ));
+            if let Some(( avg, dev )) = get_avg_stddev(times) {
+                res.insert(event.clone(), ( Time::Time((avg * 100f64) as u16), dev ));
+            }
         }
         res
     }
 
+    // Algorithm taken from https://math.stackexchange.com/a/40236/244810
+    pub fn chance_beating<'a>(&self, other: &'a WcaPerson, event: &'a str) -> f64 {
+        match (self.get_avgs().get(event), other.get_avgs().get(event)) {
+            (Some( &(ref m_avg_t, ref m_std) ), Some( &(ref o_avg_t, ref o_std) )) => {
+                match ( m_avg_t.to_option_sec(), o_avg_t.to_option_sec() ) {
+                    ( Some(m_avg), Some(o_avg) ) => {
+                        let avg = m_avg - o_avg;
+                        let std_2 = m_std * m_std + o_std * o_std;
+                        let phi = (1f64 + erf::erf(-avg / f64::sqrt(std_2 * 2f64))) / 2f64;
+                        phi
+                    }
+                    ( None, Some(_) ) => 0f64,
+                    ( Some(_), None ) => 1f64,
+                    _ => 0.5
+                }
+            }
+            ( None, Some(_) ) => 0f64,
+            ( Some(_), None ) => 1f64,
+            _ => 0.5
+        }
+    }
+
+    // Calculate the probability of placing in any place in a comp
+    pub fn place_prob(&self, others: &[&WcaPerson], event: &str) -> Vec<f64> {
+        if others.len() == 0 {
+            return vec![1f64];
+        }
+        let first = &others[0];
+        let prob = self.chance_beating(first, &event);
+        
+        let prev = &others[1..];
+        let prev_prob = self.place_prob(prev, event);
+
+        let mut new_prob = vec![0f64; prev_prob.len() + 1];
+
+        for i in 0..prev_prob.len() {
+            new_prob[i] += prev_prob[i] * prob;
+            new_prob[i + 1] += prev_prob[i] * (1.0 - prob);
+        }
+
+        new_prob
+
+    }
 }
-pub fn get_avg_stddev(times: &[Time]) -> (f64, f64) {
+
+pub fn get_avg_stddev(times: &[Time]) -> Option<(f64, f64)> {
     let times_weight: Vec<(f64, f64)> = times.iter()
             .filter_map(|t| {
                 match t {
@@ -138,6 +191,9 @@ pub fn get_avg_stddev(times: &[Time]) -> (f64, f64) {
                 }
             })
             .collect();
+    if times_weight.len() == 0 {
+        return None;
+    }
     let weighted_sum: f64 = times_weight.iter()
             .map(|t| t.0 * t.1)
             .sum();
@@ -148,7 +204,7 @@ pub fn get_avg_stddev(times: &[Time]) -> (f64, f64) {
     let weighted_stddev: f64 = times_weight.iter()
             .map(|t| (t.0 - avg) * (t.0 - avg) * t.1)
             .sum();
-    (avg, f64::sqrt(weighted_stddev / total_weight))
+    Some((avg, f64::sqrt(weighted_stddev / total_weight)))
 }
 
 impl WcaResults {
@@ -174,7 +230,29 @@ impl WcaResults {
                             )
                             .collect();
 
-                Some(CompInfo {comp: comp, people: people})
+                let mut event_places = HashMap::new();
+
+                for event in comp.events.iter() {
+                    let mut places = HashMap::new();
+
+                    let competitors: Vec<&WcaPerson> =
+                            comp.competitors.iter()
+                            .filter(|p| p.events.iter().find(|x| x == &event).is_some())
+                            .filter_map(|p| self.ext_person(&p.id))
+                            .map(|p| p.person)
+                            .collect();
+
+                    for person in people.iter() {
+                        places.insert(
+                            person.id.clone(),
+                            person.person.place_prob(competitors.as_slice(), &event)
+                        );
+                    }
+                    event_places.insert(event.clone(), places);
+
+                }
+
+                Some(CompInfo {comp: comp, people: people, places_chances: event_places})
 
             }
         }

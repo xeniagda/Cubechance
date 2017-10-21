@@ -11,7 +11,6 @@ extern crate chrono;
 use self::zip::read::{ZipArchive, ZipFile};
 use std::io::{Read, Cursor, BufReader, BufRead};
 use std::vec::Vec;
-use std::collections::HashMap;
 
 use self::chrono::{Date, NaiveDate, offset};
 
@@ -21,9 +20,9 @@ const WCA_TSV_URL: &'static str = "https://www.worldcubeassociation.org/results/
 
 
 // Two default comps when you compile with skip_comps
-#[cfg(skip_comps)]
+#[cfg(any(skip_comps, test))]
 const SKILLCON: &'static str = "Skillcon2017\tSkillcon 2017\tLas Vegas, Nevada\tUSA\tThis is a WCA competition presented in conjunction with SkillCon 2017. Registration fees will cover admission for SkillCon; check the [SkillCon website](http://skillcon.org/) for more info on the other events and seminars that will be going on. Registration will cost a flat $50 per competitor. **Before registering, you must read the \"Competitor Responsibilities\" tab.** This tab details the responsibilites of all competitors at this competition.\t2017\t12\t16\t12\t17\t222 333 333bf 333mbf 333oh 444 444bf 555 555bf 666 minx pyram\t[{Shelley Chang}{mailto:shelley.chang@cubingusa.org}] [{Kit Clement}{mailto:kit@cubingusa.org}]\t[{Shelley Chang}{mailto:shelley.chang@cubingusa.org}] [{Kit Clement}{mailto:kit@cubingusa.org}] [{Ryan Jew}{mailto:ryan@icnc.com}]\t[Rio Hotel and Casino](https://www.caesars.com/rio-las-vegas)\t3700 W. Flamingo Road Las Vegas, NV 89103\t\t\tSkillcon 2017\t36117521\t-115188177";
-#[cfg(skip_comps)]
+#[cfg(any(skip_comps, test))]
 const SSL: &'static str = "SSL2Stockholm2017	SSL 2 Stockholm 2017	Stockholm	Sweden	The competition is a part of the Swedish Speedcubing League 2017. This is the second out of four competitions, followed by a final competiton later this year. The entry fee is set to 150 SEK and must be payed in advance by swedish competitors. Foreigners may pay at the competition venue. A competitor limit has been set to 100 competitors due to venue constraints. More information and payment details can be found on the competition website.	2017	4	8	4	9	222 333 333bf 333fm 333mbf 333oh 444 444bf 555 555bf 666 777 pyram skewb	[{Kåre Krig}{mailto:karekrig@gmail.com}] [{Anders Berggren}{mailto:anders_berggren-sjoblom@hotmail.com}]	[{Daniel Wallin}{mailto:danne_wallain@live.se}] [{Timothy Edegran Gren}{mailto:timothy.edegran@edu.nacka.se}]	Nacka Gymnasium	Griffelvägen 17, 131 40, Nacka	The main hall will be the school dining hall of Nacka Gymnasium. Long events will be held in a side-room close to the ma	http://ssl-se.webnode.se/ssl-2-stockholm-2017/	SSL 2 Stockholm 2017	59310982	18150448";
 
 // Downloads and parses the current WCA results.
@@ -39,15 +38,15 @@ pub fn download_wca<'a>() -> Result<WcaResults, WcaError> {
     let mut zip = ZipArchive::new(cur)?;
 
  
-    let mut results = WcaResults { people: HashMap::new(), comps: HashMap::new(), download_date: DateW::new(offset::Utc::today()) };
+    let mut results = WcaResults::default();// { people: HashMap::new(), comps: HashMap::new(), download_date: DateW::new(offset::Utc::today()) };
 
-    #[cfg(skip_comps)]
+    #[cfg(any(skip_comps, test))]
     {
         println!("Skipping comps, adding SkillCon!");
-        insert_comp(SSL, &mut results)?;
-        insert_comp(SKILLCON, &mut results)?;
+        insert_comp(SSL.to_string(), &mut results)?;
+        insert_comp(SKILLCON.to_string(), &mut results)?;
     }
-    #[cfg(not(skip_comps))]
+    #[cfg(not(any(skip_comps, test)))]
     {
         println!("Parsing comps...");
         parse_wca_comps(zip.by_name("WCA_export_Competitions.tsv")?, &mut results)?;
@@ -61,7 +60,7 @@ pub fn download_wca<'a>() -> Result<WcaResults, WcaError> {
     Ok(results)
 }
 
-fn parse_wca_results<'a>(file: ZipFile, mut results: &mut WcaResults) -> Result<(), WcaError> {
+pub fn parse_wca_results<'a>(file: ZipFile, mut results: &mut WcaResults) -> Result<(), WcaError> {
     let mut reader = BufReader::new(file);
 
     let mut i = 0;
@@ -96,7 +95,7 @@ fn parse_wca_results<'a>(file: ZipFile, mut results: &mut WcaResults) -> Result<
     Ok(())
 }
 
-fn parse_wca_comps<'a>(file: ZipFile, mut results: &mut WcaResults) -> Result<(), WcaError> {
+pub fn parse_wca_comps<'a>(file: ZipFile, mut results: &mut WcaResults) -> Result<(), WcaError> {
     let mut reader = BufReader::new(file);
 
     let mut i = 0;
@@ -114,7 +113,7 @@ fn parse_wca_comps<'a>(file: ZipFile, mut results: &mut WcaResults) -> Result<()
                     break;
                 }
 
-                if let Err(e) = insert_comp(&line, &mut results) {
+                if let Err(e) = insert_comp(line, &mut results) {
                     eprintln!("Error on line {}: {:?}", i, e);
                 }
             }
@@ -127,7 +126,7 @@ fn parse_wca_comps<'a>(file: ZipFile, mut results: &mut WcaResults) -> Result<()
     Ok(())
 }
 
-fn insert_result<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), WcaError> {
+pub fn insert_result<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), WcaError> {
     let mut stuff = Vec::new();
     for segment in line.split("\t") {
         stuff.push(segment);
@@ -175,7 +174,7 @@ fn insert_result<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), WcaE
     Ok(())
 }
 
-fn insert_comp<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), WcaError> {
+pub fn insert_comp<'a>(line: String, results: &mut WcaResults) -> Result<(), WcaError> {
     let mut stuff = Vec::new();
     for segment in line.split("\t") {
         stuff.push(segment);
@@ -199,7 +198,7 @@ fn insert_comp<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), WcaErr
     let e_n_date = NaiveDate::from_ymd(s_year.parse()?, e_month.parse()?, e_day.parse()?);
     let e_date = DateW::new(Date::from_utc(e_n_date, offset::Utc));
 
-    let events = stuff[10].split(" ").map(|e| e.to_string()).collect();
+    let events = stuff[10].split(" ").map(|s| s.to_string()).collect();
 
     let has_been = *s_date < offset::Utc::today();
 
@@ -232,60 +231,3 @@ fn insert_comp<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), WcaErr
     Ok(())
 
 }
-
-
-#[cfg(test)]
-const TEST_RESULT_LINE: &'static str = "LyonOpen2007\t333\t1\t15\t1968\t2128\tEtienne Amany\t2007AMAN01\tCote d_Ivoire\ta\t-1\t2203\t2138\t2139\t2108\tAfR\tAfR";
-#[test]
-pub fn test_result() {
-    let mut wca = WcaResults::default();
-    println!("Before: {:?}", wca);
-    assert_eq!(insert_result(TEST_RESULT_LINE, &mut wca).is_ok(), true);
-    println!("Res: {:?}", wca);
-}
-
-#[cfg(test)]
-const TEST_COMP_LINE: &'static str = "ArenaCurucaOpen2018\tArena Curuçá Open 2018\tSão Paulo - SP\tBrazil\tA inscrição é **gratuita** e aberta a qualquer pessoa de qualquer nacionalidade. As inscrições para todas as modalidades poderão ser feitas até o dia 21 de janeiro de 2018. No dia do campeonato, as inscrições estarão abertas somente para o 3x3. Mais informações na aba \"Inscrições\".\t2018\t1\t27\t1\t27\t222 333 pyram\t[{Ronan Felipe Jorge}{mailto:ronan.jorge@hotmail.com}]\t[{Mauricio Paulino Marques Fernandes}{mailto:mauriciopmf@yahoo.com.br}]\t[Arena Curuçá](http://www.curucafutsal.com.br)\tRua Grapira, 70 - Vila Curuçá, São Miguel Paulista\t\thttps://sites.google.com/prod/view/arenaopen\tArena Curuçá Open 2018\t-23496048\t-46422484";
-#[test]
-pub fn test_comp() {
-    let mut wca = WcaResults::default();
-    if let Err(e) = insert_comp(TEST_COMP_LINE, &mut wca) {
-        println!("Error: {:?}", e);
-        assert!(false);
-    }
-    assert_eq!(wca.comps.len(), 1);
-    assert_eq!(wca.comps[0].id, "ArenaCurucaOpen2018");
-    assert_eq!(wca.comps[0].name, "Arena Curuçá Open 2018");
-    assert_eq!(wca.comps[0].events, vec!["222", "333", "pyram"]);
-    println!("Comp: {:?}", wca.comps[0]);
-}
-
-// #[cfg(test)]
-// use std::fs::File;
-// #[cfg(test)]
-// use std::io::Write;
-
-// #[test]
-// pub fn test_download() {
-//     let wca = download_wca();
-
-//     match wca {
-//         Ok(wca) => {
-//             println!("Me: {:?}", wca.people.get("2015LOOV01"));
-//             let mut file = File::create("Wca.obj");
-//             match file {
-//                 Ok(ref mut file) => {
-//                     file.write_all(format!("{:?}", wca).as_bytes()).expect("Couldn't write!");
-//                 }
-//                 Err(e) => {
-//                     eprintln!("Error writing: {:?}", e);
-//                 }
-//             }
-//         }
-//         Err(e) => {
-//             eprintln!("Something failed: {:?}", e);
-//             assert!(false);
-//         }
-//     }
-
-// }

@@ -56,15 +56,3 @@ fn parse_competitor_id(node: Node) -> Option<String> {
         .map(|id| id.to_string()) // and make it into a String
 }
 
-#[test]
-fn test_download() {
-    match download_competitors("SkillCon2017") {
-        Err(e) => {
-            eprintln!("Error: {:?}", e);
-            assert!(false);
-        }
-        Ok(res) => {
-            println!("Res: {:?}", res);
-        }
-    }
-}
