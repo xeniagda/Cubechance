@@ -112,7 +112,6 @@ pub struct WcaPerson {
 pub struct CompInfo<'a> {
     pub comp: &'a Competition,
     pub people: Vec<ExtendedPerson<'a>>,
-    pub places_chances: HashMap<String, HashMap<String, Vec<f64>>> // Event: {id: [chances]...}
 }
 
 #[derive(Serialize, Debug)]
@@ -233,35 +232,35 @@ impl WcaResults {
                             )
                             .collect();
 
-                let mut event_places = HashMap::new();
+                // let mut event_places = HashMap::new();
 
-                for event in comp.events.iter() {
-                    let mut places = HashMap::new();
+                // for event in comp.events.iter() {
+                //     let mut places = HashMap::new();
 
-                    let competitors: Vec<_> =
-                            comp.competitors.iter()
-                            .filter(|p| p.events.iter().find(|x| x == &event).is_some())
-                            .filter_map(|p| self.ext_person(&p.id))
-                            .collect();
+                //     let competitors: Vec<_> =
+                //             comp.competitors.iter()
+                //             .filter(|p| p.events.iter().find(|x| x == &event).is_some())
+                //             .filter_map(|p| self.ext_person(&p.id))
+                //             .collect();
 
-                    for person in people.iter() {
-                        match self.ext_person(&person.id) {
-                            Some(p) => {
-                                places.insert(person.id.clone(),
-                                              p.place_prob(competitors.as_slice(), &event)
-                                             );
+                //     for person in people.iter() {
+                //         match self.ext_person(&person.id) {
+                //             Some(p) => {
+                //                 places.insert(person.id.clone(),
+                //                               p.place_prob(competitors.as_slice(), &event)
+                //                              );
 
-                            }
-                            None => {
-                                continue;
-                            }
-                        }
-                    }
-                    event_places.insert(event.clone(), places);
+                //             }
+                //             None => {
+                //                 continue;
+                //             }
+                //         }
+                //     }
+                //     event_places.insert(event.clone(), places);
 
-                }
+                // }
 
-                Some(CompInfo {comp: comp, people: people, places_chances: event_places})
+                Some(CompInfo {comp: comp, people: people})
 
             }
         }
