@@ -37,13 +37,14 @@ fn test_place() {
     for person in people.iter() {
 
         let pp = person.place_prob(&people[1..], "333");
-        assert!(pp[0] >= 0f64);
+        let sum = pp.iter().sum::<f64>();
+        assert!(f64::abs(sum - 1f64) < 0.0001, format!("Sum {} == 1", sum));
 
     }
     let dur = start.elapsed();
     
     println!("Took {:?}", dur);
-    assert!(dur.as_secs() < 1, format!("{:?} > 1", dur));
+    assert!(dur.as_secs() < 3, format!("Time {:?} < 3", dur));
 }
 
 fn generate_people(amount: u16, event_amount: u16, events: &[&str]) -> HashMap<String, WcaPerson> {
