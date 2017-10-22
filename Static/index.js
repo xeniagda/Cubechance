@@ -9548,7 +9548,15 @@ var _user$project$Main$getMatchingComps = function (_p0) {
 			return A2(
 				_elm_lang$core$String$contains,
 				_elm_lang$core$String$toLower(_p1.search),
-				_elm_lang$core$String$toLower(comp.name));
+				_elm_lang$core$String$toLower(comp.name)) && A2(
+				_elm_lang$core$List$any,
+				function (p) {
+					return A2(
+						_elm_lang$core$String$contains,
+						_elm_lang$core$String$toLower(_p1.searchPerson),
+						_elm_lang$core$String$toLower(p.id));
+				},
+				comp.competitors);
 		},
 		_p1.competitions);
 };
@@ -9607,9 +9615,9 @@ var _user$project$Main$sortings = {
 		}
 	}
 };
-var _user$project$Main$Model = F4(
-	function (a, b, c, d) {
-		return {competitions: a, search: b, error: c, sorting: d};
+var _user$project$Main$Model = F5(
+	function (a, b, c, d, e) {
+		return {competitions: a, search: b, searchPerson: c, error: d, sorting: e};
 	});
 var _user$project$Main$SetSorting = function (a) {
 	return {ctor: 'SetSorting', _0: a};
@@ -9645,6 +9653,9 @@ var _user$project$Main$viewDropdown = function (model) {
 			},
 			_user$project$Main$sortings));
 };
+var _user$project$Main$SearchPerson = function (a) {
+	return {ctor: 'SearchPerson', _0: a};
+};
 var _user$project$Main$Search = function (a) {
 	return {ctor: 'Search', _0: a};
 };
@@ -9674,18 +9685,37 @@ var _user$project$Main$view = function (model) {
 					{ctor: '[]'}),
 				_1: {
 					ctor: '::',
-					_0: _user$project$Main$viewDropdown(model),
+					_0: A2(
+						_elm_lang$html$Html$input,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$placeholder('Search WCA ID'),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$value(model.searchPerson),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Events$onInput(_user$project$Main$SearchPerson),
+									_1: {ctor: '[]'}
+								}
+							}
+						},
+						{ctor: '[]'}),
 					_1: {
 						ctor: '::',
-						_0: _user$project$Main$renderComps(
-							A2(
-								_elm_lang$core$List$sortWith,
-								_elm_lang$core$Tuple$second(model.sorting),
-								_user$project$Main$getMatchingComps(model))),
+						_0: _user$project$Main$viewDropdown(model),
 						_1: {
 							ctor: '::',
-							_0: _user$project$Main$wcaDisc,
-							_1: {ctor: '[]'}
+							_0: _user$project$Main$renderComps(
+								A2(
+									_elm_lang$core$List$sortWith,
+									_elm_lang$core$Tuple$second(model.sorting),
+									_user$project$Main$getMatchingComps(model))),
+							_1: {
+								ctor: '::',
+								_0: _user$project$Main$wcaDisc,
+								_1: {ctor: '[]'}
+							}
 						}
 					}
 				}
@@ -9797,12 +9827,19 @@ var _user$project$Main$update = F2(
 							}),
 						{ctor: '[]'});
 				}
-			default:
+			case 'Search':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
 						{search: _p6._0}),
+					{ctor: '[]'});
+			default:
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{searchPerson: _p6._0}),
 					{ctor: '[]'});
 		}
 	});
@@ -9813,6 +9850,7 @@ var _user$project$Main$init = A2(
 	{
 		competitions: {ctor: '[]'},
 		search: '',
+		searchPerson: '',
 		error: _elm_lang$core$Maybe$Nothing,
 		sorting: _user$project$Main$defaultSort
 	});

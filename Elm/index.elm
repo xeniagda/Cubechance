@@ -31,6 +31,7 @@ main =
 type alias Model =
     { competitions : List Base.Competition
     , search : String
+    , searchPerson : String
     , error : Maybe String
     , sorting : (String, (Base.Competition -> Base.Competition -> Order))
     }
@@ -39,6 +40,7 @@ init =
     update LoadUpcoming <|
         { competitions = []
         , search = ""
+        , searchPerson = ""
         , error = Nothing
         , sorting = defaultSort
         }
@@ -47,6 +49,7 @@ type Msg
     = LoadUpcoming
     | ParseUpcoming (Result Http.Error String)
     | Search String
+    | SearchPerson String
     | SetSorting String
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -61,6 +64,7 @@ update msg model =
                 Nothing -> model ! []
                 Just sorting ->
                     { model | sorting = sorting } ! []
+
         LoadUpcoming ->
             model !
             [
@@ -82,13 +86,21 @@ update msg model =
 
         Search st -> { model | search = st } ! []
 
+        SearchPerson st -> { model | searchPerson = st } ! []
+
 getMatchingComps : Model -> List Base.Competition
-getMatchingComps { search, competitions } =
+getMatchingComps { search, searchPerson, competitions } =
     List.filter
         (\comp ->
             String.contains
                 (String.toLower search)
                 (String.toLower comp.name)
+            && List.any 
+                (\p ->
+                    String.contains
+                        (String.toLower searchPerson)
+                        (String.toLower p.id)
+                ) comp.competitors
         )
         competitions
 
@@ -96,6 +108,7 @@ view : Model -> Html Msg
 view model =
     div [] <|
         [ input [ placeholder "Search", value model.search, onInput Search ] []
+        , input [ placeholder "Search WCA ID", value model.searchPerson, onInput SearchPerson ] []
         , viewDropdown model
         , renderComps <| List.sortWith (Tuple.second model.sorting) <| getMatchingComps model
         , wcaDisc

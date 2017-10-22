@@ -90,9 +90,9 @@ update msg model =
                     { model | error = Just <| Debug.log "Error" <| toString err } ! []
 
         SelectedPerson p ->
-            { model
-            | selected = Just <| SelectEvent p
-            } ! []
+            case model.selected of
+                Just (SelectEvent e) -> { model | selected = Nothing } ! []
+                _                    -> { model | selected = Just <| SelectEvent p } ! []
 
         SelectedEvent e -> 
             case model.selected of
@@ -182,19 +182,20 @@ viewCompetitors sort competition people selected =
             (\competitor ->
                 case findPerson competitor.id people of
                     Nothing -> Nothing
-                    Just person ->
-                        case selected of
-                            Just x ->
-                                if x == competitor.id
-                                   then Just <| viewCompetitor True competition competitor person
-                                   else Nothing
-                            Nothing -> Just <| viewCompetitor False competition competitor person
+                    Just person -> Just <| viewCompetitor selected competition competitor person
             )
             (List.sortWith (compareP people sort) competition.competitors)
 
 viewCompetitor select competition competitor person =
     let personLink = "https://www.worldcubeassociation.org/persons/" ++ person.id
-    in tr [class "competitor"]
+        tClass =
+            case select of
+                Just x -> 
+                    if x == person.id
+                       then "competitor selected"
+                       else "competitor deselected"
+                _ -> "competitor"
+    in tr [class tClass]
         <|
         [ td [class "comp_name"] [
             a [ onClick <| SelectedPerson person ] [ text person.name]
@@ -214,13 +215,17 @@ genHeader competition =
             competition.events
 
 displayEvent select event comp person =
-    case Dict.get event person.avgs of
+    let isSelected = 
+            case select of
+                Just x -> x == person.id
+                _ -> False
+    in case Dict.get event person.avgs of
         Nothing -> td [class "event"] []
         Just avg ->
-            let click =
-                    if select
-                        then [ onClick <| SelectedEvent event ]
-                        else []
+            let click = 
+                    if isSelected
+                       then [ onClick <| SelectedEvent event ]
+                       else []
             in td ([class "event"] ++ click)
                 [ text <| Base.viewTime avg
                 ]
