@@ -24,6 +24,7 @@ type alias Person =
     { id : String
     , name : String
     , times : Dict String (List Time) -- Event: [Time]
+    , avgs : Dict String Time -- Event: avg
     }
 
 type Time
@@ -91,6 +92,7 @@ decodePerson =
         |> required "id" D.string
         |> requiredAt [ "person", "name" ] D.string
         |> requiredAt [ "person", "times" ] (D.dict <| D.list decodeTime)
+        |> required "current_avgs" (D.dict <| D.index 0 decodeTime)
 
 decodeTime =
     D.oneOf

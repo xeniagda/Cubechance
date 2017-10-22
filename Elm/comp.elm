@@ -137,7 +137,7 @@ view model =
                     p [] [text <| person.name ++ " has the following chances in " ++ event ++ ":"]
                     :: List.filterMap (\ (i, chance) ->
                         if chance > 0.01
-                           then Just <| p [] [ text <| toString i ++ ": " ++ Base.stf2 (chance * 100) ++ "%" ]
+                           then Just <| p [] [ text <| toString (i + 1) ++ ": " ++ Base.stf2 (chance * 100) ++ "%" ]
                            else Nothing
                     ) placesWithIndexed
             _ -> text ""
@@ -163,8 +163,8 @@ compareP people method c1 c2 =
         (Just p1, Just p2) ->
             case method of
                 Just event ->
-                    case ( Maybe.map average <| Dict.get event p1.times
-                         , Maybe.map average <| Dict.get event p2.times) of
+                    case ( Dict.get event p1.avgs
+                         , Dict.get event p2.avgs) of
                         ( Just (Base.Time t1)
                         , Just (Base.Time t2))  -> compare t1 t2
                         (Just Base.DNF, Just _) -> GT
@@ -214,36 +214,19 @@ genHeader competition =
             competition.events
 
 displayEvent select event comp person =
-    let times = Dict.get event person.times
-    in case times of
-            Nothing -> td [class "event"] []
-            Just times ->
-                let click =
-                        if select
-                            then [ onClick <| SelectedEvent event ]
-                            else []
-                in td ([class "event"] ++ click)
-                    [ text <| Base.viewTime <| average times
-                    ]
+    case Dict.get event person.avgs of
+        Nothing -> td [class "event"] []
+        Just avg ->
+            let click =
+                    if select
+                        then [ onClick <| SelectedEvent event ]
+                        else []
+            in td ([class "event"] ++ click)
+                [ text <| Base.viewTime avg
+                ]
 
 genIcon event =
     span [ class <| "cubing-icon event-" ++ event ] []
-
-average : List Base.Time -> Base.Time
-average times =
-    let non_dnfs =
-            List.filterMap
-                (\x ->
-                    case x of
-                        Base.DNF -> Nothing
-                        Base.Time n -> Just n
-                )
-            times
-    in case non_dnfs of
-        [] -> Base.DNF
-        _ ->
-            let avg = List.sum non_dnfs / toFloat (List.length non_dnfs)
-            in Base.Time <| toFloat (round <| avg * 100) / 100
 
 
 

@@ -9321,9 +9321,9 @@ var _user$project$Base$decodeComp = A3(
 					'id',
 					_elm_lang$core$Json_Decode$string,
 					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Competition))))));
-var _user$project$Base$Person = F3(
-	function (a, b, c) {
-		return {id: a, name: b, times: c};
+var _user$project$Base$Person = F4(
+	function (a, b, c, d) {
+		return {id: a, name: b, times: c, avgs: d};
 	});
 var _user$project$Base$DNF = {ctor: 'DNF'};
 var _user$project$Base$Time = function (a) {
@@ -9350,18 +9350,10 @@ var _user$project$Base$decodeTime = _elm_lang$core$Json_Decode$oneOf(
 		}
 	});
 var _user$project$Base$decodePerson = A3(
-	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$requiredAt,
-	{
-		ctor: '::',
-		_0: 'person',
-		_1: {
-			ctor: '::',
-			_0: 'times',
-			_1: {ctor: '[]'}
-		}
-	},
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'current_avgs',
 	_elm_lang$core$Json_Decode$dict(
-		_elm_lang$core$Json_Decode$list(_user$project$Base$decodeTime)),
+		A2(_elm_lang$core$Json_Decode$index, 0, _user$project$Base$decodeTime)),
 	A3(
 		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$requiredAt,
 		{
@@ -9369,16 +9361,29 @@ var _user$project$Base$decodePerson = A3(
 			_0: 'person',
 			_1: {
 				ctor: '::',
-				_0: 'name',
+				_0: 'times',
 				_1: {ctor: '[]'}
 			}
 		},
-		_elm_lang$core$Json_Decode$string,
+		_elm_lang$core$Json_Decode$dict(
+			_elm_lang$core$Json_Decode$list(_user$project$Base$decodeTime)),
 		A3(
-			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-			'id',
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$requiredAt,
+			{
+				ctor: '::',
+				_0: 'person',
+				_1: {
+					ctor: '::',
+					_0: 'name',
+					_1: {ctor: '[]'}
+				}
+			},
 			_elm_lang$core$Json_Decode$string,
-			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Person))));
+			A3(
+				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+				'id',
+				_elm_lang$core$Json_Decode$string,
+				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Person)))));
 
 var _user$project$Main$wcaDisc = A2(
 	_elm_lang$html$Html$p,
