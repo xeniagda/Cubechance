@@ -301,6 +301,7 @@ pub struct Competition {
 #[derive(Serialize, Debug, Default)]
 pub struct Competitor {
     pub id: String,
+    pub name: String,
     pub events: Vec<String>
 }
 

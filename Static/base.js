@@ -6423,9 +6423,9 @@ var _user$project$Base$Competition = F5(
 	function (a, b, c, d, e) {
 		return {id: a, name: b, events: c, date: d, competitors: e};
 	});
-var _user$project$Base$Competitor = F2(
-	function (a, b) {
-		return {id: a, events: b};
+var _user$project$Base$Competitor = F3(
+	function (a, b, c) {
+		return {id: a, name: b, events: c};
 	});
 var _user$project$Base$decompCompetitor = A3(
 	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
@@ -6433,9 +6433,13 @@ var _user$project$Base$decompCompetitor = A3(
 	_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
 	A3(
 		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-		'id',
+		'name',
 		_elm_lang$core$Json_Decode$string,
-		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Competitor)));
+		A3(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+			'id',
+			_elm_lang$core$Json_Decode$string,
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Competitor))));
 var _user$project$Base$decodeComp = A3(
 	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
 	'competitors',

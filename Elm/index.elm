@@ -100,6 +100,9 @@ getMatchingComps { search, searchPerson, competitions } =
                     String.contains
                         (String.toLower searchPerson)
                         (String.toLower p.id)
+                    || String.contains
+                        (String.toLower searchPerson)
+                        (String.toLower p.name)
                 ) comp.competitors
         )
         competitions
@@ -108,7 +111,7 @@ view : Model -> Html Msg
 view model =
     div [] <|
         [ input [ placeholder "Search", value model.search, onInput Search ] []
-        , input [ placeholder "Search WCA ID", value model.searchPerson, onInput SearchPerson ] []
+        , input [ placeholder "Search WCA ID / Name", value model.searchPerson, onInput SearchPerson ] []
         , viewDropdown model
         , renderComps <| List.sortWith (Tuple.second model.sorting) <| getMatchingComps model
         , wcaDisc

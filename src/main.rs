@@ -159,7 +159,7 @@ fn place<'r>(comp: String, id: String, event: String, state: State<MutWebState>)
                 ( Some(ref person), Some(ref comp) ) => {
                     let competitors: Vec<_> = 
                             comp.competitors.iter()
-                            .filter(|p| p.id != id && p.events.iter().find(|e| e == &&event).is_some())
+                            .filter(|p| p.id != id && p.events.iter().any(|e| e == &event))
                             .filter_map(|p| wca.ext_person(&p.id))
                             .collect();
                     let res = person.place_prob(competitors.as_slice(), &event);

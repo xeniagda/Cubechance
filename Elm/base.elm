@@ -17,6 +17,7 @@ type alias Competition =
 
 type alias Competitor =
     { id : String
+    , name : String
     , events : List String
     }
 
@@ -108,6 +109,7 @@ decodeTime =
 decompCompetitor =
     decode Competitor
         |> required "id" D.string
+        |> required "name" D.string
         |> required "events" (D.list D.string)
 
 decodeDate : D.Decoder Date.Date

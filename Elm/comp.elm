@@ -163,15 +163,19 @@ compareP people method c1 c2 =
         (Just p1, Just p2) ->
             case method of
                 Just event ->
-                    case ( Dict.get event p1.avgs
-                         , Dict.get event p2.avgs) of
-                        ( Just (Base.Time t1)
-                        , Just (Base.Time t2))  -> compare t1 t2
-                        (Just Base.DNF, Just _) -> GT
-                        (Just _, Just Base.DNF) -> LT
-                        (Nothing, Just _)       -> GT
-                        (Just _, Nothing)       -> LT
-                        _                       -> EQ
+                    case ( List.any (\a -> a == event) c1.events
+                         , List.any (\a -> a == event) c2.events ) of
+                        (False, _) -> GT
+                        (_, False) -> LT
+                        _ -> case ( Dict.get event p1.avgs
+                                  , Dict.get event p2.avgs) of
+                            ( Just (Base.Time t1)
+                            , Just (Base.Time t2))  -> compare t1 t2
+                            (Just Base.DNF, Just _) -> GT
+                            (Just _, Just Base.DNF) -> LT
+                            (Nothing, Just _)       -> GT
+                            (Just _, Nothing)       -> LT
+                            _                       -> EQ
                 Nothing -> compare p1.name p2.name
         _ -> EQ
 
@@ -200,7 +204,7 @@ viewCompetitor select competition competitor person =
         [ td [class "comp_name"] [
             a [ onClick <| SelectedPerson person ] [ text person.name]
         ]
-        ] ++ List.map (\event -> displayEvent select event competition person) competition.events
+        ] ++ List.map (\event -> displayEvent select event competitor person) competition.events
 
 genHeader competition =
     tr [class "comp-events" ] <|
@@ -214,7 +218,7 @@ genHeader competition =
             )
             competition.events
 
-displayEvent select event comp person =
+displayEvent select event competitor person =
     let isSelected = 
             case select of
                 Just x -> x == person.id
@@ -222,13 +226,14 @@ displayEvent select event comp person =
     in case Dict.get event person.avgs of
         Nothing -> td [class "event"] []
         Just avg ->
-            let click = 
-                    if isSelected
-                       then [ onClick <| SelectedEvent event ]
-                       else []
-            in td ([class "event"] ++ click)
-                [ text <| Base.viewTime avg
-                ]
+            if List.any (\a -> a == event) competitor.events then
+                let click = 
+                        if isSelected
+                           then [ onClick <| SelectedEvent event ]
+                           else []
+                in td ([class "event"] ++ click)
+                    [ text <| Base.viewTime avg ]
+            else td [class "event"] []
 
 genIcon event =
     span [ class <| "cubing-icon event-" ++ event ] []

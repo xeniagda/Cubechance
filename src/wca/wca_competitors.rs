@@ -30,11 +30,12 @@ fn parse_competitors<'a>(doc: Document) -> Result<Vec<Competitor>, WcaError> {
 }
 
 fn parse_competitor(node: Node) -> Result<Competitor, WcaError> {
-    let id = parse_competitor_id(node).ok_or(WcaError::CompE("No id".to_string()))?;
+    let id   = parse_competitor_id(node).ok_or(WcaError::CompE("No id".to_string()))?;
+    let name = parse_competitor_name(node).ok_or(WcaError::CompE("No name".to_string()))?;
 
     let events = parse_events(node);
 
-    Ok(Competitor{id: id, events: events})
+    Ok(Competitor{id: id, name: name, events: events})
 }
 
 fn parse_events(node: Node) -> Vec<String> {
@@ -56,3 +57,8 @@ fn parse_competitor_id(node: Node) -> Option<String> {
         .map(|id| id.to_string()) // and make it into a String
 }
 
+fn parse_competitor_name(node: Node) -> Option<String> {
+    node.find(p::Name("a")) // The wca ID is stored as a link, find it,
+        .nth(0)
+        .map(|name| name.text())
+}

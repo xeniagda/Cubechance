@@ -36,7 +36,8 @@ fn test_place() {
     let start = Instant::now();
     for person in people.iter() {
 
-        let pp = person.place_prob(&people[1..], "333");
+        let pp = person.place_prob(&people, "333");
+        assert_eq!(pp.len(), people.len(), "Correct amount of places");
         let sum = pp.iter().sum::<f64>();
         assert!(f64::abs(sum - 1f64) < 0.0001, format!("Sum {} == 1", sum));
 
