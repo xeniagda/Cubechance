@@ -122,8 +122,18 @@ view model =
     in div [] 
         [ a [ href "/index.html" ] [ text "←" ]
         , br [] []
-        , p [] [ text <| toString model.selected ]
-        , p [] [ text <| toString model.error ]
+        , case model.selected of
+            Just (Loaded person event places) ->
+                let placesWithIndexed =
+                        List.indexedMap (\i place -> (i, place)) places
+                in div [] <|
+                    p [] [text <| person.name ++ " has the following chances in " ++ event ++ ":"]
+                    :: List.filterMap (\ (i, chance) ->
+                        if chance > 0.01
+                           then Just <| p [] [ text <| toString i ++ ": " ++ Base.stf2 (chance * 100) ++ "%" ]
+                           else Nothing
+                    ) placesWithIndexed
+            _ -> text ""
         , case model.comp of
             Just comp ->
                 div []
@@ -133,24 +143,14 @@ view model =
                     ]
                     , case model.selected of
                         Just (SelectEvent per) ->
-                            table [id "competitors"]
-                                <| genHeader comp
-                                :: List.filterMap
-                                    (\competitor ->
-                                        case findPerson competitor.id model.people of
-                                            Nothing -> Nothing
-                                            Just person ->
-                                                if person.id == per.id
-                                                   then Just <| viewCompetitor True comp competitor person
-                                                   else Nothing
-                                    ) comp.competitors
-                        _ -> viewCompetitors comp model.people
+                            viewCompetitors comp model.people <| Just per.id
+                        _ -> viewCompetitors comp model.people Nothing
                     ]
             _ ->
                 p [id "loading"] [text "Loading..."]
         ]
 
-viewCompetitors competition people =
+viewCompetitors competition people selected =
     table [id "competitors"]
         <| genHeader competition
         :: List.filterMap
@@ -158,7 +158,12 @@ viewCompetitors competition people =
                 case findPerson competitor.id people of
                     Nothing -> Nothing
                     Just person ->
-                        Just <| viewCompetitor False competition competitor person
+                        case selected of
+                            Just x ->
+                                if x == competitor.id
+                                   then Just <| viewCompetitor True competition competitor person
+                                   else Nothing
+                            Nothing -> Just <| viewCompetitor False competition competitor person
             )
             competition.competitors
 
