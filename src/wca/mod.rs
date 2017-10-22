@@ -162,12 +162,17 @@ impl <'l> ExtendedPerson<'l> {
         if others.len() == 0 {
             return vec![1f64];
         }
-        let first = &others[0];
-        let prob = self.chance_beating(first, &event);
-        
         let prev = &others[1..];
         let prev_prob = self.place_prob(prev, event);
 
+        let first = &others[0];
+
+        if first.id == self.id {
+            return prev_prob;
+        }
+
+        let prob = self.chance_beating(first, &event);
+        
         let mut new_prob = vec![0f64; prev_prob.len() + 1];
 
         for i in 0..prev_prob.len() {
