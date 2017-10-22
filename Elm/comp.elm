@@ -32,6 +32,7 @@ type alias Model =
     , people : List Base.Person
     , selected : Maybe Selected
     , error : Maybe String
+    , sortBy : Maybe String
     }
 
 type Selected
@@ -45,6 +46,7 @@ type Msg
     | SelectedPerson Base.Person
     | SelectedEvent String
     | ParseChances (Result Http.Error String)
+    | SortBy (Maybe String)
 
 init : Flags -> (Model, Cmd Msg)
 init flags =
@@ -55,6 +57,7 @@ init flags =
                 , people = []
                 , selected = Nothing
                 , error = Nothing
+                , sortBy = Nothing
                 }
     in (model, Cmd.batch <| [Task.perform SelectedEvent <| Task.succeed "333", cmd])
 
@@ -115,6 +118,10 @@ update msg model =
 
         ParseComp (Err err) ->
             { model | error = Just <| toString err } ! []
+
+        SortBy x ->
+            { model | sortBy = x } ! []
+
 decodePlaces = D.list D.float
 
 view model =
@@ -143,14 +150,32 @@ view model =
                     ]
                     , case model.selected of
                         Just (SelectEvent per) ->
-                            viewCompetitors comp model.people <| Just per.id
-                        _ -> viewCompetitors comp model.people Nothing
+                            viewCompetitors model.sortBy comp model.people <| Just per.id
+                        _ -> viewCompetitors model.sortBy comp model.people Nothing
                     ]
             _ ->
                 p [id "loading"] [text "Loading..."]
         ]
 
-viewCompetitors competition people selected =
+compareP people method c1 c2 =
+    case ( findPerson c1.id people
+         , findPerson c2.id people) of
+        (Just p1, Just p2) ->
+            case method of
+                Just event ->
+                    case ( Maybe.map average <| Dict.get event p1.times
+                         , Maybe.map average <| Dict.get event p2.times) of
+                        ( Just (Base.Time t1)
+                        , Just (Base.Time t2))  -> compare t1 t2
+                        (Just Base.DNF, Just _) -> GT
+                        (Just _, Just Base.DNF) -> LT
+                        (Nothing, Just _)       -> GT
+                        (Just _, Nothing)       -> LT
+                        _                       -> EQ
+                Nothing -> compare p1.name p2.name
+        _ -> EQ
+
+viewCompetitors sort competition people selected =
     table [id "competitors"]
         <| genHeader competition
         :: List.filterMap
@@ -165,7 +190,7 @@ viewCompetitors competition people selected =
                                    else Nothing
                             Nothing -> Just <| viewCompetitor False competition competitor person
             )
-            competition.competitors
+            (List.sortWith (compareP people sort) competition.competitors)
 
 viewCompetitor select competition competitor person =
     let personLink = "https://www.worldcubeassociation.org/persons/" ++ person.id
@@ -178,11 +203,11 @@ viewCompetitor select competition competitor person =
 
 genHeader competition =
     tr [class "comp-events" ] <|
-        th [ class "comp-name"] [ text competition.name ]
+        th [ class "name", onClick <| SortBy Nothing ] [ text "Name" ]
      --:: th [ class "comp-id"] [ text competition.id ]
      :: List.map
             (\event ->
-                th [ class "event" ]
+                th [ class "event", onClick <| SortBy (Just event) ]
                 [ span [class <| "cubing-icon event-" ++ event ] []
                 ]
             )
