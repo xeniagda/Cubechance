@@ -76,6 +76,38 @@ fn index<'r>(file: PathBuf) -> Option<Response<'r>> {
     }
 }
 
+#[get("/api/people/<name>", rank = 0)]
+fn wca_person<'r>(name: String, state: State<MutWebState>) -> Response<'r> {
+    let state = state.lock().unwrap();
+
+    match state.wca {
+        Some(ref wca) => {
+            let people: Vec<_> = wca.people.iter()
+                    .filter(|&(_, p)| p.name.contains(&name))
+                    .filter_map(|(id, _)| wca.ext_person(&id))
+                    .collect();
+
+
+            if people.len() < 200 {
+                match serde_json::to_string(&people) {
+                    Ok(json) => {
+                        make_html(json)
+                    }
+                    Err(e) => {
+                        make_html(format!("e2 {}", e))
+                    }
+                }
+            }
+            else {
+                make_html("e3".to_string())
+            }
+        }
+        None => {
+            make_html("e0".to_string())
+        }
+    }
+}
+
 #[get("/api/wca/<id>", rank = 0)]
 fn wca_id<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
     let state = state.lock().unwrap();
@@ -243,7 +275,7 @@ fn main() {
 
     rocket::ignite()
         .manage(state)
-        .mount("/", routes![wca_id, upcoming, comp, beating, place, index, index_])
+        .mount("/", routes![wca_id, wca_person, upcoming, comp, beating, place, index, index_])
         .catch(errors![not_found])
         .launch();
 }

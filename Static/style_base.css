@@ -9,31 +9,40 @@ h1 {
     margin: 0px;
 }
 
-/* table {
-    border: 1px solid black;
-} */
+#search {
+    width: 100%;
+}
 
-table {
+#search > tr > th {
+    font-weight: normal;
+}
+
+#list {
     margin-top: 10px;
     width: 100%;
     background: #FC9;
 }
 
-tr:nth-child(even) {
+#list > tr:nth-child(even) {
     background-color: #FFF5CB;
 }
-tr:nth-child(odd) {
+#list > tr:nth-child(odd) {
     background-color: #FFEDA1;
 }
-tr {
+
+
+td {
     text-align: left;
 }
+
 th {
     text-align: center;
 }
+
 #center {
     text-align: center;
 }
+
 #compLink {
     font-size: 9px;
 }

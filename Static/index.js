@@ -9447,7 +9447,11 @@ var _user$project$Main$wcaDisc = A2(
 var _user$project$Main$renderComps = function (comps) {
 	return A2(
 		_elm_lang$html$Html$table,
-		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$id('list'),
+			_1: {ctor: '[]'}
+		},
 		{
 			ctor: '::',
 			_0: A2(
@@ -9667,6 +9671,98 @@ var _user$project$Main$SearchPerson = function (a) {
 var _user$project$Main$Search = function (a) {
 	return {ctor: 'Search', _0: a};
 };
+var _user$project$Main$genSearch = function (model) {
+	return A2(
+		_elm_lang$html$Html$table,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$id('search'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$tr,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$th,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('Search comp: '),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$input,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$placeholder('Comp'),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$value(model.search),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$html$Html_Events$onInput(_user$project$Main$Search),
+												_1: {ctor: '[]'}
+											}
+										}
+									},
+									{ctor: '[]'}),
+								_1: {ctor: '[]'}
+							}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$th,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Search person: '),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$input,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$placeholder('WCA ID / Name'),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$value(model.searchPerson),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$html$Html_Events$onInput(_user$project$Main$SearchPerson),
+													_1: {ctor: '[]'}
+												}
+											}
+										},
+										{ctor: '[]'}),
+									_1: {ctor: '[]'}
+								}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$th,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('Sort by: '),
+									_1: {
+										ctor: '::',
+										_0: _user$project$Main$viewDropdown(model),
+										_1: {ctor: '[]'}
+									}
+								}),
+							_1: {ctor: '[]'}
+						}
+					}
+				}),
+			_1: {ctor: '[]'}
+		});
+};
 var _user$project$Main$view = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
@@ -9675,56 +9771,18 @@ var _user$project$Main$view = function (model) {
 			_elm_lang$core$Basics_ops['++'],
 			{
 				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$input,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$placeholder('Search'),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$value(model.search),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$html$Html_Events$onInput(_user$project$Main$Search),
-								_1: {ctor: '[]'}
-							}
-						}
-					},
-					{ctor: '[]'}),
+				_0: _user$project$Main$genSearch(model),
 				_1: {
 					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$input,
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$placeholder('Search WCA ID / Name'),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$value(model.searchPerson),
-								_1: {
-									ctor: '::',
-									_0: _elm_lang$html$Html_Events$onInput(_user$project$Main$SearchPerson),
-									_1: {ctor: '[]'}
-								}
-							}
-						},
-						{ctor: '[]'}),
+					_0: _user$project$Main$renderComps(
+						A2(
+							_elm_lang$core$List$sortWith,
+							_elm_lang$core$Tuple$second(model.sorting),
+							_user$project$Main$getMatchingComps(model))),
 					_1: {
 						ctor: '::',
-						_0: _user$project$Main$viewDropdown(model),
-						_1: {
-							ctor: '::',
-							_0: _user$project$Main$renderComps(
-								A2(
-									_elm_lang$core$List$sortWith,
-									_elm_lang$core$Tuple$second(model.sorting),
-									_user$project$Main$getMatchingComps(model))),
-							_1: {
-								ctor: '::',
-								_0: _user$project$Main$wcaDisc,
-								_1: {ctor: '[]'}
-							}
-						}
+						_0: _user$project$Main$wcaDisc,
+						_1: {ctor: '[]'}
 					}
 				}
 			},

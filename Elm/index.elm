@@ -110,9 +110,7 @@ getMatchingComps { search, searchPerson, competitions } =
 view : Model -> Html Msg
 view model =
     div [] <|
-        [ input [ placeholder "Search", value model.search, onInput Search ] []
-        , input [ placeholder "Search WCA ID / Name", value model.searchPerson, onInput SearchPerson ] []
-        , viewDropdown model
+        [ genSearch model
         , renderComps <| List.sortWith (Tuple.second model.sorting) <| getMatchingComps model
         , wcaDisc
         ] ++ (
@@ -120,6 +118,24 @@ view model =
                 Just err -> [p [ style [("color", "red")] ] [ text err ]]
                 Nothing -> []
         )
+
+genSearch model =
+    table [ id "search" ]
+        [ tr [] 
+            [ th [] 
+                [ text "Search comp: "
+                , input [ placeholder "Comp", value model.search, onInput Search ] []
+                ]
+            , th [] 
+                [ text "Search person: "
+                , input [ placeholder "WCA ID / Name", value model.searchPerson, onInput SearchPerson ] [] 
+                ]
+            , th [] 
+                [ text "Sort by: "
+                , viewDropdown model 
+                ]
+            ]
+        ]
 
 viewDropdown : Model -> Html Msg
 viewDropdown model =
@@ -134,7 +150,7 @@ viewDropdown model =
 
 renderComps : List Base.Competition -> Html Msg
 renderComps comps =
-    table [] <|
+    table [ id "list" ] <|
     tr [] 
         [ th [] [ text "Competition" ]
         , th [] [ text "Competition ID" ]

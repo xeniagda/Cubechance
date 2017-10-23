@@ -33,7 +33,8 @@ type alias Model =
     , selected : Maybe Selected
     , error : Maybe String
     , sortBy : Maybe String
-    , person : String
+    , matching : List Base.Person
+    , search : String
     }
 
 type Selected
@@ -61,7 +62,8 @@ init flags =
                 , selected = Nothing
                 , error = Nothing
                 , sortBy = Nothing
-                , person = ""
+                , matching = []
+                , search = ""
                 }
     in (model, Cmd.batch <| [Task.perform SelectedEvent <| Task.succeed "333", cmd])
 
@@ -100,21 +102,20 @@ update msg model =
 
         SelectedOther name ->
             { model
-            | person = name
+            | search = name
             } !
             [ Http.send ParseOther
                 <| Http.getString
-                    <| "api/wca/" ++ name
+                    <| "api/people/" ++ name
             ]
         
         ParseOther r ->
             case r of
                 Ok res ->
-                    case D.decodeString Base.decodePerson res of
-                        Ok person ->
+                    case D.decodeString (D.list Base.decodePerson) res of
+                        Ok matching ->
                             { model
-                            | selected = Just <| SelectEvent person
-                            , person = ""
+                            | matching = matching
                             } ! []
                         Err e -> { model | error = Just <| toString e } ! []
                 Err e -> { model | error = Just <| toString e } ! []
@@ -124,6 +125,8 @@ update msg model =
                 Just (SelectEvent p) ->
                     { model
                     | selected = Just <| Waiting p e
+                    , matching = []
+                    , search = ""
                     } !
                     [ Http.send ParseChances
                         <| Http.getString
@@ -154,7 +157,18 @@ view model =
     in div [] 
         [ a [ href "/index.html" ] [ text "←" ]
         , br [] []
-        , input [ placeholder "Test person", value model.person, onInput SelectedOther ] []
+        , text "Add person: "
+        , input [ placeholder "Name", value model.search, onInput SelectedOther ] []
+        , case model.matching of
+            [] -> text ""
+            _ ->
+                table []
+                <| tr [] [th [] [text "Name"], th [] [text "Wca ID"]]
+                :: List.map (\p ->
+                    tr [] 
+                        [ td [ onClick <| SelectedPerson p ] [text p.name]
+                        , td [] [text p.id]]
+                    ) model.matching
         , case model.selected of
             Just (Loaded person event places) ->
                 let placesWithIndexed =
@@ -223,7 +237,7 @@ viewCompetitors sort competition people selected =
                         then [ viewCompetitor selected competition (Base.Competitor x.id x.name <| Dict.keys x.times) x ]
                         else [  ]
                 _ -> []
-    in table [id "competitors"]
+    in table [id "list"]
         <| genHeader competition
         :: person
         ++ competitors
