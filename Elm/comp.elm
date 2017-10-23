@@ -33,6 +33,7 @@ type alias Model =
     , selected : Maybe Selected
     , error : Maybe String
     , sortBy : Maybe String
+    , person : String
     }
 
 type Selected
@@ -44,6 +45,8 @@ type Msg
     = LoadComp
     | ParseComp (Result Http.Error String)
     | SelectedPerson Base.Person
+    | SelectedOther String
+    | ParseOther (Result Http.Error String)
     | SelectedEvent String
     | ParseChances (Result Http.Error String)
     | SortBy (Maybe String)
@@ -58,6 +61,7 @@ init flags =
                 , selected = Nothing
                 , error = Nothing
                 , sortBy = Nothing
+                , person = ""
                 }
     in (model, Cmd.batch <| [Task.perform SelectedEvent <| Task.succeed "333", cmd])
 
@@ -94,6 +98,27 @@ update msg model =
                 Just (SelectEvent e) -> { model | selected = Nothing } ! []
                 _                    -> { model | selected = Just <| SelectEvent p } ! []
 
+        SelectedOther name ->
+            { model
+            | person = name
+            } !
+            [ Http.send ParseOther
+                <| Http.getString
+                    <| "api/wca/" ++ name
+            ]
+        
+        ParseOther r ->
+            case r of
+                Ok res ->
+                    case D.decodeString Base.decodePerson res of
+                        Ok person ->
+                            { model
+                            | selected = Just <| SelectEvent person
+                            , person = ""
+                            } ! []
+                        Err e -> { model | error = Just <| toString e } ! []
+                Err e -> { model | error = Just <| toString e } ! []
+
         SelectedEvent e -> 
             case model.selected of
                 Just (SelectEvent p) ->
@@ -129,12 +154,15 @@ view model =
     in div [] 
         [ a [ href "/index.html" ] [ text "←" ]
         , br [] []
+        , input [ placeholder "Test person", value model.person, onInput SelectedOther ] []
         , case model.selected of
             Just (Loaded person event places) ->
                 let placesWithIndexed =
                         List.indexedMap (\i place -> (i, place)) places
                 in div [] <|
-                    p [] [text <| person.name ++ " has the following chances in " ++ event ++ ":"]
+                    p [] [ text <| person.name ++ " has the following chances in "
+                         , genIcon event
+                         , text ":"]
                     :: List.filterMap (\ (i, chance) ->
                         if chance > 0.01
                            then Just <| p [] [ text <| toString (i + 1) ++ ": " ++ Base.stf2 (chance * 100) ++ "%" ]
@@ -150,7 +178,7 @@ view model =
                     ]
                     , case model.selected of
                         Just (SelectEvent per) ->
-                            viewCompetitors model.sortBy comp model.people <| Just per.id
+                            viewCompetitors model.sortBy comp model.people <| Just per
                         _ -> viewCompetitors model.sortBy comp model.people Nothing
                     ]
             _ ->
@@ -180,22 +208,32 @@ compareP people method c1 c2 =
         _ -> EQ
 
 viewCompetitors sort competition people selected =
-    table [id "competitors"]
-        <| genHeader competition
-        :: List.filterMap
+    let competitors = 
+            List.filterMap
             (\competitor ->
                 case findPerson competitor.id people of
                     Nothing -> Nothing
                     Just person -> Just <| viewCompetitor selected competition competitor person
             )
             (List.sortWith (compareP people sort) competition.competitors)
+        person =
+            case selected of
+                Just x ->
+                    if not <| List.any (\p -> x.id == p.id) competition.competitors
+                        then [ viewCompetitor selected competition (Base.Competitor x.id x.name <| Dict.keys x.times) x ]
+                        else [  ]
+                _ -> []
+    in table [id "competitors"]
+        <| genHeader competition
+        :: person
+        ++ competitors
 
 viewCompetitor select competition competitor person =
     let personLink = "https://www.worldcubeassociation.org/persons/" ++ person.id
         tClass =
             case select of
                 Just x -> 
-                    if x == person.id
+                    if x.id == person.id
                        then "competitor selected"
                        else "competitor deselected"
                 _ -> "competitor"
@@ -221,16 +259,16 @@ genHeader competition =
 displayEvent select event competitor person =
     let isSelected = 
             case select of
-                Just x -> x == person.id
+                Just x -> x.id == person.id
                 _ -> False
     in case Dict.get event person.avgs of
         Nothing -> td [class "event"] []
         Just avg ->
             if List.any (\a -> a == event) competitor.events then
                 let click = 
-                        if isSelected
-                           then [ onClick <| SelectedEvent event ]
-                           else []
+                        case select of
+                            Just _ -> [ onClick <| SelectedEvent event ]
+                            _ -> []
                 in td ([class "event"] ++ click)
                     [ text <| Base.viewTime avg ]
             else td [class "event"] []
