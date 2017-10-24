@@ -13,6 +13,7 @@ chrono = "0.4"
 select = "0.4.2"
 statrs = "0.8.0"
 rand = "0.3"
+rayon = "0.8.2"
 
 serde = "1.0"
 serde_derive = "1.0"

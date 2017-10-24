@@ -6,11 +6,16 @@
 extern crate zip;
 extern crate reqwest;
 extern crate chrono;
-
+extern crate rayon;
 
 use self::zip::read::{ZipArchive, ZipFile};
 use std::io::{Read, Cursor, BufReader, BufRead};
 use std::vec::Vec;
+use std::sync::Arc;
+use std::sync::Mutex;
+
+use self::rayon::iter::IntoParallelIterator;
+use self::rayon::iter::ParallelIterator;
 
 use self::chrono::{Date, NaiveDate, offset};
 
@@ -95,33 +100,25 @@ pub fn parse_wca_results<'a>(file: ZipFile, mut results: &mut WcaResults) -> Res
     Ok(())
 }
 
-pub fn parse_wca_comps<'a>(file: ZipFile, mut results: &mut WcaResults) -> Result<(), WcaError> {
+pub fn parse_wca_comps<'a>(file: ZipFile, results: &mut WcaResults) -> Result<(), WcaError> {
     let mut reader = BufReader::new(file);
 
-    let mut i = 0;
     let mut _fl = String::new();
     if let Err(e) = reader.read_line(&mut _fl) { // Skip the first line
         return Err(WcaError::ReadE(format!("Error reading file: {:?}", e)));
     }
 
-    loop {
-        let mut line = String::new();
-        i += 1;
-        match reader.read_line(&mut line) {
-            Ok(_) => {
-                if line == "" {
-                    break;
-                }
+    let lines: Vec<_> =
+            reader.lines().collect();
 
-                if let Err(e) = insert_comp(line, &mut results) {
-                    eprintln!("Error on line {}: {:?}", i, e);
-                }
-            }
-            Err(e) => {
-                return Err(WcaError::ReadE(format!("Error reading line {}: {:?}", i, e)));
-            }
-        }
-    }
+    let comp_amut = Arc::new(Mutex::new(results));
+
+    lines.into_par_iter()
+        .map(|line| load_comp(line.unwrap()).unwrap())
+        .for_each(|comp| {
+            let mut res = comp_amut.lock().unwrap();
+            res.comps.insert(comp.id.clone(), comp);
+        });
 
     Ok(())
 }
@@ -174,7 +171,7 @@ pub fn insert_result<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), 
     Ok(())
 }
 
-pub fn insert_comp<'a>(line: String, results: &mut WcaResults) -> Result<(), WcaError> {
+pub fn load_comp<'a>(line: String) -> Result<Competition, WcaError> {
     let mut stuff = Vec::new();
     for segment in line.split("\t") {
         stuff.push(segment);
@@ -226,8 +223,7 @@ pub fn insert_comp<'a>(line: String, results: &mut WcaResults) -> Result<(), Wca
                     competitors: wca_competitors::download_competitors(comp_id)?
                 }
             };
-    results.comps.insert(comp_id.to_string(), comp);
 
-    Ok(())
+    Ok(comp)
 
 }
