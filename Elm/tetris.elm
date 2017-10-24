@@ -28,6 +28,7 @@ type alias Model =
     { lastTime : Maybe Time.Time
     , tetrisState : TetrisState
     , paused : Bool
+    , easy : Bool
     }
 
 type Msg
@@ -48,6 +49,7 @@ init =
         , score = 0
         , gameOver = False
         } 
+    , easy = True
     } ! []
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -538,10 +540,31 @@ renderBlock yp xp blk =
                     ] []
                 ]
 
+isDifficult : Dropping -> Bool
+isDifficult piece =
+    let triCount =
+            List.sum <| List.map
+                ( List.sum << List.map
+                    (\p -> case p of
+                        Filled Full _ -> 0
+                        Empty -> 0
+                        Split _ _ _ -> 0
+                        _ -> 1
+                    )
+                )
+            piece.shape
+    in triCount > 1
+
 -- Generate a piece with the area of the argument. One area unit is the same as half a square.
 generatePieceWithArea : Int -> Random.Generator Dropping
 generatePieceWithArea area =
-    Random.andThen randomRot
+    Random.andThen randomRot 
+    <| Random.andThen 
+        (\piece ->
+            if isDifficult piece
+               then generatePieceWithArea area
+               else rConst piece
+        )
     <| case area of
         1 -> Re.constant ( Dropping 0 0 [ [ Filled DownRight Purple ] ] )
         _ ->
