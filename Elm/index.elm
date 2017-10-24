@@ -32,8 +32,8 @@ type alias Model =
     { competitions : List Base.Competition
     , search : String
     , searchPerson : String
-    , error : Maybe String
     , sorting : (String, (Base.Competition -> Base.Competition -> Order))
+    , serverLoading : Bool
     }
 
 init =
@@ -41,8 +41,8 @@ init =
         { competitions = []
         , search = ""
         , searchPerson = ""
-        , error = Nothing
         , sorting = defaultSort
+        , serverLoading = False
         }
 
 type Msg
@@ -66,23 +66,30 @@ update msg model =
                     { model | sorting = sorting } ! []
 
         LoadUpcoming ->
-            model !
-            [
-                Http.send ParseUpcoming
-                    <| Http.getString "api/upcoming"
-            ]
+            case model.competitions of
+                [] ->
+                    model !
+                    [ Http.send ParseUpcoming
+                        <| Http.getString "api/upcoming"
+                    ]
+                _ -> model ! []
 
         ParseUpcoming (Ok text) ->
-            case D.decodeString (D.list Base.decodeComp) text of
-                Ok comps ->
-                    { model |
-                        competitions = comps
-                    } ! []
-                Err err ->
-                    { model | error = Just <| toString err } ! []
+            if text == "e0"
+                then { model | serverLoading = True } ! []
+                else case D.decodeString (D.list Base.decodeComp) text of
+                    Ok comps ->
+                        { model 
+                        | competitions = comps
+                        , serverLoading = False
+                        } ! []
+                    Err err ->
+                        let _ = Debug.log "Server error" err
+                        in model ! []
 
         ParseUpcoming (Err err) ->
-            { model | error = Just <| toString err } ! []
+            let _ = Debug.log "Server error" err
+            in model ! []
 
         Search st -> { model | search = st } ! []
 
@@ -113,11 +120,10 @@ view model =
         [ genSearch model
         , renderComps <| List.sortWith (Tuple.second model.sorting) <| getMatchingComps model
         , wcaDisc
-        ] ++ (
-            case model.error of
-                Just err -> [p [ style [("color", "red")] ] [ text err ]]
-                Nothing -> []
-        )
+        , if model.serverLoading
+             then p [] [ text "The server is currently loading the results from WCA. This usually takes around one minute." ]
+             else div [] []
+        ]
 
 genSearch model =
     table [ id "search" ]
@@ -174,4 +180,4 @@ wcaDisc =
         ]
 
 
-subs model = Time.every (Time.second * 10) <| always LoadUpcoming
+subs model = Time.every (Time.second * 5) <| always LoadUpcoming

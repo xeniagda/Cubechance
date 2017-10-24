@@ -9629,7 +9629,7 @@ var _user$project$Main$sortings = {
 };
 var _user$project$Main$Model = F5(
 	function (a, b, c, d, e) {
-		return {competitions: a, search: b, searchPerson: c, error: d, sorting: e};
+		return {competitions: a, search: b, searchPerson: c, sorting: d, serverLoading: e};
 	});
 var _user$project$Main$SetSorting = function (a) {
 	return {ctor: 'SetSorting', _0: a};
@@ -9767,61 +9767,45 @@ var _user$project$Main$view = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
 		{ctor: '[]'},
-		A2(
-			_elm_lang$core$Basics_ops['++'],
-			{
+		{
+			ctor: '::',
+			_0: _user$project$Main$genSearch(model),
+			_1: {
 				ctor: '::',
-				_0: _user$project$Main$genSearch(model),
+				_0: _user$project$Main$renderComps(
+					A2(
+						_elm_lang$core$List$sortWith,
+						_elm_lang$core$Tuple$second(model.sorting),
+						_user$project$Main$getMatchingComps(model))),
 				_1: {
 					ctor: '::',
-					_0: _user$project$Main$renderComps(
-						A2(
-							_elm_lang$core$List$sortWith,
-							_elm_lang$core$Tuple$second(model.sorting),
-							_user$project$Main$getMatchingComps(model))),
+					_0: _user$project$Main$wcaDisc,
 					_1: {
 						ctor: '::',
-						_0: _user$project$Main$wcaDisc,
+						_0: model.serverLoading ? A2(
+							_elm_lang$html$Html$p,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('The server is currently loading the results from WCA. This usually takes around one minute.'),
+								_1: {ctor: '[]'}
+							}) : A2(
+							_elm_lang$html$Html$div,
+							{ctor: '[]'},
+							{ctor: '[]'}),
 						_1: {ctor: '[]'}
 					}
 				}
-			},
-			function () {
-				var _p6 = model.error;
-				if (_p6.ctor === 'Just') {
-					return {
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$p,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$style(
-									{
-										ctor: '::',
-										_0: {ctor: '_Tuple2', _0: 'color', _1: 'red'},
-										_1: {ctor: '[]'}
-									}),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text(_p6._0),
-								_1: {ctor: '[]'}
-							}),
-						_1: {ctor: '[]'}
-					};
-				} else {
-					return {ctor: '[]'};
-				}
-			}()));
+			}
+		});
 };
 var _user$project$Main$ParseUpcoming = function (a) {
 	return {ctor: 'ParseUpcoming', _0: a};
 };
 var _user$project$Main$update = F2(
 	function (msg, model) {
-		var _p7 = msg;
-		switch (_p7.ctor) {
+		var _p6 = msg;
+		switch (_p6.ctor) {
 			case 'SetSorting':
 				var sorting = _elm_lang$core$List$head(
 					A2(
@@ -9829,11 +9813,11 @@ var _user$project$Main$update = F2(
 						function (sort) {
 							return _elm_lang$core$Native_Utils.eq(
 								_elm_lang$core$Tuple$first(sort),
-								_p7._0);
+								_p6._0);
 						},
 						_user$project$Main$sortings));
-				var _p8 = sorting;
-				if (_p8.ctor === 'Nothing') {
+				var _p7 = sorting;
+				if (_p7.ctor === 'Nothing') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						model,
@@ -9843,54 +9827,64 @@ var _user$project$Main$update = F2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
-							{sorting: _p8._0}),
+							{sorting: _p7._0}),
 						{ctor: '[]'});
 				}
 			case 'LoadUpcoming':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
-					{
-						ctor: '::',
-						_0: A2(
-							_elm_lang$http$Http$send,
-							_user$project$Main$ParseUpcoming,
-							_elm_lang$http$Http$getString('api/upcoming')),
-						_1: {ctor: '[]'}
-					});
-			case 'ParseUpcoming':
-				if (_p7._0.ctor === 'Ok') {
-					var _p9 = A2(
-						_elm_lang$core$Json_Decode$decodeString,
-						_elm_lang$core$Json_Decode$list(_user$project$Base$decodeComp),
-						_p7._0._0);
-					if (_p9.ctor === 'Ok') {
-						return A2(
-							_elm_lang$core$Platform_Cmd_ops['!'],
-							_elm_lang$core$Native_Utils.update(
-								model,
-								{competitions: _p9._0}),
-							{ctor: '[]'});
-					} else {
-						return A2(
-							_elm_lang$core$Platform_Cmd_ops['!'],
-							_elm_lang$core$Native_Utils.update(
-								model,
-								{
-									error: _elm_lang$core$Maybe$Just(
-										_elm_lang$core$Basics$toString(_p9._0))
-								}),
-							{ctor: '[]'});
-					}
+				var _p8 = model.competitions;
+				if (_p8.ctor === '[]') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$http$Http$send,
+								_user$project$Main$ParseUpcoming,
+								_elm_lang$http$Http$getString('api/upcoming')),
+							_1: {ctor: '[]'}
+						});
 				} else {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								error: _elm_lang$core$Maybe$Just(
-									_elm_lang$core$Basics$toString(_p7._0._0))
-							}),
+						model,
+						{ctor: '[]'});
+				}
+			case 'ParseUpcoming':
+				if (_p6._0.ctor === 'Ok') {
+					var _p11 = _p6._0._0;
+					if (_elm_lang$core$Native_Utils.eq(_p11, 'e0')) {
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							_elm_lang$core$Native_Utils.update(
+								model,
+								{serverLoading: true}),
+							{ctor: '[]'});
+					} else {
+						var _p9 = A2(
+							_elm_lang$core$Json_Decode$decodeString,
+							_elm_lang$core$Json_Decode$list(_user$project$Base$decodeComp),
+							_p11);
+						if (_p9.ctor === 'Ok') {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{competitions: _p9._0, serverLoading: false}),
+								{ctor: '[]'});
+						} else {
+							var _p10 = A2(_elm_lang$core$Debug$log, 'Server error', _p9._0);
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								model,
+								{ctor: '[]'});
+						}
+					}
+				} else {
+					var _p12 = A2(_elm_lang$core$Debug$log, 'Server error', _p6._0._0);
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
 						{ctor: '[]'});
 				}
 			case 'Search':
@@ -9898,14 +9892,14 @@ var _user$project$Main$update = F2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{search: _p7._0}),
+						{search: _p6._0}),
 					{ctor: '[]'});
 			default:
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{searchPerson: _p7._0}),
+						{searchPerson: _p6._0}),
 					{ctor: '[]'});
 		}
 	});
@@ -9917,13 +9911,13 @@ var _user$project$Main$init = A2(
 		competitions: {ctor: '[]'},
 		search: '',
 		searchPerson: '',
-		error: _elm_lang$core$Maybe$Nothing,
-		sorting: _user$project$Main$defaultSort
+		sorting: _user$project$Main$defaultSort,
+		serverLoading: false
 	});
 var _user$project$Main$subs = function (model) {
 	return A2(
 		_elm_lang$core$Time$every,
-		_elm_lang$core$Time$second * 10,
+		_elm_lang$core$Time$second * 5,
 		_elm_lang$core$Basics$always(_user$project$Main$LoadUpcoming));
 };
 var _user$project$Main$main = _elm_lang$html$Html$program(

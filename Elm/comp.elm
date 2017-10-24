@@ -8,6 +8,7 @@ import Date
 import Dict
 import Time
 import Task
+import Ordinal exposing (ordinal)
 
 import Http
 
@@ -97,8 +98,14 @@ update msg model =
 
         SelectedPerson p ->
             case model.selected of
-                Just (SelectEvent e) -> { model | selected = Nothing } ! []
-                _                    -> { model | selected = Just <| SelectEvent p } ! []
+                Just (SelectEvent e) -> 
+                    { model | selected = Nothing } ! []
+                _ -> 
+                    { model 
+                    | selected = Just <| SelectEvent p
+                    , matching = []
+                    , search = ""
+                    } ! []
 
         SelectedOther name ->
             { model
@@ -156,9 +163,19 @@ view model =
     let compLink = "https://www.worldcubeassociation.org/competitions/" ++ model.compId
     in div [] 
         [ a [ href "/index.html" ] [ text "←" ]
+        , case model.comp of
+            Just comp ->
+                div [id "center"] [
+                        h1 [id "title"] [text comp.name]
+                        , a [ id "compLink", href compLink ] [ text "(On WCA)" ]
+                    ]
+            Nothing ->
+                div [] []
         , br [] []
-        , text "Add person: "
-        , input [ placeholder "Name", value model.search, onInput SelectedOther ] []
+        , div [ style [("right", "0")] ]
+            [ text "Add person: "
+            , input [ placeholder "Name", value model.search, onInput SelectedOther ] []
+            ]
         , case model.matching of
             [] -> text ""
             _ ->
@@ -172,29 +189,31 @@ view model =
         , case model.selected of
             Just (Loaded person event places) ->
                 let placesWithIndexed =
-                        List.indexedMap (\i place -> (i, place)) places
-                in div [] <|
-                    p [] [ text <| person.name ++ " has the following chances in "
-                         , genIcon event
-                         , text ":"]
-                    :: List.filterMap (\ (i, chance) ->
-                        if chance > 0.01
-                           then Just <| p [] [ text <| toString (i + 1) ++ ": " ++ Base.stf2 (chance * 100) ++ "%" ]
-                           else Nothing
-                    ) placesWithIndexed
+                        List.sortBy Tuple.first <|
+                        List.take 10 <|
+                        List.sortBy (negate << Tuple.second) <|
+                        List.indexedMap (,) places
+                in div []
+                    [ p [] [ text <| person.name ++ " has the following chances in "
+                                 , genIcon event
+                                 , text ":"]
+                    , table [ id "chances" ] <| 
+                        [ tr [] <|
+                            List.map (\ (i, chance) ->
+                               th [] [ text <| ordinal <| i + 1 ]
+                            ) placesWithIndexed
+                        , tr [] <|
+                            List.map (\ (i, chance) ->
+                                td [] [ text <| Base.stf2 (chance * 100) ++ "%" ]
+                            ) placesWithIndexed
+                        ]
+                    ]
             _ -> text ""
         , case model.comp of
             Just comp ->
-                div []
-                    [ div [id "center"] [
-                        h1 [id "title"] [text comp.name]
-                        , a [ id "compLink", href compLink ] [ text "(On WCA)" ]
-                    ]
-                    , case model.selected of
-                        Just (SelectEvent per) ->
-                            viewCompetitors model.sortBy comp model.people <| Just per
-                        _ -> viewCompetitors model.sortBy comp model.people Nothing
-                    ]
+                case model.selected of
+                    Just (SelectEvent per) -> viewCompetitors model.sortBy comp model.people <| Just per
+                    _ ->                      viewCompetitors model.sortBy comp model.people Nothing
             _ ->
                 p [id "loading"] [text "Loading..."]
         ]
