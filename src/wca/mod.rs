@@ -186,31 +186,43 @@ impl <'l> ExtendedPerson<'l> {
 }
 
 pub fn get_avg_stddev(times: &[Time]) -> Option<(f64, f64)> {
+    // println!("times: {:?}", times);
     let times_weight: Vec<(f64, f64)> = times.iter()
             .filter_map(|t| {
                 match t {
                     &Time::DNF => None,
                     &Time::Time(ref x) => Some((*x as f64 / 100f64, 0.01)),
                     &Time::TimeWithDate(ref x, ref d) => {
-                        let date_diff = (*d).signed_duration_since(offset::Utc::today()).num_weeks();
-                        Some((*x as f64 / 100f64, 1f64 / date_diff as f64))
+                        let date_diff = offset::Utc::today().signed_duration_since(**d).num_weeks();
+                        Some((*x as f64 / 100f64, 1f64 / (date_diff + 1) as f64))
                     }
                 }
             })
             .collect();
+    // println!("times_weight: {:?}", times_weight);
     if times_weight.len() == 0 {
         return None;
     }
     let weighted_sum: f64 = times_weight.iter()
             .map(|t| t.0 * t.1)
             .sum();
+    // println!("weighted_sum: {}", weighted_sum);
     let total_weight: f64 = times_weight.iter()
             .map(|t| t.1)
             .sum();
+    // println!("total_weight: {}", total_weight);
+    if total_weight == 0.0 {
+        return None;
+    }
     let avg = weighted_sum / total_weight;
+    // println!("avg: {}", avg);
+
     let weighted_stddev: f64 = times_weight.iter()
             .map(|t| (t.0 - avg) * (t.0 - avg) * t.1)
             .sum();
+
+    // println!("weighted_stddev: {}", weighted_stddev);
+
     Some((avg, f64::sqrt(weighted_stddev / total_weight)))
 }
 
