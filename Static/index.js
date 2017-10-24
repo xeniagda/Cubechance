@@ -9784,7 +9784,11 @@ var _user$project$Main$view = function (model) {
 						ctor: '::',
 						_0: model.serverLoading ? A2(
 							_elm_lang$html$Html$p,
-							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$id('loading'),
+								_1: {ctor: '[]'}
+							},
 							{
 								ctor: '::',
 								_0: _elm_lang$html$Html$text('The server is currently loading the results from WCA. This usually takes around one minute.'),

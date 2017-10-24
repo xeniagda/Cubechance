@@ -2,6 +2,7 @@ body {
     background: white;
     font-size: 19px;
     font-family: Helvetica;
+    font-weight: 100;
 }
 
 h1 {
@@ -13,8 +14,21 @@ h1 {
     width: 100%;
 }
 
-#search > tr > th {
+
+#back {
+    color: #111;
+    -- text-decoration: none;
+
+}
+
+th, h1 {
     font-weight: normal;
+}
+
+#loading {
+    text-align: center;
+    font-size: 30px;
+    color: #611;
 }
 
 #list {

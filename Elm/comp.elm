@@ -47,7 +47,8 @@ type Msg
     = LoadComp
     | ParseComp (Result Http.Error String)
     | SelectedPerson Base.Person
-    | SelectedOther String
+    | SetOther String
+    | SelectedOther
     | ParseOther (Result Http.Error String)
     | SelectedEvent String
     | ParseChances (Result Http.Error String)
@@ -107,13 +108,16 @@ update msg model =
                     , search = ""
                     } ! []
 
-        SelectedOther name ->
+        SetOther name ->
             { model
             | search = name
-            } !
+            } ! []
+        
+        SelectedOther ->
+            model !
             [ Http.send ParseOther
                 <| Http.getString
-                    <| "api/people/" ++ name
+                    <| "api/people/" ++ model.search
             ]
         
         ParseOther r ->
@@ -162,7 +166,7 @@ decodePlaces = D.list D.float
 view model =
     let compLink = "https://www.worldcubeassociation.org/competitions/" ++ model.compId
     in div [] 
-        [ a [ href "/index.html" ] [ text "←" ]
+        [ a [ id "back", href "/index.html" ] [ text "←" ]
         , case model.comp of
             Just comp ->
                 div [id "center"] [
@@ -174,7 +178,8 @@ view model =
         , br [] []
         , div [ style [("right", "0")] ]
             [ text "Add person: "
-            , input [ placeholder "Name", value model.search, onInput SelectedOther ] []
+            , input [ placeholder "Name", value model.search, onInput SetOther ] []
+            , button [ onClick SelectedOther ] [ text "Go!" ]
             ]
         , case model.matching of
             [] -> text ""
