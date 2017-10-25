@@ -223,7 +223,7 @@ pub fn get_avg_stddev(times: &[Time]) -> Option<(f64, f64)> {
 
     // println!("weighted_stddev: {}", weighted_stddev);
 
-    Some((avg, f64::sqrt(weighted_stddev / total_weight)))
+    Some((avg, f64::sqrt(weighted_stddev / total_weight) / 3.0))
 }
 
 impl WcaResults {

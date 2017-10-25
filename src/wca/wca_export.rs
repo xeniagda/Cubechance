@@ -60,6 +60,7 @@ pub fn download_wca<'a>() -> Result<WcaResults, WcaError> {
     println!("Parsing results...");
     parse_wca_results(zip.by_name("WCA_export_Results.tsv")?, &mut results)?;
 
+
     println!("Done");
 
     Ok(results)
