@@ -9940,8 +9940,12 @@ var _user$project$Main$view = function (model) {
 											_elm_lang$html$Html$button,
 											{
 												ctor: '::',
-												_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$SelectedOther),
-												_1: {ctor: '[]'}
+												_0: _elm_lang$html$Html_Attributes$id('go'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$SelectedOther),
+													_1: {ctor: '[]'}
+												}
 											},
 											{
 												ctor: '::',
@@ -10038,21 +10042,27 @@ var _user$project$Main$view = function (model) {
 											_elm_lang$core$List$sortBy,
 											_elm_lang$core$Tuple$first,
 											A2(
-												_elm_lang$core$List$take,
-												10,
+												_elm_lang$core$List$filter,
+												function (_p17) {
+													var _p18 = _p17;
+													return _elm_lang$core$Native_Utils.cmp(_p18._1, 1.0e-2) > 0;
+												},
 												A2(
-													_elm_lang$core$List$sortBy,
-													function (_p17) {
-														return _elm_lang$core$Basics$negate(
-															_elm_lang$core$Tuple$second(_p17));
-													},
+													_elm_lang$core$List$take,
+													10,
 													A2(
-														_elm_lang$core$List$indexedMap,
-														F2(
-															function (v0, v1) {
-																return {ctor: '_Tuple2', _0: v0, _1: v1};
-															}),
-														_p16._0._2))));
+														_elm_lang$core$List$sortBy,
+														function (_p19) {
+															return _elm_lang$core$Basics$negate(
+																_elm_lang$core$Tuple$second(_p19));
+														},
+														A2(
+															_elm_lang$core$List$indexedMap,
+															F2(
+																function (v0, v1) {
+																	return {ctor: '_Tuple2', _0: v0, _1: v1};
+																}),
+															_p16._0._2)))));
 										return A2(
 											_elm_lang$html$Html$div,
 											{ctor: '[]'},
@@ -10091,15 +10101,15 @@ var _user$project$Main$view = function (model) {
 																{ctor: '[]'},
 																A2(
 																	_elm_lang$core$List$map,
-																	function (_p18) {
-																		var _p19 = _p18;
+																	function (_p20) {
+																		var _p21 = _p20;
 																		return A2(
 																			_elm_lang$html$Html$th,
 																			{ctor: '[]'},
 																			{
 																				ctor: '::',
 																				_0: _elm_lang$html$Html$text(
-																					_lynn$elm_ordinal$Ordinal$ordinal(_p19._0 + 1)),
+																					_lynn$elm_ordinal$Ordinal$ordinal(_p21._0 + 1)),
 																				_1: {ctor: '[]'}
 																			});
 																	},
@@ -10111,8 +10121,8 @@ var _user$project$Main$view = function (model) {
 																	{ctor: '[]'},
 																	A2(
 																		_elm_lang$core$List$map,
-																		function (_p20) {
-																			var _p21 = _p20;
+																		function (_p22) {
+																			var _p23 = _p22;
 																			return A2(
 																				_elm_lang$html$Html$td,
 																				{ctor: '[]'},
@@ -10121,7 +10131,7 @@ var _user$project$Main$view = function (model) {
 																					_0: _elm_lang$html$Html$text(
 																						A2(
 																							_elm_lang$core$Basics_ops['++'],
-																							_user$project$Base$stf2(_p21._1 * 100),
+																							_user$project$Base$stf2(_p23._1 * 100),
 																							'%')),
 																					_1: {ctor: '[]'}
 																				});
@@ -10140,19 +10150,19 @@ var _user$project$Main$view = function (model) {
 								_1: {
 									ctor: '::',
 									_0: function () {
-										var _p22 = model.comp;
-										if (_p22.ctor === 'Just') {
-											var _p24 = _p22._0;
-											var _p23 = model.selected;
-											if ((_p23.ctor === 'Just') && (_p23._0.ctor === 'SelectEvent')) {
+										var _p24 = model.comp;
+										if (_p24.ctor === 'Just') {
+											var _p26 = _p24._0;
+											var _p25 = model.selected;
+											if ((_p25.ctor === 'Just') && (_p25._0.ctor === 'SelectEvent')) {
 												return A4(
 													_user$project$Main$viewCompetitors,
 													model.sortBy,
-													_p24,
+													_p26,
 													model.people,
-													_elm_lang$core$Maybe$Just(_p23._0._0));
+													_elm_lang$core$Maybe$Just(_p25._0._0));
 											} else {
-												return A4(_user$project$Main$viewCompetitors, model.sortBy, _p24, model.people, _elm_lang$core$Maybe$Nothing);
+												return A4(_user$project$Main$viewCompetitors, model.sortBy, _p26, model.people, _elm_lang$core$Maybe$Nothing);
 											}
 										} else {
 											return A2(
@@ -10183,8 +10193,8 @@ var _user$project$Main$ParseComp = function (a) {
 };
 var _user$project$Main$update = F2(
 	function (msg, model) {
-		var _p25 = msg;
-		switch (_p25.ctor) {
+		var _p27 = msg;
+		switch (_p27.ctor) {
 			case 'LoadComp':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
@@ -10199,8 +10209,8 @@ var _user$project$Main$update = F2(
 						_1: {ctor: '[]'}
 					});
 			case 'SelectedPerson':
-				var _p28 = model.selected;
-				if ((_p28.ctor === 'Just') && (_p28._0.ctor === 'SelectEvent')) {
+				var _p30 = model.selected;
+				if ((_p30.ctor === 'Just') && (_p30._0.ctor === 'SelectEvent')) {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
@@ -10214,7 +10224,7 @@ var _user$project$Main$update = F2(
 							model,
 							{
 								selected: _elm_lang$core$Maybe$Just(
-									_user$project$Main$SelectEvent(_p25._0)),
+									_user$project$Main$SelectEvent(_p27._0)),
 								matching: {ctor: '[]'},
 								search: ''
 							}),
@@ -10225,7 +10235,7 @@ var _user$project$Main$update = F2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{search: _p25._0}),
+						{search: _p27._0}),
 					{ctor: '[]'});
 			case 'SelectedOther':
 				return A2(
@@ -10241,19 +10251,33 @@ var _user$project$Main$update = F2(
 						_1: {ctor: '[]'}
 					});
 			case 'ParseOther':
-				var _p29 = _p25._0;
-				if (_p29.ctor === 'Ok') {
-					var _p30 = A2(
+				var _p31 = _p27._0;
+				if (_p31.ctor === 'Ok') {
+					var _p32 = A2(
 						_elm_lang$core$Json_Decode$decodeString,
 						_elm_lang$core$Json_Decode$list(_user$project$Base$decodePerson),
-						_p29._0);
-					if (_p30.ctor === 'Ok') {
-						return A2(
-							_elm_lang$core$Platform_Cmd_ops['!'],
-							_elm_lang$core$Native_Utils.update(
-								model,
-								{matching: _p30._0}),
-							{ctor: '[]'});
+						_p31._0);
+					if (_p32.ctor === 'Ok') {
+						var _p34 = _p32._0;
+						var _p33 = _p34;
+						if ((_p33.ctor === '::') && (_p33._1.ctor === '[]')) {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										selected: _elm_lang$core$Maybe$Just(
+											_user$project$Main$SelectEvent(_p33._0))
+									}),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{matching: _p34}),
+								{ctor: '[]'});
+						}
 					} else {
 						return A2(
 							_elm_lang$core$Platform_Cmd_ops['!'],
@@ -10261,7 +10285,7 @@ var _user$project$Main$update = F2(
 								model,
 								{
 									error: _elm_lang$core$Maybe$Just(
-										_elm_lang$core$Basics$toString(_p30._0))
+										_elm_lang$core$Basics$toString(_p32._0))
 								}),
 							{ctor: '[]'});
 					}
@@ -10272,22 +10296,22 @@ var _user$project$Main$update = F2(
 							model,
 							{
 								error: _elm_lang$core$Maybe$Just(
-									_elm_lang$core$Basics$toString(_p29._0))
+									_elm_lang$core$Basics$toString(_p31._0))
 							}),
 						{ctor: '[]'});
 				}
 			case 'SelectedEvent':
-				var _p33 = _p25._0;
-				var _p31 = model.selected;
-				if ((_p31.ctor === 'Just') && (_p31._0.ctor === 'SelectEvent')) {
-					var _p32 = _p31._0._0;
+				var _p37 = _p27._0;
+				var _p35 = model.selected;
+				if ((_p35.ctor === 'Just') && (_p35._0.ctor === 'SelectEvent')) {
+					var _p36 = _p35._0._0;
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
 							{
 								selected: _elm_lang$core$Maybe$Just(
-									A2(_user$project$Main$Waiting, _p32, _p33)),
+									A2(_user$project$Main$Waiting, _p36, _p37)),
 								matching: {ctor: '[]'},
 								search: ''
 							}),
@@ -10308,8 +10332,8 @@ var _user$project$Main$update = F2(
 												'/',
 												A2(
 													_elm_lang$core$Basics_ops['++'],
-													_p32.id,
-													A2(_elm_lang$core$Basics_ops['++'], '/', _p33))))))),
+													_p36.id,
+													A2(_elm_lang$core$Basics_ops['++'], '/', _p37))))))),
 							_1: {ctor: '[]'}
 						});
 				} else {
@@ -10319,21 +10343,21 @@ var _user$project$Main$update = F2(
 						{ctor: '[]'});
 				}
 			case 'ParseChances':
-				var _p34 = {ctor: '_Tuple2', _0: _p25._0, _1: model.selected};
-				_v22_2:
+				var _p38 = {ctor: '_Tuple2', _0: _p27._0, _1: model.selected};
+				_v24_2:
 				do {
-					if (_p34.ctor === '_Tuple2') {
-						if (_p34._0.ctor === 'Ok') {
-							if ((_p34._1.ctor === 'Just') && (_p34._1._0.ctor === 'Waiting')) {
-								var _p35 = A2(_elm_lang$core$Json_Decode$decodeString, _user$project$Main$decodePlaces, _p34._0._0);
-								if (_p35.ctor === 'Ok') {
+					if (_p38.ctor === '_Tuple2') {
+						if (_p38._0.ctor === 'Ok') {
+							if ((_p38._1.ctor === 'Just') && (_p38._1._0.ctor === 'Waiting')) {
+								var _p39 = A2(_elm_lang$core$Json_Decode$decodeString, _user$project$Main$decodePlaces, _p38._0._0);
+								if (_p39.ctor === 'Ok') {
 									return A2(
 										_elm_lang$core$Platform_Cmd_ops['!'],
 										_elm_lang$core$Native_Utils.update(
 											model,
 											{
 												selected: _elm_lang$core$Maybe$Just(
-													A3(_user$project$Main$Loaded, _p34._1._0._0, _p34._1._0._1, _p35._0))
+													A3(_user$project$Main$Loaded, _p38._1._0._0, _p38._1._0._1, _p39._0))
 											}),
 										{ctor: '[]'});
 								} else {
@@ -10343,12 +10367,12 @@ var _user$project$Main$update = F2(
 											model,
 											{
 												error: _elm_lang$core$Maybe$Just(
-													_elm_lang$core$Basics$toString(_p35._0))
+													_elm_lang$core$Basics$toString(_p39._0))
 											}),
 										{ctor: '[]'});
 								}
 							} else {
-								break _v22_2;
+								break _v24_2;
 							}
 						} else {
 							return A2(
@@ -10357,12 +10381,12 @@ var _user$project$Main$update = F2(
 									model,
 									{
 										error: _elm_lang$core$Maybe$Just(
-											_elm_lang$core$Basics$toString(_p34._0._0))
+											_elm_lang$core$Basics$toString(_p38._0._0))
 									}),
 								{ctor: '[]'});
 						}
 					} else {
-						break _v22_2;
+						break _v24_2;
 					}
 				} while(false);
 				return A2(
@@ -10370,21 +10394,21 @@ var _user$project$Main$update = F2(
 					model,
 					{ctor: '[]'});
 			case 'ParseComp':
-				if (_p25._0.ctor === 'Ok') {
-					var _p26 = A2(_elm_lang$core$Json_Decode$decodeString, _user$project$Main$decodeCompAndPeople, _p25._0._0);
-					if (_p26.ctor === 'Ok') {
-						var _p27 = _p26._0._0;
+				if (_p27._0.ctor === 'Ok') {
+					var _p28 = A2(_elm_lang$core$Json_Decode$decodeString, _user$project$Main$decodeCompAndPeople, _p27._0._0);
+					if (_p28.ctor === 'Ok') {
+						var _p29 = _p28._0._0;
 						return A2(
 							_elm_lang$core$Platform_Cmd_ops['!'],
 							_elm_lang$core$Native_Utils.update(
 								model,
 								{
-									comp: _elm_lang$core$Maybe$Just(_p27),
-									people: _p26._0._1
+									comp: _elm_lang$core$Maybe$Just(_p29),
+									people: _p28._0._1
 								}),
 							{
 								ctor: '::',
-								_0: _user$project$Main$title(_p27.name),
+								_0: _user$project$Main$title(_p29.name),
 								_1: {ctor: '[]'}
 							});
 					} else {
@@ -10397,7 +10421,7 @@ var _user$project$Main$update = F2(
 										A2(
 											_elm_lang$core$Debug$log,
 											'Error',
-											_elm_lang$core$Basics$toString(_p26._0)))
+											_elm_lang$core$Basics$toString(_p28._0)))
 								}),
 							{ctor: '[]'});
 					}
@@ -10408,7 +10432,7 @@ var _user$project$Main$update = F2(
 							model,
 							{
 								error: _elm_lang$core$Maybe$Just(
-									_elm_lang$core$Basics$toString(_p25._0._0))
+									_elm_lang$core$Basics$toString(_p27._0._0))
 							}),
 						{ctor: '[]'});
 				}
@@ -10417,13 +10441,13 @@ var _user$project$Main$update = F2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{sortBy: _p25._0}),
+						{sortBy: _p27._0}),
 					{ctor: '[]'});
 		}
 	});
 var _user$project$Main$LoadComp = {ctor: 'LoadComp'};
 var _user$project$Main$init = function (flags) {
-	var _p36 = A2(
+	var _p40 = A2(
 		_user$project$Main$update,
 		_user$project$Main$LoadComp,
 		{
@@ -10436,8 +10460,8 @@ var _user$project$Main$init = function (flags) {
 			matching: {ctor: '[]'},
 			search: ''
 		});
-	var model = _p36._0;
-	var cmd = _p36._1;
+	var model = _p40._0;
+	var cmd = _p40._1;
 	return {
 		ctor: '_Tuple2',
 		_0: model,

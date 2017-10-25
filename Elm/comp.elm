@@ -125,9 +125,15 @@ update msg model =
                 Ok res ->
                     case D.decodeString (D.list Base.decodePerson) res of
                         Ok matching ->
-                            { model
-                            | matching = matching
-                            } ! []
+                            case matching of
+                                [x] ->
+                                    { model
+                                    | selected = Just <| SelectEvent x
+                                    } ! []
+                                _ ->
+                                    { model
+                                    | matching = matching
+                                    } ! []
                         Err e -> { model | error = Just <| toString e } ! []
                 Err e -> { model | error = Just <| toString e } ! []
 
@@ -179,7 +185,7 @@ view model =
         , div [ style [("right", "0")] ]
             [ text "Add person: "
             , input [ placeholder "Name", value model.search, onInput SetOther ] []
-            , button [ onClick SelectedOther ] [ text "Go!" ]
+            , button [ id "go", onClick SelectedOther ] [ text "Go!" ]
             ]
         , case model.matching of
             [] -> text ""
@@ -195,6 +201,7 @@ view model =
             Just (Loaded person event places) ->
                 let placesWithIndexed =
                         List.sortBy Tuple.first <|
+                        List.filter (\(_, chance) -> chance > 0.01) <|
                         List.take 10 <|
                         List.sortBy (negate << Tuple.second) <|
                         List.indexedMap (,) places
@@ -205,7 +212,7 @@ view model =
                     , table [ id "chances" ] <| 
                         [ tr [] <|
                             List.map (\ (i, chance) ->
-                               th [] [ text <| ordinal <| i + 1 ]
+                                th [] [ text <| ordinal <| i + 1 ]
                             ) placesWithIndexed
                         , tr [] <|
                             List.map (\ (i, chance) ->
