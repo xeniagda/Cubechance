@@ -9550,27 +9550,29 @@ var _user$project$Main$renderComps = function (comps) {
 };
 var _user$project$Main$getMatchingComps = function (_p0) {
 	var _p1 = _p0;
-	var _p2 = _p1.searchPerson;
-	return A2(
+	var _p4 = _p1.searchPerson;
+	var _p3 = _p1.search;
+	var _p2 = _p1.competitions;
+	return (_elm_lang$core$Native_Utils.eq(_p3, '') && _elm_lang$core$Native_Utils.eq(_p4, '')) ? _p2 : A2(
 		_elm_lang$core$List$filter,
 		function (comp) {
 			return A2(
 				_elm_lang$core$String$contains,
-				_elm_lang$core$String$toLower(_p1.search),
+				_elm_lang$core$String$toLower(_p3),
 				_elm_lang$core$String$toLower(comp.name)) && A2(
 				_elm_lang$core$List$any,
 				function (p) {
 					return A2(
 						_elm_lang$core$String$contains,
-						_elm_lang$core$String$toLower(_p2),
+						_elm_lang$core$String$toLower(_p4),
 						_elm_lang$core$String$toLower(p.id)) || A2(
 						_elm_lang$core$String$contains,
-						_elm_lang$core$String$toLower(_p2),
+						_elm_lang$core$String$toLower(_p4),
 						_elm_lang$core$String$toLower(p.name));
 				},
 				comp.competitors);
 		},
-		_p1.competitions);
+		_p2);
 };
 var _user$project$Main$defaultSort = {
 	ctor: '_Tuple2',
@@ -9644,22 +9646,22 @@ var _user$project$Main$viewDropdown = function (model) {
 		},
 		A2(
 			_elm_lang$core$List$map,
-			function (_p3) {
-				var _p4 = _p3;
-				var _p5 = _p4._0;
+			function (_p5) {
+				var _p6 = _p5;
+				var _p7 = _p6._0;
 				return A2(
 					_elm_lang$html$Html$option,
 					{
 						ctor: '::',
 						_0: _elm_lang$html$Html_Attributes$selected(
 							_elm_lang$core$Native_Utils.eq(
-								_p5,
+								_p7,
 								_elm_lang$core$Tuple$first(model.sorting))),
 						_1: {ctor: '[]'}
 					},
 					{
 						ctor: '::',
-						_0: _elm_lang$html$Html$text(_p5),
+						_0: _elm_lang$html$Html$text(_p7),
 						_1: {ctor: '[]'}
 					});
 			},
@@ -9808,8 +9810,8 @@ var _user$project$Main$ParseUpcoming = function (a) {
 };
 var _user$project$Main$update = F2(
 	function (msg, model) {
-		var _p6 = msg;
-		switch (_p6.ctor) {
+		var _p8 = msg;
+		switch (_p8.ctor) {
 			case 'SetSorting':
 				var sorting = _elm_lang$core$List$head(
 					A2(
@@ -9817,11 +9819,11 @@ var _user$project$Main$update = F2(
 						function (sort) {
 							return _elm_lang$core$Native_Utils.eq(
 								_elm_lang$core$Tuple$first(sort),
-								_p6._0);
+								_p8._0);
 						},
 						_user$project$Main$sortings));
-				var _p7 = sorting;
-				if (_p7.ctor === 'Nothing') {
+				var _p9 = sorting;
+				if (_p9.ctor === 'Nothing') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						model,
@@ -9831,12 +9833,12 @@ var _user$project$Main$update = F2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
-							{sorting: _p7._0}),
+							{sorting: _p9._0}),
 						{ctor: '[]'});
 				}
 			case 'LoadUpcoming':
-				var _p8 = model.competitions;
-				if (_p8.ctor === '[]') {
+				var _p10 = model.competitions;
+				if (_p10.ctor === '[]') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						model,
@@ -9855,9 +9857,9 @@ var _user$project$Main$update = F2(
 						{ctor: '[]'});
 				}
 			case 'ParseUpcoming':
-				if (_p6._0.ctor === 'Ok') {
-					var _p11 = _p6._0._0;
-					if (_elm_lang$core$Native_Utils.eq(_p11, 'e0')) {
+				if (_p8._0.ctor === 'Ok') {
+					var _p13 = _p8._0._0;
+					if (_elm_lang$core$Native_Utils.eq(_p13, 'e0')) {
 						return A2(
 							_elm_lang$core$Platform_Cmd_ops['!'],
 							_elm_lang$core$Native_Utils.update(
@@ -9865,19 +9867,22 @@ var _user$project$Main$update = F2(
 								{serverLoading: true}),
 							{ctor: '[]'});
 					} else {
-						var _p9 = A2(
+						var _p11 = A2(
 							_elm_lang$core$Json_Decode$decodeString,
 							_elm_lang$core$Json_Decode$list(_user$project$Base$decodeComp),
-							_p11);
-						if (_p9.ctor === 'Ok') {
+							_p13);
+						if (_p11.ctor === 'Ok') {
 							return A2(
 								_elm_lang$core$Platform_Cmd_ops['!'],
 								_elm_lang$core$Native_Utils.update(
 									model,
-									{competitions: _p9._0, serverLoading: false}),
+									{
+										competitions: A2(_elm_lang$core$Debug$log, 'Comps', _p11._0),
+										serverLoading: false
+									}),
 								{ctor: '[]'});
 						} else {
-							var _p10 = A2(_elm_lang$core$Debug$log, 'Server error', _p9._0);
+							var _p12 = A2(_elm_lang$core$Debug$log, 'Server error', _p11._0);
 							return A2(
 								_elm_lang$core$Platform_Cmd_ops['!'],
 								model,
@@ -9885,7 +9890,7 @@ var _user$project$Main$update = F2(
 						}
 					}
 				} else {
-					var _p12 = A2(_elm_lang$core$Debug$log, 'Server error', _p6._0._0);
+					var _p14 = A2(_elm_lang$core$Debug$log, 'Server error', _p8._0._0);
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						model,
@@ -9896,14 +9901,14 @@ var _user$project$Main$update = F2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{search: _p6._0}),
+						{search: _p8._0}),
 					{ctor: '[]'});
 			default:
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{searchPerson: _p6._0}),
+						{searchPerson: _p8._0}),
 					{ctor: '[]'});
 		}
 	});
