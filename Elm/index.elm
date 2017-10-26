@@ -80,7 +80,7 @@ update msg model =
                 else case D.decodeString (D.list Base.decodeComp) text of
                     Ok comps ->
                         { model 
-                        | competitions = comps
+                        | competitions = Debug.log "Comps" comps
                         , serverLoading = False
                         } ! []
                     Err err ->
@@ -97,22 +97,24 @@ update msg model =
 
 getMatchingComps : Model -> List Base.Competition
 getMatchingComps { search, searchPerson, competitions } =
-    List.filter
-        (\comp ->
-            String.contains
-                (String.toLower search)
-                (String.toLower comp.name)
-            && List.any 
-                (\p ->
-                    String.contains
-                        (String.toLower searchPerson)
-                        (String.toLower p.id)
-                    || String.contains
-                        (String.toLower searchPerson)
-                        (String.toLower p.name)
-                ) comp.competitors
-        )
-        competitions
+    if search == "" && searchPerson == ""
+        then competitions
+        else List.filter
+            (\comp ->
+                String.contains
+                    (String.toLower search)
+                    (String.toLower comp.name)
+                && List.any 
+                    (\p ->
+                        String.contains
+                            (String.toLower searchPerson)
+                            (String.toLower p.id)
+                        || String.contains
+                            (String.toLower searchPerson)
+                            (String.toLower p.name)
+                    ) comp.competitors
+            )
+            competitions
 
 view : Model -> Html Msg
 view model =
