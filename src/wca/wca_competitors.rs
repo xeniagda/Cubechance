@@ -20,7 +20,7 @@ pub fn download_competitors<'a>(comp: &'a str) -> Result<Vec<Competitor>, WcaErr
 
 fn parse_competitors<'a>(doc: Document) -> Result<Vec<Competitor>, WcaError> {
     let table =
-            doc.find(p::Class("wca-results"))
+            doc.find(p::Class("floatThead"))
             .filter_map(|table| table.children().nth(3)) // The third child is the competitors table
             .flat_map(|table| table.children()) // Get all competitors
             .filter(|node| node.name().is_some()) // Remove all whitespace
@@ -61,4 +61,19 @@ fn parse_competitor_name(node: Node) -> Option<String> {
     node.find(p::Name("a")) // The wca ID is stored as a link, find it,
         .nth(0)
         .map(|name| name.text())
+}
+
+
+#[test]
+fn test_competitors() {
+    for comp in ["Skillcon2017", "SSL4Mora2017"].iter() {
+        match download_competitors(comp) {
+            Err(e) => {
+                assert!(false, format!("Error downloading: {:?}", e));
+            }
+            Ok(res) => {
+                assert!(res.len() > 0, format!("Any competitors"));
+            }
+        }
+    }
 }

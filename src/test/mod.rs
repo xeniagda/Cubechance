@@ -18,7 +18,7 @@ lazy_static! {
         let mut state = WcaResults::default();
         state.people = people;
 
-        insert_comp(TEST_COMP_LINE.to_string(), &mut state).unwrap();
+        // insert_comp(TEST_COMP_LINE.to_string(), &mut state).unwrap();
 
         println!("Created wca");
         state

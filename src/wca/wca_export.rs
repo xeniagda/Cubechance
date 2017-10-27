@@ -45,17 +45,8 @@ pub fn download_wca<'a>() -> Result<WcaResults, WcaError> {
  
     let mut results = WcaResults::default();// { people: HashMap::new(), comps: HashMap::new(), download_date: DateW::new(offset::Utc::today()) };
 
-    #[cfg(any(skip_comps, test))]
-    {
-        println!("Skipping comps, adding SkillCon!");
-        insert_comp(SSL.to_string(), &mut results)?;
-        insert_comp(SKILLCON.to_string(), &mut results)?;
-    }
-    #[cfg(not(any(skip_comps, test)))]
-    {
-        println!("Parsing comps...");
-        parse_wca_comps(zip.by_name("WCA_export_Competitions.tsv")?, &mut results)?;
-    }
+    println!("Parsing comps...");
+    parse_wca_comps(zip.by_name("WCA_export_Competitions.tsv")?, &mut results)?;
 
     println!("Parsing results...");
     parse_wca_results(zip.by_name("WCA_export_Results.tsv")?, &mut results)?;
