@@ -9283,9 +9283,9 @@ var _user$project$Base$viewDate = function (date) {
 							_elm_lang$core$Basics$toString(
 								_elm_lang$core$Date$year(date))))))));
 };
-var _user$project$Base$Competition = F5(
-	function (a, b, c, d, e) {
-		return {id: a, name: b, events: c, date: d, competitors: e};
+var _user$project$Base$Competition = F7(
+	function (a, b, c, d, e, f, g) {
+		return {id: a, name: b, events: c, date: d, competitors: e, country_iso: f, country_name: g};
 	});
 var _user$project$Base$Competitor = F3(
 	function (a, b, c) {
@@ -9306,25 +9306,33 @@ var _user$project$Base$decompCompetitor = A3(
 			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Competitor))));
 var _user$project$Base$decodeComp = A3(
 	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-	'competitors',
-	_elm_lang$core$Json_Decode$list(_user$project$Base$decompCompetitor),
+	'country_name',
+	_elm_lang$core$Json_Decode$string,
 	A3(
 		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-		'start',
-		_user$project$Base$decodeDate,
+		'country_iso',
+		_elm_lang$core$Json_Decode$string,
 		A3(
 			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-			'events',
-			_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+			'competitors',
+			_elm_lang$core$Json_Decode$list(_user$project$Base$decompCompetitor),
 			A3(
 				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-				'name',
-				_elm_lang$core$Json_Decode$string,
+				'start',
+				_user$project$Base$decodeDate,
 				A3(
 					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-					'id',
-					_elm_lang$core$Json_Decode$string,
-					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Competition))))));
+					'events',
+					_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+					A3(
+						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+						'name',
+						_elm_lang$core$Json_Decode$string,
+						A3(
+							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+							'id',
+							_elm_lang$core$Json_Decode$string,
+							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Competition))))))));
 var _user$project$Base$Person = F4(
 	function (a, b, c, d) {
 		return {id: a, name: b, times: c, avgs: d};
@@ -9474,7 +9482,7 @@ var _user$project$Main$renderComps = function (comps) {
 							{ctor: '[]'},
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html$text('Competition ID'),
+								_0: _elm_lang$html$Html$text('Country'),
 								_1: {ctor: '[]'}
 							}),
 						_1: {
@@ -9526,8 +9534,24 @@ var _user$project$Main$renderComps = function (comps) {
 									{ctor: '[]'},
 									{
 										ctor: '::',
-										_0: _elm_lang$html$Html$text(comp.id),
-										_1: {ctor: '[]'}
+										_0: A2(
+											_elm_lang$html$Html$span,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$class(
+													A2(
+														_elm_lang$core$Basics_ops['++'],
+														'flag-icon flag-icon-',
+														_elm_lang$core$String$toLower(comp.country_iso))),
+												_1: {ctor: '[]'}
+											},
+											{ctor: '[]'}),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$html$Html$text(
+												A2(_elm_lang$core$Basics_ops['++'], ' - ', comp.country_name)),
+											_1: {ctor: '[]'}
+										}
 									}),
 								_1: {
 									ctor: '::',
@@ -9876,10 +9900,7 @@ var _user$project$Main$update = F2(
 								_elm_lang$core$Platform_Cmd_ops['!'],
 								_elm_lang$core$Native_Utils.update(
 									model,
-									{
-										competitions: A2(_elm_lang$core$Debug$log, 'Comps', _p11._0),
-										serverLoading: false
-									}),
+									{competitions: _p11._0, serverLoading: false}),
 								{ctor: '[]'});
 						} else {
 							var _p12 = A2(_elm_lang$core$Debug$log, 'Server error', _p11._0);

@@ -42,8 +42,12 @@ pub fn download_wca<'a>() -> Result<WcaResults, WcaError> {
     let cur = Cursor::new(res);
     let mut zip = ZipArchive::new(cur)?;
 
+    println!("Done loading");
  
     let mut results = WcaResults::default();// { people: HashMap::new(), comps: HashMap::new(), download_date: DateW::new(offset::Utc::today()) };
+
+    println!("Parsing countries...");
+    parse_wca_countries(zip.by_name("WCA_export_Countries.tsv")?, &mut results)?;
 
     println!("Parsing comps...");
     parse_wca_comps(zip.by_name("WCA_export_Competitions.tsv")?, &mut results)?;
@@ -55,6 +59,40 @@ pub fn download_wca<'a>() -> Result<WcaResults, WcaError> {
     println!("Done");
 
     Ok(results)
+}
+pub fn parse_wca_countries<'a>(file: ZipFile, mut results: &mut WcaResults) -> Result<(), WcaError> {
+    let mut reader = BufReader::new(file);
+
+    let mut _fl = String::new(); // First line
+    if let Err(e) = reader.read_line(&mut _fl) { // Skip the first line
+        return Err(WcaError::ReadE(format!("Error reading file: {:?}", e)));
+    }
+
+    loop {
+        let mut line = String::new();
+        match reader.read_line(&mut line) {
+            Ok(_) => {
+                if line == "" {
+                    break;
+                }
+                line = line.trim().to_string(); // Remove newline
+
+                let mut stuff = Vec::new();
+                for segment in line.split("\t") {
+                    stuff.push(segment);
+                }
+                if stuff.len() != 4 {
+                    return Err(WcaError::CountryE(format!("Expected 4 values, found {}", stuff.len())));
+                }
+                results.country_codes.insert(stuff[0].to_string(), (stuff[1].to_string(), stuff[3].to_string()));
+            }
+            Err(e) => {
+                return Err(WcaError::ReadE(format!("Error reading line: {:?}", e)));
+            }
+        }
+    }
+
+    Ok(())
 }
 
 pub fn parse_wca_results<'a>(file: ZipFile, mut results: &mut WcaResults) -> Result<(), WcaError> {
@@ -103,10 +141,12 @@ pub fn parse_wca_comps<'a>(file: ZipFile, results: &mut WcaResults) -> Result<()
     let lines: Vec<_> =
             reader.lines().collect();
 
+    let country_codes = results.country_codes.clone();
+
     let comp_amut = Arc::new(Mutex::new(results));
 
     lines.into_par_iter()
-        .map(|line| load_comp(line.unwrap()).unwrap())
+        .map(|line| load_comp(line.unwrap(), &country_codes).unwrap())
         .for_each(|comp| {
             let mut res = comp_amut.lock().unwrap();
             res.comps.insert(comp.id.clone(), comp);
@@ -163,7 +203,7 @@ pub fn insert_result<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), 
     Ok(())
 }
 
-pub fn load_comp<'a>(line: String) -> Result<Competition, WcaError> {
+pub fn load_comp<'a>(line: String, country_codes: &HashMap<String, (String, String)>) -> Result<Competition, WcaError> {
     let mut stuff = Vec::new();
     for segment in line.split("\t") {
         stuff.push(segment);
@@ -173,6 +213,8 @@ pub fn load_comp<'a>(line: String) -> Result<Competition, WcaError> {
     }
     let comp_id = stuff[0];
     let comp_name = stuff[1];
+
+    let wca_country = stuff[3];
 
     // Start date
     let s_year = stuff[5];
@@ -191,12 +233,16 @@ pub fn load_comp<'a>(line: String) -> Result<Competition, WcaError> {
 
     let has_been = *s_date < offset::Utc::today();
 
+    if let Some(&(ref name, ref iso)) = country_codes.get(wca_country) {
 
-    let comp =
+        let comp =
             if has_been {
                 Competition {
                     name: comp_name.to_string(),
                     id: comp_id.to_string(),
+                    country: wca_country.to_string(),
+                    country_name: name.to_string(),
+                    country_iso: iso.to_string(),
                     events: events,
                     has_been: has_been,
                     start: s_date,
@@ -208,6 +254,9 @@ pub fn load_comp<'a>(line: String) -> Result<Competition, WcaError> {
                 Competition {
                     name: comp_name.to_string(),
                     id: comp_id.to_string(),
+                    country: wca_country.to_string(),
+                    country_name: name.to_string(),
+                    country_iso: iso.to_string(),
                     events: events,
                     has_been: has_been,
                     start: s_date,
@@ -216,6 +265,9 @@ pub fn load_comp<'a>(line: String) -> Result<Competition, WcaError> {
                 }
             };
 
-    Ok(comp)
+        Ok(comp)
 
+    } else {
+        Err(WcaError::CountryE(format!("Couldn't find country {}", wca_country)))
+    }
 }

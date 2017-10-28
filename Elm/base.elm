@@ -13,6 +13,8 @@ type alias Competition =
     , events : List String
     , date : Date.Date
     , competitors : List Competitor
+    , country_iso : String
+    , country_name : String
     }
 
 type alias Competitor =
@@ -87,6 +89,8 @@ decodeComp =
         |> required "events" (D.list D.string)
         |> required "start" decodeDate
         |> required "competitors" (D.list decompCompetitor)
+        |> required "country_iso" D.string
+        |> required "country_name" D.string
 
 decodePerson =
     decode Person

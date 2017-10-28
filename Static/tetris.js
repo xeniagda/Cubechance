@@ -10373,9 +10373,9 @@ var _user$project$Base$viewDate = function (date) {
 							_elm_lang$core$Basics$toString(
 								_elm_lang$core$Date$year(date))))))));
 };
-var _user$project$Base$Competition = F5(
-	function (a, b, c, d, e) {
-		return {id: a, name: b, events: c, date: d, competitors: e};
+var _user$project$Base$Competition = F7(
+	function (a, b, c, d, e, f, g) {
+		return {id: a, name: b, events: c, date: d, competitors: e, country_iso: f, country_name: g};
 	});
 var _user$project$Base$Competitor = F3(
 	function (a, b, c) {
@@ -10396,25 +10396,33 @@ var _user$project$Base$decompCompetitor = A3(
 			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Competitor))));
 var _user$project$Base$decodeComp = A3(
 	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-	'competitors',
-	_elm_lang$core$Json_Decode$list(_user$project$Base$decompCompetitor),
+	'country_name',
+	_elm_lang$core$Json_Decode$string,
 	A3(
 		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-		'start',
-		_user$project$Base$decodeDate,
+		'country_iso',
+		_elm_lang$core$Json_Decode$string,
 		A3(
 			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-			'events',
-			_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+			'competitors',
+			_elm_lang$core$Json_Decode$list(_user$project$Base$decompCompetitor),
 			A3(
 				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-				'name',
-				_elm_lang$core$Json_Decode$string,
+				'start',
+				_user$project$Base$decodeDate,
 				A3(
 					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-					'id',
-					_elm_lang$core$Json_Decode$string,
-					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Competition))))));
+					'events',
+					_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+					A3(
+						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+						'name',
+						_elm_lang$core$Json_Decode$string,
+						A3(
+							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+							'id',
+							_elm_lang$core$Json_Decode$string,
+							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Competition))))))));
 var _user$project$Base$Person = F4(
 	function (a, b, c, d) {
 		return {id: a, name: b, times: c, avgs: d};

@@ -175,9 +175,12 @@ view model =
         [ a [ id "back", href "/index.html" ] [ text "←" ]
         , case model.comp of
             Just comp ->
-                div [id "center"] [
-                        h1 [id "title"] [text comp.name]
-                        , a [ id "compLink", href compLink ] [ text "(On WCA)" ]
+                div [id "center"] 
+                    [ h1 [id "title"] [text comp.name]
+                    , a [ id "compLink", href compLink ] [ text "(On WCA)" ]
+                    , br [] []
+                    , span [ class <| "flag-icon flag-icon-" ++ String.toLower comp.country_iso ] []
+                    , text <| " - " ++ comp.country_name
                     ]
             Nothing ->
                 div [] []

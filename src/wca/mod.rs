@@ -65,6 +65,7 @@ pub enum WcaError {
     UrlE(reqwest::UrlError),
     ReadE(String),
     PersonE(String),
+    CountryE(String),
     CompE(String)
 }
 
@@ -99,6 +100,7 @@ impl From<reqwest::UrlError> for WcaError {
 pub struct WcaResults {
     pub people: HashMap<String, WcaPerson>, // Id: Person
     pub comps: HashMap<String, Competition>, // Id: Comp
+    pub country_codes: HashMap<String, (String, String)>, // WCA Country id: (Country name, ISO country ID)
     pub download_date: DateW,
 }
 
@@ -248,37 +250,7 @@ impl WcaResults {
                                 self.ext_person(&competitor.id)
                             )
                             .collect();
-
-                // let mut event_places = HashMap::new();
-
-                // for event in comp.events.iter() {
-                //     let mut places = HashMap::new();
-
-                //     let competitors: Vec<_> =
-                //             comp.competitors.iter()
-                //             .filter(|p| p.events.iter().find(|x| x == &event).is_some())
-                //             .filter_map(|p| self.ext_person(&p.id))
-                //             .collect();
-
-                //     for person in people.iter() {
-                //         match self.ext_person(&person.id) {
-                //             Some(p) => {
-                //                 places.insert(person.id.clone(),
-                //                               p.place_prob(competitors.as_slice(), &event)
-                //                              );
-
-                //             }
-                //             None => {
-                //                 continue;
-                //             }
-                //         }
-                //     }
-                //     event_places.insert(event.clone(), places);
-
-                // }
-
-                Some(CompInfo {comp: comp, people: people})
-
+                    Some(CompInfo {comp: comp, people: people})
             }
         }
     }
@@ -293,6 +265,9 @@ pub struct Competition {
     pub has_been: bool,
     pub start: DateW,
     pub end: DateW,
+    pub country: String,
+    pub country_name: String,
+    pub country_iso: String,
 }
 
 // impl Serialize for Competition {

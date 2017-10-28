@@ -80,7 +80,7 @@ update msg model =
                 else case D.decodeString (D.list Base.decodeComp) text of
                     Ok comps ->
                         { model 
-                        | competitions = Debug.log "Comps" comps
+                        | competitions = comps
                         , serverLoading = False
                         } ! []
                     Err err ->
@@ -104,7 +104,7 @@ getMatchingComps { search, searchPerson, competitions } =
                 String.contains
                     (String.toLower search)
                     (String.toLower comp.name)
-                && List.any 
+                && List.any
                     (\p ->
                         String.contains
                             (String.toLower searchPerson)
@@ -161,13 +161,16 @@ renderComps comps =
     table [ id "list" ] <|
     tr [] 
         [ th [] [ text "Competition" ]
-        , th [] [ text "Competition ID" ]
+        , th [] [ text "Country" ]
         , th [] [ text "Date" ]
         ]
      :: List.map (\comp ->
             tr []
             [ a [href <| "/comp.html?" ++ comp.id] [ td [] [text comp.name] ]
-            , td [] [text comp.id]
+            , td [] 
+                [ span [ class <| "flag-icon flag-icon-" ++ String.toLower comp.country_iso ] []
+                , text <| " - " ++ comp.country_name
+                ]
             , td [] [text <| Base.viewDate comp.date]
             ]
         ) comps
