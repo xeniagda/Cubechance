@@ -166,6 +166,11 @@ pub fn insert_result<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), 
 
     let comp_id = stuff[0];
     let event = stuff[1];
+    
+    if event == "333mbf" {
+        return Ok(())
+    }
+
     let name = stuff[6];
     let id = stuff[7];
     let mut times = Vec::new();
