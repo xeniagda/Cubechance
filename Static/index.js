@@ -9852,22 +9852,38 @@ var _user$project$Main$view = function (model) {
 						_0: _user$project$Main$wcaDisc,
 						_1: {
 							ctor: '::',
-							_0: model.serverLoading ? A2(
-								_elm_lang$html$Html$p,
+							_0: _elm_lang$core$Native_Utils.eq(
+								model.competitions,
+								{ctor: '[]'}) ? A2(
+								_elm_lang$html$Html$div,
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$id('loading'),
+									_0: _elm_lang$html$Html_Attributes$id('loadingcircle'),
 									_1: {ctor: '[]'}
 								},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text('The server is currently loading the results from WCA. This usually takes around one minute.'),
-									_1: {ctor: '[]'}
-								}) : A2(
+								{ctor: '[]'}) : A2(
 								_elm_lang$html$Html$div,
 								{ctor: '[]'},
 								{ctor: '[]'}),
-							_1: {ctor: '[]'}
+							_1: {
+								ctor: '::',
+								_0: model.serverLoading ? A2(
+									_elm_lang$html$Html$p,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$id('loading'),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text('The server is currently loading the results from WCA. This usually takes around one minute.'),
+										_1: {ctor: '[]'}
+									}) : A2(
+									_elm_lang$html$Html$div,
+									{ctor: '[]'},
+									{ctor: '[]'}),
+								_1: {ctor: '[]'}
+							}
 						}
 					}
 				}

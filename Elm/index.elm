@@ -123,6 +123,9 @@ view model =
      :: [ genSearch model
         , renderComps <| List.sortWith (Tuple.second model.sorting) <| getMatchingComps model
         , wcaDisc
+        , if model.competitions == []
+             then div [ id "loadingcircle" ] []
+             else div [] []
         , if model.serverLoading
              then p [ id "loading" ] [ text "The server is currently loading the results from WCA. This usually takes around one minute." ]
              else div [] []
