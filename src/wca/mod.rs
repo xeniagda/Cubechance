@@ -196,7 +196,7 @@ pub fn get_avg_stddev(times: &[Time]) -> Option<(f64, f64)> {
                     &Time::Time(ref x) => Some((*x as f64 / 100f64, 0.01)),
                     &Time::TimeWithDate(ref x, ref d) => {
                         let date_diff = offset::Utc::today().signed_duration_since(**d).num_weeks();
-                        Some((*x as f64 / 100f64, 1f64 / (date_diff + 1) as f64))
+                        Some((*x as f64 / 100f64, 1f64 / ((date_diff + 1) * (date_diff + 1)) as f64))
                     }
                 }
             })
