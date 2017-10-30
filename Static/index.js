@@ -9572,6 +9572,47 @@ var _user$project$Main$renderComps = function (comps) {
 				comps)
 		});
 };
+var _user$project$Main$pageTitle = function (model) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$h1,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$style(
+						{
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'text-align', _1: 'center'},
+							_1: {
+								ctor: '::',
+								_0: {ctor: '_Tuple2', _0: 'padding-top', _1: '30px'},
+								_1: {
+									ctor: '::',
+									_0: {ctor: '_Tuple2', _0: 'padding-bottom', _1: '30px'},
+									_1: {ctor: '[]'}
+								}
+							}
+						}),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('Cubechance'),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$hr,
+					{ctor: '[]'},
+					{ctor: '[]'}),
+				_1: {ctor: '[]'}
+			}
+		});
+};
 var _user$project$Main$getMatchingComps = function (_p0) {
 	var _p1 = _p0;
 	var _p4 = _p1.searchPerson;
@@ -9795,35 +9836,39 @@ var _user$project$Main$view = function (model) {
 		{ctor: '[]'},
 		{
 			ctor: '::',
-			_0: _user$project$Main$genSearch(model),
+			_0: _user$project$Main$pageTitle(model),
 			_1: {
 				ctor: '::',
-				_0: _user$project$Main$renderComps(
-					A2(
-						_elm_lang$core$List$sortWith,
-						_elm_lang$core$Tuple$second(model.sorting),
-						_user$project$Main$getMatchingComps(model))),
+				_0: _user$project$Main$genSearch(model),
 				_1: {
 					ctor: '::',
-					_0: _user$project$Main$wcaDisc,
+					_0: _user$project$Main$renderComps(
+						A2(
+							_elm_lang$core$List$sortWith,
+							_elm_lang$core$Tuple$second(model.sorting),
+							_user$project$Main$getMatchingComps(model))),
 					_1: {
 						ctor: '::',
-						_0: model.serverLoading ? A2(
-							_elm_lang$html$Html$p,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$id('loading'),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text('The server is currently loading the results from WCA. This usually takes around one minute.'),
-								_1: {ctor: '[]'}
-							}) : A2(
-							_elm_lang$html$Html$div,
-							{ctor: '[]'},
-							{ctor: '[]'}),
-						_1: {ctor: '[]'}
+						_0: _user$project$Main$wcaDisc,
+						_1: {
+							ctor: '::',
+							_0: model.serverLoading ? A2(
+								_elm_lang$html$Html$p,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$id('loading'),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('The server is currently loading the results from WCA. This usually takes around one minute.'),
+									_1: {ctor: '[]'}
+								}) : A2(
+								_elm_lang$html$Html$div,
+								{ctor: '[]'},
+								{ctor: '[]'}),
+							_1: {ctor: '[]'}
+						}
 					}
 				}
 			}

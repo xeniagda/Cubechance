@@ -118,13 +118,25 @@ getMatchingComps { search, searchPerson, competitions } =
 
 view : Model -> Html Msg
 view model =
-    div [] <|
-        [ genSearch model
+    div [] 
+     <| pageTitle model
+     :: [ genSearch model
         , renderComps <| List.sortWith (Tuple.second model.sorting) <| getMatchingComps model
         , wcaDisc
         , if model.serverLoading
              then p [ id "loading" ] [ text "The server is currently loading the results from WCA. This usually takes around one minute." ]
              else div [] []
+        ]
+
+pageTitle : Model -> Html Msg
+pageTitle model =
+    div []
+        [ h1 [ style 
+            [ ("text-align", "center")
+            , ("padding-top", "30px")
+            , ("padding-bottom", "30px")
+            ] ] [ text "Cubechance" ]
+        , hr [] []
         ]
 
 genSearch model =
