@@ -9904,21 +9904,12 @@ var _user$project$Main$view = function (model) {
 												_elm_lang$html$Html$span,
 												{
 													ctor: '::',
-													_0: _elm_lang$html$Html_Attributes$style(
-														{
-															ctor: '::',
-															_0: {ctor: '_Tuple2', _0: 'outline', _1: '1px solid black'},
-															_1: {ctor: '[]'}
-														}),
-													_1: {
-														ctor: '::',
-														_0: _elm_lang$html$Html_Attributes$class(
-															A2(
-																_elm_lang$core$Basics_ops['++'],
-																'flag-icon flag-icon-',
-																_elm_lang$core$String$toLower(_p15.country_iso))),
-														_1: {ctor: '[]'}
-													}
+													_0: _elm_lang$html$Html_Attributes$class(
+														A2(
+															_elm_lang$core$Basics_ops['++'],
+															'flag-icon flag-icon-',
+															_elm_lang$core$String$toLower(_p15.country_iso))),
+													_1: {ctor: '[]'}
 												},
 												{ctor: '[]'}),
 											_1: {
@@ -10270,8 +10261,7 @@ var _user$project$Main$update = F2(
 							{
 								selected: _elm_lang$core$Maybe$Just(
 									_user$project$Main$SelectEvent(_p28._0)),
-								matching: {ctor: '[]'},
-								search: ''
+								matching: {ctor: '[]'}
 							}),
 						{ctor: '[]'});
 				}
@@ -10357,8 +10347,7 @@ var _user$project$Main$update = F2(
 							{
 								selected: _elm_lang$core$Maybe$Just(
 									A2(_user$project$Main$Waiting, _p37, _p38)),
-								matching: {ctor: '[]'},
-								search: ''
+								matching: {ctor: '[]'}
 							}),
 						{
 							ctor: '::',

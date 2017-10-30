@@ -105,7 +105,6 @@ update msg model =
                     { model 
                     | selected = Just <| SelectEvent p
                     , matching = []
-                    , search = ""
                     } ! []
 
         SetOther name ->
@@ -143,7 +142,6 @@ update msg model =
                     { model
                     | selected = Just <| Waiting p e
                     , matching = []
-                    , search = ""
                     } !
                     [ Http.send ParseChances
                         <| Http.getString
