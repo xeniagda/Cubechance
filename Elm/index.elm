@@ -80,7 +80,7 @@ update msg model =
                 else case D.decodeString (D.list Base.decodeComp) text of
                     Ok comps ->
                         { model 
-                        | competitions = comps
+                        | competitions = Debug.log "Comps" comps
                         , serverLoading = False
                         } ! []
                     Err err ->
