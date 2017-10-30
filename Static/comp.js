@@ -9542,6 +9542,7 @@ var _user$project$Main$decodeCompAndPeople = A3(
 		_elm_lang$core$Json_Decode$field,
 		'people',
 		_elm_lang$core$Json_Decode$list(_user$project$Base$decodePerson)));
+var _user$project$Main$usage = 'Click on a persons name to select that person, then click on an event to see how well that person would do in that event. Displayed on each event is the corresponding persons average in that event. To add a person that\'s not registered, enter the WCA ID or the name of the person in the \"Add person\" field. Click on an icon with an event to sort every person according to their time in that event.';
 var _user$project$Main$title = _elm_lang$core$Native_Platform.outgoingPort(
 	'title',
 	function (v) {
@@ -9550,9 +9551,9 @@ var _user$project$Main$title = _elm_lang$core$Native_Platform.outgoingPort(
 var _user$project$Main$Flags = function (a) {
 	return {compId: a};
 };
-var _user$project$Main$Model = F8(
-	function (a, b, c, d, e, f, g, h) {
-		return {compId: a, comp: b, people: c, selected: d, error: e, sortBy: f, matching: g, search: h};
+var _user$project$Main$Model = F9(
+	function (a, b, c, d, e, f, g, h, i) {
+		return {compId: a, comp: b, people: c, selected: d, error: e, sortBy: f, matching: g, search: h, help: i};
 	});
 var _user$project$Main$Loaded = F3(
 	function (a, b, c) {
@@ -9565,6 +9566,7 @@ var _user$project$Main$Waiting = F2(
 var _user$project$Main$SelectEvent = function (a) {
 	return {ctor: 'SelectEvent', _0: a};
 };
+var _user$project$Main$Help = {ctor: 'Help'};
 var _user$project$Main$SortBy = function (a) {
 	return {ctor: 'SortBy', _0: a};
 };
@@ -10215,7 +10217,60 @@ var _user$project$Main$view = function (model) {
 												});
 										}
 									}(),
-									_1: {ctor: '[]'}
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$br,
+											{ctor: '[]'},
+											{ctor: '[]'}),
+										_1: {
+											ctor: '::',
+											_0: A2(
+												_elm_lang$html$Html$hr,
+												{ctor: '[]'},
+												{ctor: '[]'}),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_elm_lang$html$Html$a,
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Help),
+														_1: {
+															ctor: '::',
+															_0: _elm_lang$html$Html_Attributes$style(
+																{
+																	ctor: '::',
+																	_0: {ctor: '_Tuple2', _0: 'color', _1: 'blue'},
+																	_1: {ctor: '[]'}
+																}),
+															_1: {ctor: '[]'}
+														}
+													},
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html$text(
+															model.help ? 'Hide usage' : 'How to use'),
+														_1: {ctor: '[]'}
+													}),
+												_1: {
+													ctor: '::',
+													_0: model.help ? A2(
+														_elm_lang$html$Html$p,
+														{ctor: '[]'},
+														{
+															ctor: '::',
+															_0: _elm_lang$html$Html$text(_user$project$Main$usage),
+															_1: {ctor: '[]'}
+														}) : A2(
+														_elm_lang$html$Html$div,
+														{ctor: '[]'},
+														{ctor: '[]'}),
+													_1: {ctor: '[]'}
+												}
+											}
+										}
+									}
 								}
 							}
 						}
@@ -10470,12 +10525,19 @@ var _user$project$Main$update = F2(
 							}),
 						{ctor: '[]'});
 				}
-			default:
+			case 'SortBy':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
 						{sortBy: _p28._0}),
+					{ctor: '[]'});
+			default:
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{help: !model.help}),
 					{ctor: '[]'});
 		}
 	});
@@ -10492,7 +10554,8 @@ var _user$project$Main$init = function (flags) {
 			error: _elm_lang$core$Maybe$Nothing,
 			sortBy: _elm_lang$core$Maybe$Nothing,
 			matching: {ctor: '[]'},
-			search: ''
+			search: '',
+			help: false
 		});
 	var model = _p41._0;
 	var cmd = _p41._1;

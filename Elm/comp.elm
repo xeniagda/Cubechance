@@ -14,6 +14,10 @@ import Http
 
 import Base
 
+usage =
+    "Click on a persons name to select that person, then click on an event to see how well that person would do in that event. Displayed on each event is the corresponding persons average in that event. To add a person that's not registered, enter the WCA ID or the name of the person in the \"Add person\" field. Click on an icon with an event to sort every person according to their time in that event."
+
+
 main =
     programWithFlags
         { init = init
@@ -36,6 +40,7 @@ type alias Model =
     , sortBy : Maybe String
     , matching : List Base.Person
     , search : String
+    , help : Bool
     }
 
 type Selected
@@ -53,6 +58,7 @@ type Msg
     | SelectedEvent String
     | ParseChances (Result Http.Error String)
     | SortBy (Maybe String)
+    | Help
 
 init : Flags -> (Model, Cmd Msg)
 init flags =
@@ -66,6 +72,7 @@ init flags =
                 , sortBy = Nothing
                 , matching = []
                 , search = ""
+                , help = False
                 }
     in (model, Cmd.batch <| [Task.perform SelectedEvent <| Task.succeed "333", cmd])
 
@@ -164,6 +171,9 @@ update msg model =
 
         SortBy x ->
             { model | sortBy = x } ! []
+        
+        Help ->
+            { model | help = not model.help } ! []
 
 decodePlaces = D.list D.float
 
@@ -229,6 +239,15 @@ view model =
                     _ ->                      viewCompetitors model.sortBy comp model.people Nothing
             _ ->
                 p [id "loading"] [text "Loading..."]
+        , br [] []
+        , hr [] []
+        , a [ onClick Help
+            , style [ ("color", "blue") ]
+            ]
+            [ text <| if model.help then "Hide usage" else "How to use" ]
+        , if model.help
+             then p [] [ text usage ]
+             else div [] []
         ]
 
 compareP people method c1 c2 =
