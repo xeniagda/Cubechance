@@ -128,7 +128,7 @@ impl WcaPerson {
         let mut res = HashMap::new();
         for (event, times) in (*self).times.iter() {
             if let Some(( avg, dev )) = get_avg_stddev(times) {
-                res.insert(event.clone(), ( Time::Time((avg * 100f64) as u16), dev ));
+                res.insert(event.clone(), ( Time::Time((avg * 100f64) as u32), dev ));
             }
         }
         res
@@ -295,8 +295,8 @@ pub struct Competitor {
 #[derive(Debug)]
 pub enum Time {
     DNF,
-    TimeWithDate(u16, DateW), // Time with date recorded.
-    Time(u16),
+    TimeWithDate(u32, DateW), // Time with date recorded.
+    Time(u32),
 }
 
 impl Time {

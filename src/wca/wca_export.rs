@@ -180,9 +180,9 @@ pub fn insert_result<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), 
                 else if x != 0 {
                     let comp = results.comps.get(comp_id);
                     match comp {
-                        None => { times.push(Time::Time(x as u16)); }
+                        None => { times.push(Time::Time(x as u32)); }
                         Some(&ref comp) => {
-                            times.push(Time::TimeWithDate(x as u16, comp.start.clone()));
+                            times.push(Time::TimeWithDate(x as u32, comp.start.clone()));
                         }
                     }
                 }
