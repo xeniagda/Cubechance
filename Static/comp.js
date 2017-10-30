@@ -10191,86 +10191,109 @@ var _user$project$Main$view = function (model) {
 										var _p25 = model.comp;
 										if (_p25.ctor === 'Just') {
 											var _p27 = _p25._0;
-											var _p26 = model.selected;
-											if ((_p26.ctor === 'Just') && (_p26._0.ctor === 'SelectEvent')) {
-												return A4(
-													_user$project$Main$viewCompetitors,
-													model.sortBy,
-													_p27,
-													model.people,
-													_elm_lang$core$Maybe$Just(_p26._0._0));
-											} else {
-												return A4(_user$project$Main$viewCompetitors, model.sortBy, _p27, model.people, _elm_lang$core$Maybe$Nothing);
-											}
-										} else {
 											return A2(
-												_elm_lang$html$Html$p,
+												_elm_lang$html$Html$div,
 												{
 													ctor: '::',
-													_0: _elm_lang$html$Html_Attributes$id('loading'),
+													_0: _elm_lang$html$Html_Attributes$id('comp'),
 													_1: {ctor: '[]'}
 												},
 												{
 													ctor: '::',
-													_0: _elm_lang$html$Html$text('Loading...'),
-													_1: {ctor: '[]'}
+													_0: function () {
+														var _p26 = model.selected;
+														if ((_p26.ctor === 'Just') && (_p26._0.ctor === 'SelectEvent')) {
+															return A4(
+																_user$project$Main$viewCompetitors,
+																model.sortBy,
+																_p27,
+																model.people,
+																_elm_lang$core$Maybe$Just(_p26._0._0));
+														} else {
+															return A4(_user$project$Main$viewCompetitors, model.sortBy, _p27, model.people, _elm_lang$core$Maybe$Nothing);
+														}
+													}(),
+													_1: {
+														ctor: '::',
+														_0: A2(
+															_elm_lang$html$Html$br,
+															{ctor: '[]'},
+															{ctor: '[]'}),
+														_1: {
+															ctor: '::',
+															_0: A2(
+																_elm_lang$html$Html$hr,
+																{ctor: '[]'},
+																{ctor: '[]'}),
+															_1: {
+																ctor: '::',
+																_0: A2(
+																	_elm_lang$html$Html$a,
+																	{
+																		ctor: '::',
+																		_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Help),
+																		_1: {
+																			ctor: '::',
+																			_0: _elm_lang$html$Html_Attributes$style(
+																				{
+																					ctor: '::',
+																					_0: {ctor: '_Tuple2', _0: 'color', _1: 'blue'},
+																					_1: {ctor: '[]'}
+																				}),
+																			_1: {ctor: '[]'}
+																		}
+																	},
+																	{
+																		ctor: '::',
+																		_0: _elm_lang$html$Html$text(
+																			model.help ? 'Hide usage' : 'How to use'),
+																		_1: {ctor: '[]'}
+																	}),
+																_1: {
+																	ctor: '::',
+																	_0: model.help ? A2(
+																		_elm_lang$html$Html$p,
+																		{ctor: '[]'},
+																		{
+																			ctor: '::',
+																			_0: _elm_lang$html$Html$text(_user$project$Main$usage),
+																			_1: {ctor: '[]'}
+																		}) : A2(
+																		_elm_lang$html$Html$div,
+																		{ctor: '[]'},
+																		{ctor: '[]'}),
+																	_1: {ctor: '[]'}
+																}
+															}
+														}
+													}
+												});
+										} else {
+											return A2(
+												_elm_lang$html$Html$div,
+												{ctor: '[]'},
+												{
+													ctor: '::',
+													_0: A2(
+														_elm_lang$html$Html$br,
+														{ctor: '[]'},
+														{ctor: '[]'}),
+													_1: {
+														ctor: '::',
+														_0: A2(
+															_elm_lang$html$Html$div,
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html_Attributes$id('loadingcircle'),
+																_1: {ctor: '[]'}
+															},
+															{ctor: '[]'}),
+														_1: {ctor: '[]'}
+													}
 												});
 										}
 									}(),
-									_1: {
-										ctor: '::',
-										_0: A2(
-											_elm_lang$html$Html$br,
-											{ctor: '[]'},
-											{ctor: '[]'}),
-										_1: {
-											ctor: '::',
-											_0: A2(
-												_elm_lang$html$Html$hr,
-												{ctor: '[]'},
-												{ctor: '[]'}),
-											_1: {
-												ctor: '::',
-												_0: A2(
-													_elm_lang$html$Html$a,
-													{
-														ctor: '::',
-														_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Help),
-														_1: {
-															ctor: '::',
-															_0: _elm_lang$html$Html_Attributes$style(
-																{
-																	ctor: '::',
-																	_0: {ctor: '_Tuple2', _0: 'color', _1: 'blue'},
-																	_1: {ctor: '[]'}
-																}),
-															_1: {ctor: '[]'}
-														}
-													},
-													{
-														ctor: '::',
-														_0: _elm_lang$html$Html$text(
-															model.help ? 'Hide usage' : 'How to use'),
-														_1: {ctor: '[]'}
-													}),
-												_1: {
-													ctor: '::',
-													_0: model.help ? A2(
-														_elm_lang$html$Html$p,
-														{ctor: '[]'},
-														{
-															ctor: '::',
-															_0: _elm_lang$html$Html$text(_user$project$Main$usage),
-															_1: {ctor: '[]'}
-														}) : A2(
-														_elm_lang$html$Html$div,
-														{ctor: '[]'},
-														{ctor: '[]'}),
-													_1: {ctor: '[]'}
-												}
-											}
-										}
-									}
+									_1: {ctor: '[]'}
 								}
 							}
 						}

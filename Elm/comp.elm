@@ -234,20 +234,25 @@ view model =
             _ -> text ""
         , case model.comp of
             Just comp ->
-                case model.selected of
+                div [ id "comp" ]
+                [ case model.selected of
                     Just (SelectEvent per) -> viewCompetitors model.sortBy comp model.people <| Just per
                     _ ->                      viewCompetitors model.sortBy comp model.people Nothing
+                , br [] []
+                , hr [] []
+                , a [ onClick Help
+                    , style [ ("color", "blue") ]
+                    ]
+                    [ text <| if model.help then "Hide usage" else "How to use" ]
+                , if model.help
+                     then p [] [ text usage ]
+                     else div [] []
+                ]
             _ ->
-                p [id "loading"] [text "Loading..."]
-        , br [] []
-        , hr [] []
-        , a [ onClick Help
-            , style [ ("color", "blue") ]
-            ]
-            [ text <| if model.help then "Hide usage" else "How to use" ]
-        , if model.help
-             then p [] [ text usage ]
-             else div [] []
+                div []
+                [ br [] []
+                , div [id "loadingcircle"] []
+                ]
         ]
 
 compareP people method c1 c2 =

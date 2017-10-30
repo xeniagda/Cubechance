@@ -35,6 +35,32 @@ th, h1 {
     color: #611;
 }
 
+#loadingcircle {
+
+    position: absolute;
+    left: 50%;
+    right: 50%;
+    border-radius : 30%;
+    border-top    : 4px solid #00FFFF;
+    border-right  : 4px solid #FF0000;
+    border-bottom : 4px solid #00FF00;
+    border-left   : 4px solid #FF8800;
+    background: linear-gradient(to bottom right, #FFF 0%, #FFF 50%, #FF0 50%, #FF0 100%);
+    width: 30px;
+    height: 30px;
+    -webkit-animation: spin 2s linear infinite;
+    animation: spin 2s linear infinite;
+}
+
+@-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 #list {
     margin-top: 10px;
     width: 100%;
