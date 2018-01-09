@@ -10661,6 +10661,7 @@ var _user$project$Main$isFilled = function (b) {
 	return false;
 };
 var _user$project$Main$size = 24;
+var _user$project$Main$dropScore = 5;
 var _user$project$Main$Model = F4(
 	function (a, b, c, d) {
 		return {lastTime: a, tetrisState: b, paused: c, easy: d};
@@ -12039,6 +12040,34 @@ var _user$project$Main$updateTetris = F2(
 			}
 		}
 	});
+var _user$project$Main$drop = F2(
+	function (scoreDown, state) {
+		drop:
+		while (true) {
+			var _p47 = A2(_user$project$Main$updateTetris, -1, state);
+			var newState = _p47._0;
+			var _p48 = newState.dropping;
+			if (_p48.ctor === 'Nothing') {
+				return newState;
+			} else {
+				if (_elm_lang$core$Native_Utils.eq(scoreDown, 0)) {
+					var _v47 = _user$project$Main$dropScore,
+						_v48 = _elm_lang$core$Native_Utils.update(
+						newState,
+						{score: newState.score + 1});
+					scoreDown = _v47;
+					state = _v48;
+					continue drop;
+				} else {
+					var _v49 = scoreDown - 1,
+						_v50 = newState;
+					scoreDown = _v49;
+					state = _v50;
+					continue drop;
+				}
+			}
+		}
+	});
 var _user$project$Main$pieces = {
 	ctor: '::',
 	_0: {
@@ -12276,13 +12305,13 @@ var _user$project$Main$DRight = {ctor: 'DRight'};
 var _user$project$Main$DLeft = {ctor: 'DLeft'};
 var _user$project$Main$move = F2(
 	function (state, d) {
-		var _p47 = state.dropping;
-		if (_p47.ctor === 'Just') {
-			var _p48 = _p47._0;
+		var _p49 = state.dropping;
+		if (_p49.ctor === 'Just') {
+			var _p50 = _p49._0;
 			var dir = _elm_lang$core$Native_Utils.eq(d, _user$project$Main$DLeft) ? -1 : 1;
 			var newDropping = _elm_lang$core$Native_Utils.update(
-				_p48,
-				{x: _p48.x + dir});
+				_p50,
+				{x: _p50.x + dir});
 			return A2(_user$project$Main$fits, state.blocks, newDropping) ? _elm_lang$core$Native_Utils.update(
 				state,
 				{
@@ -12294,8 +12323,8 @@ var _user$project$Main$move = F2(
 	});
 var _user$project$Main$update = F2(
 	function (msg, model) {
-		var _p49 = msg;
-		switch (_p49.ctor) {
+		var _p51 = msg;
+		switch (_p51.ctor) {
 			case 'SetDroppings':
 				var state = model.tetrisState;
 				return A2(
@@ -12306,7 +12335,7 @@ var _user$project$Main$update = F2(
 							tetrisState: _elm_lang$core$Native_Utils.update(
 								state,
 								{
-									nexts: A2(_elm_lang$core$Basics_ops['++'], state.nexts, _p49._0)
+									nexts: A2(_elm_lang$core$Basics_ops['++'], state.nexts, _p51._0)
 								})
 						}),
 					{ctor: '[]'});
@@ -12320,14 +12349,14 @@ var _user$project$Main$update = F2(
 							tetrisState: _elm_lang$core$Native_Utils.update(
 								state,
 								{
-									dropping: _elm_lang$core$Maybe$Just(_p49._0)
+									dropping: _elm_lang$core$Maybe$Just(_p51._0)
 								})
 						}),
 					{ctor: '[]'});
 			case 'Key':
-				var _p53 = _p49._0;
-				var _p50 = _p53;
-				switch (_p50) {
+				var _p55 = _p51._0;
+				var _p52 = _p55;
+				switch (_p52) {
 					case 37:
 						return model.paused ? A2(
 							_elm_lang$core$Platform_Cmd_ops['!'],
@@ -12371,9 +12400,9 @@ var _user$project$Main$update = F2(
 								model,
 								{ctor: '[]'});
 						} else {
-							var _p51 = A2(_user$project$Main$updateTetris, 0, model.tetrisState);
-							var newState = _p51._0;
-							var cmd = _p51._1;
+							var _p53 = A2(_user$project$Main$updateTetris, 0, model.tetrisState);
+							var newState = _p53._0;
+							var cmd = _p53._1;
 							return {
 								ctor: '_Tuple2',
 								_0: _elm_lang$core$Native_Utils.update(
@@ -12389,11 +12418,23 @@ var _user$project$Main$update = F2(
 								model,
 								{paused: !model.paused}),
 							{ctor: '[]'});
+					case 32:
+						return model.paused ? A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							model,
+							{ctor: '[]'}) : A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							_elm_lang$core$Native_Utils.update(
+								model,
+								{
+									tetrisState: A2(_user$project$Main$drop, 0, model.tetrisState)
+								}),
+							{ctor: '[]'});
 					default:
-						if ((_elm_lang$core$Native_Utils.cmp(_p53, 48) > 0) && (_elm_lang$core$Native_Utils.cmp(_p53, 58) < 0)) {
-							var _p52 = A2(_user$project$Main$holdPiece, _p53 - 49, model.tetrisState);
-							var newState = _p52._0;
-							var cmd = _p52._1;
+						if ((_elm_lang$core$Native_Utils.cmp(_p55, 48) > 0) && (_elm_lang$core$Native_Utils.cmp(_p55, 58) < 0)) {
+							var _p54 = A2(_user$project$Main$holdPiece, _p55 - 49, model.tetrisState);
+							var newState = _p54._0;
+							var cmd = _p54._1;
 							return {
 								ctor: '_Tuple2',
 								_0: _elm_lang$core$Native_Utils.update(
@@ -12409,34 +12450,34 @@ var _user$project$Main$update = F2(
 						}
 				}
 			default:
-				var _p56 = _p49._0;
+				var _p58 = _p51._0;
 				if (model.paused) {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						model,
 						{ctor: '[]'});
 				} else {
-					var _p54 = model.lastTime;
-					if (_p54.ctor === 'Nothing') {
+					var _p56 = model.lastTime;
+					if (_p56.ctor === 'Nothing') {
 						return A2(
 							_elm_lang$core$Platform_Cmd_ops['!'],
 							_elm_lang$core$Native_Utils.update(
 								model,
 								{
-									lastTime: _elm_lang$core$Maybe$Just(_p56)
+									lastTime: _elm_lang$core$Maybe$Just(_p58)
 								}),
 							{ctor: '[]'});
 					} else {
-						var delta = (_p56 - _p54._0) / 1000;
-						var _p55 = A2(_user$project$Main$updateTetris, delta, model.tetrisState);
-						var newState = _p55._0;
-						var cmd = _p55._1;
+						var delta = (_p58 - _p56._0) / 1000;
+						var _p57 = A2(_user$project$Main$updateTetris, delta, model.tetrisState);
+						var newState = _p57._0;
+						var cmd = _p57._1;
 						return {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
 								model,
 								{
-									lastTime: _elm_lang$core$Maybe$Just(_p56),
+									lastTime: _elm_lang$core$Maybe$Just(_p58),
 									tetrisState: newState
 								}),
 							_1: cmd

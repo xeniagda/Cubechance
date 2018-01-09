@@ -13,7 +13,7 @@ import Random.List as Rl
 
 import Base
 
-
+dropScore = 5
 size = 24
 
 main =
@@ -87,6 +87,8 @@ update msg model =
                             )
                 27 -> -- Escape
                     { model | paused = not model.paused } ! []
+                32 -> -- Space
+                    if model.paused then model ! [] else { model | tetrisState = drop 0 model.tetrisState } ! []
                 _ -> if code > 48 && code < 58  -- Is a number
                     then
                         let (newState, cmd) = holdPiece (code - 49) model.tetrisState
@@ -408,6 +410,16 @@ move state d =
                 else state
         Nothing -> state
 
+drop : Int -> TetrisState -> TetrisState
+drop scoreDown state =
+    let (newState, _) = updateTetris (-1) state
+    in case newState.dropping of
+        Nothing -> newState
+        Just _ ->
+            if scoreDown == 0
+               then drop dropScore { newState | score = newState.score + 1 }
+               else drop (scoreDown - 1) newState
+
 rotate_ : TetrisState -> TetrisState
 rotate_ state =
     case state.dropping of
@@ -434,6 +446,7 @@ rotate piece =
                 )
                 <| List.range 0 <| width piece.shape - 1
     in { piece | shape = rotated }
+
 
 rotatePiece : BlockState -> BlockState
 rotatePiece p =
