@@ -41,14 +41,14 @@ init : (Model, Cmd Msg)
 init =
     { lastTime = Nothing
     , paused = False
-    , tetrisState = 
+    , tetrisState =
         { blocks = defaultTetris
         , dropping = Nothing
         , nexts = []
         , hold = List.repeat 3 Nothing
         , score = 0
         , gameOver = False
-        } 
+        }
     , easy = True
     } ! []
 
@@ -70,27 +70,28 @@ update msg model =
         Key code ->
             case code of
                 37 -> -- Left
-                    { model | tetrisState = move model.tetrisState DLeft } ! []
+                    if model.paused then model ! [] else { model | tetrisState = move model.tetrisState DLeft } ! []
                 39 -> -- Right
-                    { model | tetrisState = move model.tetrisState DRight } ! []
+                    if model.paused then model ! [] else { model | tetrisState = move model.tetrisState DRight } ! []
                 38 -> -- Up
-                    { model | tetrisState = rotate_ model.tetrisState } ! []
+                    if model.paused then model ! [] else { model | tetrisState = rotate_ model.tetrisState } ! []
                 40 -> -- Down
-                    let (newState, cmd) = updateTetris 0 model.tetrisState
-                    in
-                        (
-                            { model
-                            | tetrisState = newState
-                            }
-                        , cmd
-                        )
+                    if model.paused then model ! [] else
+                        let (newState, cmd) = updateTetris 0 model.tetrisState
+                        in
+                            (
+                                { model
+                                | tetrisState = newState
+                                }
+                            , cmd
+                            )
                 27 -> -- Escape
                     { model | paused = not model.paused } ! []
                 _ -> if code > 48 && code < 58  -- Is a number
                     then
                         let (newState, cmd) = holdPiece (code - 49) model.tetrisState
                         in ( { model | tetrisState = newState }, cmd)
-                    else always (model ! []) <| Debug.log "Key down" code
+                    else model ! []
 
         Update time ->
             if model.paused
@@ -108,6 +109,7 @@ update msg model =
                                 }
                             , cmd
                             )
+
 view : Model -> Html Msg
 view model =
     div []
@@ -128,10 +130,10 @@ view model =
             <| renderTetris model.tetrisState
         ]
     , div [ id "nexts" ]
-        <| List.map 
+        <| List.map
             (\piece ->
                 div [ class "next" ]
-                [ S.svg 
+                [ S.svg
                     [ Sa.height <| toString <| size * List.length piece.shape
                     , Sa.width <| toString <| size * width piece.shape
                     ] <| renderGrid 0 0 piece.shape
@@ -146,7 +148,7 @@ view model =
             (\i hold ->
                 case hold of
                     Nothing ->
-                        div [] 
+                        div []
                             [ div [ class "holdIdx" ]
                                 [ text <| (toString <| i + 1) ++ ": " ]
                             , br [] []
@@ -154,7 +156,7 @@ view model =
                     Just hold ->
                         div []
                             [ div [ class "holdIdx", class "active" ] [ text <| (toString <| i + 1) ++ ": " ]
-                            , S.svg 
+                            , S.svg
                                 [ Sa.height <| toString <| size * List.length hold.shape
                                 , Sa.width <| toString <| size * width hold.shape
                                 ] <| renderGrid 0 0 hold.shape
@@ -307,7 +309,7 @@ holdPiece idx state =
 updateTetris : Float -> TetrisState -> (TetrisState, Cmd Msg)
 updateTetris delta state =
     if state.gameOver
-        then 
+        then
             { state
             | dropping = Nothing
             , nexts = []
@@ -341,7 +343,7 @@ updateTetris delta state =
                                     removeWholeLines
                                     <| Maybe.withDefault state.blocks
                                     <| place state.blocks dropping
-                            in 
+                            in
                                 { state
                                 | dropping = Nothing
                                 , blocks = newLines
@@ -558,8 +560,8 @@ isDifficult piece =
 -- Generate a piece with the area of the argument. One area unit is the same as half a square.
 generatePieceWithArea : Int -> Random.Generator Dropping
 generatePieceWithArea area =
-    Random.andThen randomRot 
-    <| Random.andThen 
+    Random.andThen randomRot
+    <| Random.andThen
         (\piece ->
             if isDifficult piece
                then generatePieceWithArea area
@@ -613,8 +615,7 @@ addTri piece =
                         Just (Filled _ _) -> fillTri piece
                         _ -> Random.andThen
                                 (\newPiece ->
-                                    let newShape = Debug.log "newShape" <|
-                                            setBlock yPlace x newPiece shape
+                                    let newShape = setBlock yPlace x newPiece shape
                                     in case newShape of
                                         Nothing -> fillTri piece
                                         Just shape -> Re.constant

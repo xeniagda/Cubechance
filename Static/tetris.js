@@ -11794,10 +11794,7 @@ var _user$project$Main$addTri = function (piece) {
 					return A2(
 						_elm_lang$core$Random$andThen,
 						function (newPiece) {
-							var newShape = A2(
-								_elm_lang$core$Debug$log,
-								'newShape',
-								A4(_user$project$Main$setBlock, yPlace, _p38, newPiece, shape));
+							var newShape = A4(_user$project$Main$setBlock, yPlace, _p38, newPiece, shape);
 							var _p37 = newShape;
 							if (_p37.ctor === 'Nothing') {
 								return _user$project$Main$fillTri(piece);
@@ -12332,7 +12329,10 @@ var _user$project$Main$update = F2(
 				var _p50 = _p53;
 				switch (_p50) {
 					case 37:
-						return A2(
+						return model.paused ? A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							model,
+							{ctor: '[]'}) : A2(
 							_elm_lang$core$Platform_Cmd_ops['!'],
 							_elm_lang$core$Native_Utils.update(
 								model,
@@ -12341,7 +12341,10 @@ var _user$project$Main$update = F2(
 								}),
 							{ctor: '[]'});
 					case 39:
-						return A2(
+						return model.paused ? A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							model,
+							{ctor: '[]'}) : A2(
 							_elm_lang$core$Platform_Cmd_ops['!'],
 							_elm_lang$core$Native_Utils.update(
 								model,
@@ -12350,7 +12353,10 @@ var _user$project$Main$update = F2(
 								}),
 							{ctor: '[]'});
 					case 38:
-						return A2(
+						return model.paused ? A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							model,
+							{ctor: '[]'}) : A2(
 							_elm_lang$core$Platform_Cmd_ops['!'],
 							_elm_lang$core$Native_Utils.update(
 								model,
@@ -12359,16 +12365,23 @@ var _user$project$Main$update = F2(
 								}),
 							{ctor: '[]'});
 					case 40:
-						var _p51 = A2(_user$project$Main$updateTetris, 0, model.tetrisState);
-						var newState = _p51._0;
-						var cmd = _p51._1;
-						return {
-							ctor: '_Tuple2',
-							_0: _elm_lang$core$Native_Utils.update(
+						if (model.paused) {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
 								model,
-								{tetrisState: newState}),
-							_1: cmd
-						};
+								{ctor: '[]'});
+						} else {
+							var _p51 = A2(_user$project$Main$updateTetris, 0, model.tetrisState);
+							var newState = _p51._0;
+							var cmd = _p51._1;
+							return {
+								ctor: '_Tuple2',
+								_0: _elm_lang$core$Native_Utils.update(
+									model,
+									{tetrisState: newState}),
+								_1: cmd
+							};
+						}
 					case 27:
 						return A2(
 							_elm_lang$core$Platform_Cmd_ops['!'],
@@ -12390,12 +12403,9 @@ var _user$project$Main$update = F2(
 							};
 						} else {
 							return A2(
-								_elm_lang$core$Basics$always,
-								A2(
-									_elm_lang$core$Platform_Cmd_ops['!'],
-									model,
-									{ctor: '[]'}),
-								A2(_elm_lang$core$Debug$log, 'Key down', _p53));
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								model,
+								{ctor: '[]'});
 						}
 				}
 			default:
