@@ -129,6 +129,10 @@ view model =
         , if model.competitions == []
              then div [ id "loadingcircle" ] []
              else div [] []
+        , p [] [ text "Other links: " ]
+        , ul [] [
+            a [ href "tetris.html" ] [ text "Trekantris" ]
+            ]
         ]
 
 pageTitle : Model -> Html Msg
