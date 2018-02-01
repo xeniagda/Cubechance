@@ -11913,71 +11913,104 @@ var _user$project$Main$view = function (model) {
 									return A2(
 										_elm_lang$html$Html$table,
 										{ctor: '[]'},
-										{
-											ctor: '::',
-											_0: A2(
-												_elm_lang$html$Html$tr,
-												{ctor: '[]'},
-												{
+										_elm_lang$core$List$concat(
+											{
+												ctor: '::',
+												_0: {
 													ctor: '::',
 													_0: A2(
-														_elm_lang$html$Html$th,
-														{ctor: '[]'},
-														{
-															ctor: '::',
-															_0: _elm_lang$html$Html$text('Name'),
-															_1: {ctor: '[]'}
-														}),
-													_1: {
-														ctor: '::',
-														_0: A2(
-															_elm_lang$html$Html$th,
-															{ctor: '[]'},
-															{
-																ctor: '::',
-																_0: _elm_lang$html$Html$text('Wca ID'),
-																_1: {ctor: '[]'}
-															}),
-														_1: {ctor: '[]'}
-													}
-												}),
-											_1: A2(
-												_elm_lang$core$List$map,
-												function (p) {
-													return A2(
 														_elm_lang$html$Html$tr,
 														{ctor: '[]'},
 														{
 															ctor: '::',
 															_0: A2(
-																_elm_lang$html$Html$td,
+																_elm_lang$html$Html$th,
+																{ctor: '[]'},
 																{
 																	ctor: '::',
-																	_0: _elm_lang$html$Html_Events$onClick(
-																		_user$project$Main$SelectedPerson(p)),
-																	_1: {ctor: '[]'}
-																},
-																{
-																	ctor: '::',
-																	_0: _elm_lang$html$Html$text(p.name),
+																	_0: _elm_lang$html$Html$text('Name'),
 																	_1: {ctor: '[]'}
 																}),
 															_1: {
 																ctor: '::',
 																_0: A2(
-																	_elm_lang$html$Html$td,
+																	_elm_lang$html$Html$th,
 																	{ctor: '[]'},
 																	{
 																		ctor: '::',
-																		_0: _elm_lang$html$Html$text(p.id),
+																		_0: _elm_lang$html$Html$text('Wca ID'),
 																		_1: {ctor: '[]'}
 																	}),
 																_1: {ctor: '[]'}
 															}
-														});
+														}),
+													_1: {ctor: '[]'}
 												},
-												model.matching)
-										});
+												_1: {
+													ctor: '::',
+													_0: A2(
+														_elm_lang$core$List$map,
+														function (p) {
+															return A2(
+																_elm_lang$html$Html$tr,
+																{ctor: '[]'},
+																{
+																	ctor: '::',
+																	_0: A2(
+																		_elm_lang$html$Html$td,
+																		{
+																			ctor: '::',
+																			_0: _elm_lang$html$Html_Events$onClick(
+																				_user$project$Main$SelectedPerson(p)),
+																			_1: {ctor: '[]'}
+																		},
+																		{
+																			ctor: '::',
+																			_0: _elm_lang$html$Html$text(p.name),
+																			_1: {ctor: '[]'}
+																		}),
+																	_1: {
+																		ctor: '::',
+																		_0: A2(
+																			_elm_lang$html$Html$td,
+																			{ctor: '[]'},
+																			{
+																				ctor: '::',
+																				_0: _elm_lang$html$Html$text(p.id),
+																				_1: {ctor: '[]'}
+																			}),
+																		_1: {ctor: '[]'}
+																	}
+																});
+														},
+														model.matching),
+													_1: {
+														ctor: '::',
+														_0: (_elm_lang$core$Native_Utils.cmp(
+															_elm_lang$core$List$length(model.matching),
+															20) > -1) ? {
+															ctor: '::',
+															_0: A2(
+																_elm_lang$html$Html$tr,
+																{ctor: '[]'},
+																{
+																	ctor: '::',
+																	_0: A2(
+																		_elm_lang$html$Html$td,
+																		{ctor: '[]'},
+																		{
+																			ctor: '::',
+																			_0: _elm_lang$html$Html$text('...'),
+																			_1: {ctor: '[]'}
+																		}),
+																	_1: {ctor: '[]'}
+																}),
+															_1: {ctor: '[]'}
+														} : {ctor: '[]'},
+														_1: {ctor: '[]'}
+													}
+												}
+											}));
 								}
 							}(),
 							_1: {
@@ -12238,7 +12271,10 @@ var _user$project$Main$update = F2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
-							{selected: _elm_lang$core$Maybe$Nothing}),
+							{
+								selected: _elm_lang$core$Maybe$Nothing,
+								matching: {ctor: '[]'}
+							}),
 						{ctor: '[]'});
 				} else {
 					return A2(

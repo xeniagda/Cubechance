@@ -11592,14 +11592,14 @@ var _user$project$Main$genSearch = function (model) {
 						{ctor: '[]'},
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html$text('Search comp: '),
+							_0: _elm_lang$html$Html$text('Search competition: '),
 							_1: {
 								ctor: '::',
 								_0: A2(
 									_elm_lang$html$Html$input,
 									{
 										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$placeholder('Comp'),
+										_0: _elm_lang$html$Html_Attributes$placeholder('Competition'),
 										_1: {
 											ctor: '::',
 											_0: _elm_lang$html$Html_Attributes$value(model.search),

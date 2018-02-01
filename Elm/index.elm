@@ -160,8 +160,8 @@ genSearch model =
     table [ id "search" ]
         [ tr []
             [ th []
-                [ text "Search comp: "
-                , input [ placeholder "Comp", value model.search, onInput Search ] []
+                [ text "Search competition: "
+                , input [ placeholder "Competition", value model.search, onInput Search ] []
                 ]
             , th []
                 [ text "Search person: "

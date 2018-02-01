@@ -107,7 +107,7 @@ update msg model =
         SelectedPerson p ->
             case model.selected of
                 Just (SelectEvent e) ->
-                    { model | selected = Nothing } ! []
+                    { model | selected = Nothing, matching = [] } ! []
                 _ ->
                     { model
                     | selected = Just <| SelectEvent p
@@ -205,13 +205,17 @@ view model =
         , case model.matching of
             [] -> text ""
             _ ->
-                table []
-                <| tr [] [th [] [text "Name"], th [] [text "Wca ID"]]
-                :: List.map (\p ->
-                    tr []
-                        [ td [ onClick <| SelectedPerson p ] [text p.name]
-                        , td [] [text p.id]]
-                    ) model.matching
+                table [] <| List.concat
+                    [ [ tr [] [th [] [text "Name"], th [] [text "Wca ID"]] ]
+                    , List.map (\p ->
+                        tr []
+                            [ td [ onClick <| SelectedPerson p ] [text p.name]
+                            , td [] [text p.id]]
+                        ) <| model.matching
+                    , if List.length model.matching >= 20
+                         then [ tr [] [ td [] [ text "..." ] ] ]
+                         else [  ]
+                    ]
         , case model.selected of
             Just (Loaded person event places) ->
                 let placesWithIndexed =

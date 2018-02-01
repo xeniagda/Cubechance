@@ -80,26 +80,23 @@ fn index<'r>(file: PathBuf) -> Option<Response<'r>> {
 fn wca_person<'r>(name: String, state: State<MutWebState>) -> Response<'r> {
     let state = state.lock().unwrap();
 
+    let name = name.to_lowercase();
+
     match state.wca {
         Some(ref wca) => {
             let people: Vec<_> = wca.people.iter()
-                    .filter(|&(_, p)| p.name.contains(&name))
+                    .filter(|&(id, p)| p.name.to_lowercase().contains(&name) || id.to_lowercase().contains(&name))
                     .filter_map(|(id, _)| wca.ext_person(&id))
+                    .take(21)
                     .collect();
 
-
-            if people.len() < 200 {
-                match serde_json::to_string(&people) {
-                    Ok(json) => {
-                        make_html(json)
-                    }
-                    Err(e) => {
-                        make_html(format!("e2 {}", e))
-                    }
+            match serde_json::to_string(&people) {
+                Ok(json) => {
+                    make_html(json)
                 }
-            }
-            else {
-                make_html("e3".to_string())
+                Err(e) => {
+                    make_html(format!("e2 {}", e))
+                }
             }
         }
         None => {
