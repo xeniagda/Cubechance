@@ -62,7 +62,7 @@ type Msg
 
 init : Flags -> (Model, Cmd Msg)
 init flags =
-    let (model, cmd) = 
+    let (model, cmd) =
             update LoadComp <|
                 { compId = flags.compId
                 , comp = Nothing
@@ -98,7 +98,7 @@ update msg model =
                     { model
                         | comp = Just comp
                         , people = people
-                    } ! 
+                    } !
                     [ title <| comp.name
                     ]
                 Err err ->
@@ -106,10 +106,10 @@ update msg model =
 
         SelectedPerson p ->
             case model.selected of
-                Just (SelectEvent e) -> 
+                Just (SelectEvent e) ->
                     { model | selected = Nothing } ! []
-                _ -> 
-                    { model 
+                _ ->
+                    { model
                     | selected = Just <| SelectEvent p
                     , matching = []
                     } ! []
@@ -118,14 +118,14 @@ update msg model =
             { model
             | search = name
             } ! []
-        
+
         SelectedOther ->
             model !
             [ Http.send ParseOther
                 <| Http.getString
                     <| "api/people/" ++ model.search
             ]
-        
+
         ParseOther r ->
             case r of
                 Ok res ->
@@ -143,7 +143,7 @@ update msg model =
                         Err e -> { model | error = Just <| toString e } ! []
                 Err e -> { model | error = Just <| toString e } ! []
 
-        SelectedEvent e -> 
+        SelectedEvent e ->
             case model.selected of
                 Just (SelectEvent p) ->
                     { model
@@ -171,7 +171,7 @@ update msg model =
 
         SortBy x ->
             { model | sortBy = x } ! []
-        
+
         Help ->
             { model | help = not model.help } ! []
 
@@ -179,16 +179,20 @@ decodePlaces = D.list D.float
 
 view model =
     let compLink = "https://www.worldcubeassociation.org/competitions/" ++ model.compId
-    in div [] 
+    in div []
         [ a [ id "back", href "/index.html" ] [ text "←" ]
         , case model.comp of
             Just comp ->
-                div [id "center"] 
+                div [id "center"]
                     [ h1 [id "title"] [text comp.name]
                     , a [ id "compLink", href compLink ] [ text "(On WCA)" ]
                     , br [] []
-                    , span [ class <| "flag-icon flag-icon-" ++ String.toLower comp.country_iso ] []
-                    , text <| " - " ++ comp.country_name
+                    , p []
+                        [ span [ class <| "flag-icon flag-icon-" ++ String.toLower comp.country_iso ] []
+                        , text " - "
+                        , b [] [ text <| comp.country_name]
+                        , text <| ", " ++ comp.city
+                    ]
                     ]
             Nothing ->
                 div [] []
@@ -204,7 +208,7 @@ view model =
                 table []
                 <| tr [] [th [] [text "Name"], th [] [text "Wca ID"]]
                 :: List.map (\p ->
-                    tr [] 
+                    tr []
                         [ td [ onClick <| SelectedPerson p ] [text p.name]
                         , td [] [text p.id]]
                     ) model.matching
@@ -220,7 +224,7 @@ view model =
                     [ p [] [ text <| person.name ++ " has the following chances in "
                                  , genIcon event
                                  , text ":"]
-                    , table [ id "chances" ] <| 
+                    , table [ id "chances" ] <|
                         [ tr [] <|
                             List.map (\ (i, chance) ->
                                 th [] [ text <| ordinal <| i + 1 ]
@@ -278,7 +282,7 @@ compareP people method c1 c2 =
         _ -> EQ
 
 viewCompetitors sort competition people selected =
-    let competitors = 
+    let competitors =
             List.filterMap
             (\competitor ->
                 case findPerson competitor.id people of
@@ -297,12 +301,13 @@ viewCompetitors sort competition people selected =
         <| genHeader competition
         :: person
         ++ competitors
+        ++ [ genFooter competition ]
 
 viewCompetitor select competition competitor person =
     let personLink = "https://www.worldcubeassociation.org/persons/" ++ person.id
         tClass =
             case select of
-                Just x -> 
+                Just x ->
                     if x.id == person.id
                        then "competitor selected"
                        else "competitor deselected"
@@ -326,8 +331,24 @@ genHeader competition =
             )
             competition.events
 
+genFooter competition =
+    tr [class "comp-events" ] <|
+        th [ class "total", onClick <| SortBy Nothing ] [ text "# Competitors" ]
+     --:: th [ class "comp-id"] [ text competition.id ]
+     :: List.map
+            (\event ->
+                th [ class "number", onClick <| SortBy (Just event) ]
+                [ span [class <| "cubing-icon event-" ++ event ] []
+                , text <| ": " ++
+                    ( toString <| List.length <|
+                        List.filter (\c -> List.member event c.events) competition.competitors
+                    )
+                ]
+            )
+            competition.events
+
 displayEvent select event competitor person =
-    let isSelected = 
+    let isSelected =
             case select of
                 Just x -> x.id == person.id
                 _ -> False
@@ -335,7 +356,7 @@ displayEvent select event competitor person =
         Nothing -> td [class "event"] []
         Just avg ->
             if List.any (\a -> a == event) competitor.events then
-                let click = 
+                let click =
                         case select of
                             Just _ -> [ onClick <| SelectedEvent event ]
                             _ -> []

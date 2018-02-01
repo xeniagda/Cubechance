@@ -32,6 +32,7 @@ type alias Model =
     { competitions : List Base.Competition
     , search : String
     , searchPerson : String
+    , searchCountry : String
     , sorting : (String, (Base.Competition -> Base.Competition -> Order))
     , serverLoading : Bool
     }
@@ -41,6 +42,7 @@ init =
         { competitions = []
         , search = ""
         , searchPerson = ""
+        , searchCountry = ""
         , sorting = defaultSort
         , serverLoading = False
         }
@@ -50,13 +52,14 @@ type Msg
     | ParseUpcoming (Result Http.Error String)
     | Search String
     | SearchPerson String
+    | SearchCountry String
     | SetSorting String
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
         SetSorting name ->
-            let sorting = 
+            let sorting =
                     List.head <|
                     List.filter (\sort -> Tuple.first sort == name)
                     sortings
@@ -79,7 +82,7 @@ update msg model =
                 then { model | serverLoading = True } ! []
                 else case D.decodeString (D.list Base.decodeComp) text of
                     Ok comps ->
-                        { model 
+                        { model
                         | competitions = Debug.log "Comps" comps
                         , serverLoading = False
                         } ! []
@@ -95,15 +98,22 @@ update msg model =
 
         SearchPerson st -> { model | searchPerson = st } ! []
 
+        SearchCountry st -> { model | searchCountry = st } ! []
+
 getMatchingComps : Model -> List Base.Competition
-getMatchingComps { search, searchPerson, competitions } =
-    if search == "" && searchPerson == ""
+getMatchingComps { search, searchPerson, searchCountry, competitions } =
+    if search == "" && searchPerson == "" && searchCountry == ""
         then competitions
         else List.filter
             (\comp ->
-                String.contains
-                    (String.toLower search)
-                    (String.toLower comp.name)
+                (
+                    String.contains
+                        (String.toLower search)
+                        (String.toLower comp.name)
+                    && String.contains
+                        (String.toLower searchCountry)
+                        (String.toLower <| comp.country_name ++ "\0" ++ comp.country_iso ++ "\0" ++ comp.city)
+                )
                 && List.any
                     (\p ->
                         String.contains
@@ -118,7 +128,7 @@ getMatchingComps { search, searchPerson, competitions } =
 
 view : Model -> Html Msg
 view model =
-    div [] 
+    div []
      <| pageTitle model
      :: [ genSearch model
         , renderComps <| List.sortWith (Tuple.second model.sorting) <| getMatchingComps model
@@ -138,7 +148,7 @@ view model =
 pageTitle : Model -> Html Msg
 pageTitle model =
     div []
-        [ h1 [ style 
+        [ h1 [ style
             [ ("text-align", "center")
             , ("padding-top", "30px")
             , ("padding-bottom", "30px")
@@ -148,18 +158,22 @@ pageTitle model =
 
 genSearch model =
     table [ id "search" ]
-        [ tr [] 
-            [ th [] 
+        [ tr []
+            [ th []
                 [ text "Search comp: "
                 , input [ placeholder "Comp", value model.search, onInput Search ] []
                 ]
-            , th [] 
+            , th []
                 [ text "Search person: "
-                , input [ placeholder "WCA ID / Name", value model.searchPerson, onInput SearchPerson ] [] 
+                , input [ placeholder "WCA ID / Name", value model.searchPerson, onInput SearchPerson ] []
                 ]
-            , th [] 
+            , th []
+                [ text "Search country/city: "
+                , input [ placeholder "London, China, ect.", value model.searchCountry, onInput SearchCountry ] []
+                ]
+            , th []
                 [ text "Sort by: "
-                , viewDropdown model 
+                , viewDropdown model
                 ]
             ]
         ]
@@ -169,7 +183,7 @@ viewDropdown model =
     select [ onInput SetSorting ] <|
         List.map
             (\(name, _) ->
-                option [ selected <| name == Tuple.first model.sorting ] 
+                option [ selected <| name == Tuple.first model.sorting ]
                     [ text name ]
             )
         sortings
@@ -178,7 +192,7 @@ viewDropdown model =
 renderComps : List Base.Competition -> Html Msg
 renderComps comps =
     table [ id "list" ] <|
-    tr [] 
+    tr []
         [ th [] [ text "Competition" ]
         , th [] [ text "Country" ]
         , th [] [ text "Date" ]
@@ -186,9 +200,11 @@ renderComps comps =
      :: List.map (\comp ->
             tr []
             [ a [href <| "/comp.html?" ++ comp.id] [ td [] [text comp.name] ]
-            , td [] 
+            , td []
                 [ span [ class <| "flag-icon flag-icon-" ++ String.toLower comp.country_iso ] []
-                , text <| " - " ++ comp.country_name
+                , text " - "
+                , b [] [ text <| comp.country_name]
+                , text <| ", " ++ comp.city
                 ]
             , td [] [text <| Base.viewDate comp.date]
             ]

@@ -16,6 +16,7 @@ type alias Competition =
     , competitors : List Competitor
     , country_iso : String
     , country_name : String
+    , city : String
     }
 
 type alias Competitor =
@@ -92,6 +93,7 @@ decodeComp =
         |> required "competitors" (D.list decompCompetitor)
         |> required "country_iso" D.string
         |> required "country_name" D.string
+        |> required "city" D.string
 
 decodePerson =
     decode Person

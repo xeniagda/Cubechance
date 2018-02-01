@@ -268,6 +268,7 @@ pub struct Competition {
     pub country: String,
     pub country_name: String,
     pub country_iso: String,
+    pub city: String,
 }
 
 // impl Serialize for Competition {

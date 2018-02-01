@@ -11108,9 +11108,9 @@ var _user$project$Base$viewDate = function (date) {
 							_elm_lang$core$Basics$toString(
 								_elm_lang$core$Date$year(date))))))));
 };
-var _user$project$Base$Competition = F7(
-	function (a, b, c, d, e, f, g) {
-		return {id: a, name: b, events: c, date: d, competitors: e, country_iso: f, country_name: g};
+var _user$project$Base$Competition = F8(
+	function (a, b, c, d, e, f, g, h) {
+		return {id: a, name: b, events: c, date: d, competitors: e, country_iso: f, country_name: g, city: h};
 	});
 var _user$project$Base$Competitor = F3(
 	function (a, b, c) {
@@ -11131,33 +11131,37 @@ var _user$project$Base$decompCompetitor = A3(
 			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Competitor))));
 var _user$project$Base$decodeComp = A3(
 	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-	'country_name',
+	'city',
 	_elm_lang$core$Json_Decode$string,
 	A3(
 		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-		'country_iso',
+		'country_name',
 		_elm_lang$core$Json_Decode$string,
 		A3(
 			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-			'competitors',
-			_elm_lang$core$Json_Decode$list(_user$project$Base$decompCompetitor),
+			'country_iso',
+			_elm_lang$core$Json_Decode$string,
 			A3(
 				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-				'start',
-				_user$project$Base$decodeDate,
+				'competitors',
+				_elm_lang$core$Json_Decode$list(_user$project$Base$decompCompetitor),
 				A3(
 					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-					'events',
-					_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+					'start',
+					_user$project$Base$decodeDate,
 					A3(
 						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-						'name',
-						_elm_lang$core$Json_Decode$string,
+						'events',
+						_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
 						A3(
 							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-							'id',
+							'name',
 							_elm_lang$core$Json_Decode$string,
-							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Competition))))))));
+							A3(
+								_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+								'id',
+								_elm_lang$core$Json_Decode$string,
+								_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Competition)))))))));
 var _user$project$Base$Person = F4(
 	function (a, b, c, d) {
 		return {id: a, name: b, times: c, avgs: d};
@@ -11428,6 +11432,81 @@ var _user$project$Main$genHeader = function (competition) {
 				competition.events)
 		});
 };
+var _user$project$Main$genFooter = function (competition) {
+	return A2(
+		_elm_lang$html$Html$tr,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('comp-events'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$th,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('total'),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Events$onClick(
+							_user$project$Main$SortBy(_elm_lang$core$Maybe$Nothing)),
+						_1: {ctor: '[]'}
+					}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('# Competitors'),
+					_1: {ctor: '[]'}
+				}),
+			_1: A2(
+				_elm_lang$core$List$map,
+				function (event) {
+					return A2(
+						_elm_lang$html$Html$th,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('number'),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Events$onClick(
+									_user$project$Main$SortBy(
+										_elm_lang$core$Maybe$Just(event))),
+								_1: {ctor: '[]'}
+							}
+						},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$span,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class(
+										A2(_elm_lang$core$Basics_ops['++'], 'cubing-icon event-', event)),
+									_1: {ctor: '[]'}
+								},
+								{ctor: '[]'}),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										': ',
+										_elm_lang$core$Basics$toString(
+											_elm_lang$core$List$length(
+												A2(
+													_elm_lang$core$List$filter,
+													function (c) {
+														return A2(_elm_lang$core$List$member, event, c.events);
+													},
+													competition.competitors))))),
+								_1: {ctor: '[]'}
+							}
+						});
+				},
+				competition.events)
+		});
+};
 var _user$project$Main$ParseChances = function (a) {
 	return {ctor: 'ParseChances', _0: a};
 };
@@ -11621,7 +11700,17 @@ var _user$project$Main$viewCompetitors = F4(
 			{
 				ctor: '::',
 				_0: _user$project$Main$genHeader(competition),
-				_1: A2(_elm_lang$core$Basics_ops['++'], person, competitors)
+				_1: A2(
+					_elm_lang$core$Basics_ops['++'],
+					person,
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						competitors,
+						{
+							ctor: '::',
+							_0: _user$project$Main$genFooter(competition),
+							_1: {ctor: '[]'}
+						}))
 			});
 	});
 var _user$project$Main$view = function (model) {
@@ -11701,23 +11790,45 @@ var _user$project$Main$view = function (model) {
 										_1: {
 											ctor: '::',
 											_0: A2(
-												_elm_lang$html$Html$span,
+												_elm_lang$html$Html$p,
+												{ctor: '[]'},
 												{
 													ctor: '::',
-													_0: _elm_lang$html$Html_Attributes$class(
-														A2(
-															_elm_lang$core$Basics_ops['++'],
-															'flag-icon flag-icon-',
-															_elm_lang$core$String$toLower(_p15.country_iso))),
-													_1: {ctor: '[]'}
-												},
-												{ctor: '[]'}),
-											_1: {
-												ctor: '::',
-												_0: _elm_lang$html$Html$text(
-													A2(_elm_lang$core$Basics_ops['++'], ' - ', _p15.country_name)),
-												_1: {ctor: '[]'}
-											}
+													_0: A2(
+														_elm_lang$html$Html$span,
+														{
+															ctor: '::',
+															_0: _elm_lang$html$Html_Attributes$class(
+																A2(
+																	_elm_lang$core$Basics_ops['++'],
+																	'flag-icon flag-icon-',
+																	_elm_lang$core$String$toLower(_p15.country_iso))),
+															_1: {ctor: '[]'}
+														},
+														{ctor: '[]'}),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$html$Html$text(' - '),
+														_1: {
+															ctor: '::',
+															_0: A2(
+																_elm_lang$html$Html$b,
+																{ctor: '[]'},
+																{
+																	ctor: '::',
+																	_0: _elm_lang$html$Html$text(_p15.country_name),
+																	_1: {ctor: '[]'}
+																}),
+															_1: {
+																ctor: '::',
+																_0: _elm_lang$html$Html$text(
+																	A2(_elm_lang$core$Basics_ops['++'], ', ', _p15.city)),
+																_1: {ctor: '[]'}
+															}
+														}
+													}
+												}),
+											_1: {ctor: '[]'}
 										}
 									}
 								}

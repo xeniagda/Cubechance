@@ -11081,9 +11081,9 @@ var _user$project$Base$viewDate = function (date) {
 							_elm_lang$core$Basics$toString(
 								_elm_lang$core$Date$year(date))))))));
 };
-var _user$project$Base$Competition = F7(
-	function (a, b, c, d, e, f, g) {
-		return {id: a, name: b, events: c, date: d, competitors: e, country_iso: f, country_name: g};
+var _user$project$Base$Competition = F8(
+	function (a, b, c, d, e, f, g, h) {
+		return {id: a, name: b, events: c, date: d, competitors: e, country_iso: f, country_name: g, city: h};
 	});
 var _user$project$Base$Competitor = F3(
 	function (a, b, c) {
@@ -11104,33 +11104,37 @@ var _user$project$Base$decompCompetitor = A3(
 			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Competitor))));
 var _user$project$Base$decodeComp = A3(
 	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-	'country_name',
+	'city',
 	_elm_lang$core$Json_Decode$string,
 	A3(
 		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-		'country_iso',
+		'country_name',
 		_elm_lang$core$Json_Decode$string,
 		A3(
 			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-			'competitors',
-			_elm_lang$core$Json_Decode$list(_user$project$Base$decompCompetitor),
+			'country_iso',
+			_elm_lang$core$Json_Decode$string,
 			A3(
 				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-				'start',
-				_user$project$Base$decodeDate,
+				'competitors',
+				_elm_lang$core$Json_Decode$list(_user$project$Base$decompCompetitor),
 				A3(
 					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-					'events',
-					_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+					'start',
+					_user$project$Base$decodeDate,
 					A3(
 						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-						'name',
-						_elm_lang$core$Json_Decode$string,
+						'events',
+						_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
 						A3(
 							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-							'id',
+							'name',
 							_elm_lang$core$Json_Decode$string,
-							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Competition))))))));
+							A3(
+								_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+								'id',
+								_elm_lang$core$Json_Decode$string,
+								_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Base$Competition)))))))));
 var _user$project$Base$Person = F4(
 	function (a, b, c, d) {
 		return {id: a, name: b, times: c, avgs: d};
@@ -11346,9 +11350,24 @@ var _user$project$Main$renderComps = function (comps) {
 											{ctor: '[]'}),
 										_1: {
 											ctor: '::',
-											_0: _elm_lang$html$Html$text(
-												A2(_elm_lang$core$Basics_ops['++'], ' - ', comp.country_name)),
-											_1: {ctor: '[]'}
+											_0: _elm_lang$html$Html$text(' - '),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_elm_lang$html$Html$b,
+													{ctor: '[]'},
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html$text(comp.country_name),
+														_1: {ctor: '[]'}
+													}),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$html$Html$text(
+														A2(_elm_lang$core$Basics_ops['++'], ', ', comp.city)),
+													_1: {ctor: '[]'}
+												}
+											}
 										}
 									}),
 								_1: {
@@ -11413,24 +11432,38 @@ var _user$project$Main$pageTitle = function (model) {
 };
 var _user$project$Main$getMatchingComps = function (_p0) {
 	var _p1 = _p0;
-	var _p4 = _p1.searchPerson;
+	var _p5 = _p1.searchPerson;
+	var _p4 = _p1.searchCountry;
 	var _p3 = _p1.search;
 	var _p2 = _p1.competitions;
-	return (_elm_lang$core$Native_Utils.eq(_p3, '') && _elm_lang$core$Native_Utils.eq(_p4, '')) ? _p2 : A2(
+	return (_elm_lang$core$Native_Utils.eq(_p3, '') && (_elm_lang$core$Native_Utils.eq(_p5, '') && _elm_lang$core$Native_Utils.eq(_p4, ''))) ? _p2 : A2(
 		_elm_lang$core$List$filter,
 		function (comp) {
-			return A2(
+			return (A2(
 				_elm_lang$core$String$contains,
 				_elm_lang$core$String$toLower(_p3),
 				_elm_lang$core$String$toLower(comp.name)) && A2(
+				_elm_lang$core$String$contains,
+				_elm_lang$core$String$toLower(_p4),
+				_elm_lang$core$String$toLower(
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						comp.country_name,
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							' ',
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								comp.country_iso,
+								A2(_elm_lang$core$Basics_ops['++'], ' ', comp.city))))))) && A2(
 				_elm_lang$core$List$any,
 				function (p) {
 					return A2(
 						_elm_lang$core$String$contains,
-						_elm_lang$core$String$toLower(_p4),
+						_elm_lang$core$String$toLower(_p5),
 						_elm_lang$core$String$toLower(p.id)) || A2(
 						_elm_lang$core$String$contains,
-						_elm_lang$core$String$toLower(_p4),
+						_elm_lang$core$String$toLower(_p5),
 						_elm_lang$core$String$toLower(p.name));
 				},
 				comp.competitors);
@@ -11492,9 +11525,9 @@ var _user$project$Main$sortings = {
 		}
 	}
 };
-var _user$project$Main$Model = F5(
-	function (a, b, c, d, e) {
-		return {competitions: a, search: b, searchPerson: c, sorting: d, serverLoading: e};
+var _user$project$Main$Model = F6(
+	function (a, b, c, d, e, f) {
+		return {competitions: a, search: b, searchPerson: c, searchCountry: d, sorting: e, serverLoading: f};
 	});
 var _user$project$Main$SetSorting = function (a) {
 	return {ctor: 'SetSorting', _0: a};
@@ -11509,26 +11542,29 @@ var _user$project$Main$viewDropdown = function (model) {
 		},
 		A2(
 			_elm_lang$core$List$map,
-			function (_p5) {
-				var _p6 = _p5;
-				var _p7 = _p6._0;
+			function (_p6) {
+				var _p7 = _p6;
+				var _p8 = _p7._0;
 				return A2(
 					_elm_lang$html$Html$option,
 					{
 						ctor: '::',
 						_0: _elm_lang$html$Html_Attributes$selected(
 							_elm_lang$core$Native_Utils.eq(
-								_p7,
+								_p8,
 								_elm_lang$core$Tuple$first(model.sorting))),
 						_1: {ctor: '[]'}
 					},
 					{
 						ctor: '::',
-						_0: _elm_lang$html$Html$text(_p7),
+						_0: _elm_lang$html$Html$text(_p8),
 						_1: {ctor: '[]'}
 					});
 			},
 			_user$project$Main$sortings));
+};
+var _user$project$Main$SearchCountry = function (a) {
+	return {ctor: 'SearchCountry', _0: a};
 };
 var _user$project$Main$SearchPerson = function (a) {
 	return {ctor: 'SearchPerson', _0: a};
@@ -11614,14 +11650,44 @@ var _user$project$Main$genSearch = function (model) {
 								{ctor: '[]'},
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html$text('Sort by: '),
+									_0: _elm_lang$html$Html$text('Search country/city: '),
 									_1: {
 										ctor: '::',
-										_0: _user$project$Main$viewDropdown(model),
+										_0: A2(
+											_elm_lang$html$Html$input,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$placeholder('London, China, ect.'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$value(model.searchCountry),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$html$Html_Events$onInput(_user$project$Main$SearchCountry),
+														_1: {ctor: '[]'}
+													}
+												}
+											},
+											{ctor: '[]'}),
 										_1: {ctor: '[]'}
 									}
 								}),
-							_1: {ctor: '[]'}
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$th,
+									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text('Sort by: '),
+										_1: {
+											ctor: '::',
+											_0: _user$project$Main$viewDropdown(model),
+											_1: {ctor: '[]'}
+										}
+									}),
+								_1: {ctor: '[]'}
+							}
 						}
 					}
 				}),
@@ -11726,8 +11792,8 @@ var _user$project$Main$ParseUpcoming = function (a) {
 };
 var _user$project$Main$update = F2(
 	function (msg, model) {
-		var _p8 = msg;
-		switch (_p8.ctor) {
+		var _p9 = msg;
+		switch (_p9.ctor) {
 			case 'SetSorting':
 				var sorting = _elm_lang$core$List$head(
 					A2(
@@ -11735,11 +11801,11 @@ var _user$project$Main$update = F2(
 						function (sort) {
 							return _elm_lang$core$Native_Utils.eq(
 								_elm_lang$core$Tuple$first(sort),
-								_p8._0);
+								_p9._0);
 						},
 						_user$project$Main$sortings));
-				var _p9 = sorting;
-				if (_p9.ctor === 'Nothing') {
+				var _p10 = sorting;
+				if (_p10.ctor === 'Nothing') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						model,
@@ -11749,12 +11815,12 @@ var _user$project$Main$update = F2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
-							{sorting: _p9._0}),
+							{sorting: _p10._0}),
 						{ctor: '[]'});
 				}
 			case 'LoadUpcoming':
-				var _p10 = model.competitions;
-				if (_p10.ctor === '[]') {
+				var _p11 = model.competitions;
+				if (_p11.ctor === '[]') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						model,
@@ -11773,9 +11839,9 @@ var _user$project$Main$update = F2(
 						{ctor: '[]'});
 				}
 			case 'ParseUpcoming':
-				if (_p8._0.ctor === 'Ok') {
-					var _p13 = _p8._0._0;
-					if (_elm_lang$core$Native_Utils.eq(_p13, 'e0')) {
+				if (_p9._0.ctor === 'Ok') {
+					var _p14 = _p9._0._0;
+					if (_elm_lang$core$Native_Utils.eq(_p14, 'e0')) {
 						return A2(
 							_elm_lang$core$Platform_Cmd_ops['!'],
 							_elm_lang$core$Native_Utils.update(
@@ -11783,22 +11849,22 @@ var _user$project$Main$update = F2(
 								{serverLoading: true}),
 							{ctor: '[]'});
 					} else {
-						var _p11 = A2(
+						var _p12 = A2(
 							_elm_lang$core$Json_Decode$decodeString,
 							_elm_lang$core$Json_Decode$list(_user$project$Base$decodeComp),
-							_p13);
-						if (_p11.ctor === 'Ok') {
+							_p14);
+						if (_p12.ctor === 'Ok') {
 							return A2(
 								_elm_lang$core$Platform_Cmd_ops['!'],
 								_elm_lang$core$Native_Utils.update(
 									model,
 									{
-										competitions: A2(_elm_lang$core$Debug$log, 'Comps', _p11._0),
+										competitions: A2(_elm_lang$core$Debug$log, 'Comps', _p12._0),
 										serverLoading: false
 									}),
 								{ctor: '[]'});
 						} else {
-							var _p12 = A2(_elm_lang$core$Debug$log, 'Server error', _p11._0);
+							var _p13 = A2(_elm_lang$core$Debug$log, 'Server error', _p12._0);
 							return A2(
 								_elm_lang$core$Platform_Cmd_ops['!'],
 								model,
@@ -11806,7 +11872,7 @@ var _user$project$Main$update = F2(
 						}
 					}
 				} else {
-					var _p14 = A2(_elm_lang$core$Debug$log, 'Server error', _p8._0._0);
+					var _p15 = A2(_elm_lang$core$Debug$log, 'Server error', _p9._0._0);
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						model,
@@ -11817,14 +11883,21 @@ var _user$project$Main$update = F2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{search: _p8._0}),
+						{search: _p9._0}),
+					{ctor: '[]'});
+			case 'SearchPerson':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{searchPerson: _p9._0}),
 					{ctor: '[]'});
 			default:
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{searchPerson: _p8._0}),
+						{searchCountry: _p9._0}),
 					{ctor: '[]'});
 		}
 	});
@@ -11836,6 +11909,7 @@ var _user$project$Main$init = A2(
 		competitions: {ctor: '[]'},
 		search: '',
 		searchPerson: '',
+		searchCountry: '',
 		sorting: _user$project$Main$defaultSort,
 		serverLoading: false
 	});

@@ -60,7 +60,8 @@ pub fn download_wca<'a>() -> Result<WcaResults, WcaError> {
 
     Ok(results)
 }
-pub fn parse_wca_countries<'a>(file: ZipFile, mut results: &mut WcaResults) -> Result<(), WcaError> {
+
+pub fn parse_wca_countries<'a>(file: ZipFile, results: &mut WcaResults) -> Result<(), WcaError> {
     let mut reader = BufReader::new(file);
 
     let mut _fl = String::new(); // First line
@@ -219,6 +220,7 @@ pub fn load_comp<'a>(line: String, country_codes: &HashMap<String, (String, Stri
     let comp_id = stuff[0];
     let comp_name = stuff[1];
 
+    let city = stuff[2];
     let wca_country = stuff[3];
 
     // Start date
@@ -248,6 +250,7 @@ pub fn load_comp<'a>(line: String, country_codes: &HashMap<String, (String, Stri
                     country: wca_country.to_string(),
                     country_name: name.to_string(),
                     country_iso: iso.to_string(),
+                    city: city.to_string(),
                     events: events,
                     has_been: has_been,
                     start: s_date,
@@ -262,6 +265,7 @@ pub fn load_comp<'a>(line: String, country_codes: &HashMap<String, (String, Stri
                     country: wca_country.to_string(),
                     country_name: name.to_string(),
                     country_iso: iso.to_string(),
+                    city: city.to_string(),
                     events: events,
                     has_been: has_been,
                     start: s_date,
