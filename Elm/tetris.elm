@@ -88,7 +88,7 @@ update msg model =
                 27 -> -- Escape
                     { model | paused = not model.paused } ! []
                 32 -> -- Space
-                    if model.paused then model ! [] else { model | tetrisState = drop 0 model.tetrisState } ! []
+                    if model.paused then model ! [] else { model | tetrisState = drop 0 True model.tetrisState } ! []
                 _ -> if code > 48 && code < 58  -- Is a number
                     then
                         let (newState, cmd) = holdPiece (code - 49) model.tetrisState
@@ -122,14 +122,23 @@ view model =
             , Sa.height <| toString <| size * List.length model.tetrisState.blocks
             , Sa.width <| toString <| size * width model.tetrisState.blocks
             ]
-            <| renderTetris model.tetrisState
-        ,
-        S.svg
+            <| renderTetris Nothing model.tetrisState
+        , S.svg
+            [ id "game_next"
+            , Sa.height <| toString <| size * List.length model.tetrisState.blocks
+            , Sa.width <| toString <| size * width model.tetrisState.blocks
+            ] <|
+                let tetrisState = drop 0 False model.tetrisState
+                in renderTetris (Just (255, 255, 255))
+                    { tetrisState
+                    | blocks = List.map ( List.map (always Empty)) tetrisState.blocks
+                    }
+        , S.svg
             [ id "game"
             , Sa.height <| toString <| size * List.length model.tetrisState.blocks
             , Sa.width <| toString <| size * width model.tetrisState.blocks
             ]
-            <| renderTetris model.tetrisState
+            <| renderTetris Nothing model.tetrisState
         ]
     , div [ id "nexts" ]
         <| List.map
@@ -138,7 +147,7 @@ view model =
                 [ S.svg
                     [ Sa.height <| toString <| size * List.length piece.shape
                     , Sa.width <| toString <| size * width piece.shape
-                    ] <| renderGrid 0 0 piece.shape
+                    ] <| renderGrid Nothing 0 0 piece.shape
                 ]
             )
         <| List.take 3 model.tetrisState.nexts
@@ -161,7 +170,7 @@ view model =
                             , S.svg
                                 [ Sa.height <| toString <| size * List.length hold.shape
                                 , Sa.width <| toString <| size * width hold.shape
-                                ] <| renderGrid 0 0 hold.shape
+                                ] <| renderGrid Nothing 0 0 hold.shape
                             ]
             )
             model.tetrisState.hold
@@ -208,16 +217,23 @@ type Color
 
 cols = [Red, Blue, Green, White, LBlue, Orange, Purple]
 
-colStr c =
-    case c of
-        Red -> "red"
-        Blue -> "rgb(0,0,255)"
-        Green -> "rgb(0,255,0)"
-        White -> "rgb(255,255,255)"
-        Yellow -> "rgb(255,255,0)"
-        LBlue -> "rgb(0,255,255)"
-        Orange -> "rgb(255,120,0)"
-        Purple -> "rgb(255,0,200)"
+colStr : Maybe (Int, Int, Int) -> Color -> String
+colStr blend c =
+    let (r, g, b) =
+            case c of
+                Red ->    (255, 0,   0)
+                Blue ->   (0,   0,   255)
+                Green ->  (0,   255, 0)
+                White ->  (255, 255, 255)
+                Yellow -> (255, 255, 0)
+                LBlue ->  (0,   255, 255)
+                Orange -> (255, 120, 0)
+                Purple -> (255, 0,   255)
+        (r_, g_, b_) =
+            case blend of
+                Just (br, bg, bb) -> ((r + br) // 2, (g + bg) // 2, (b + bb) // 2)
+                Nothing -> (r, g, b)
+    in "rgb(" ++ toString r_ ++ "," ++ toString g_ ++ "," ++ toString b_ ++ ")"
 
 type alias Blocks = List (List BlockState)
 
@@ -410,15 +426,18 @@ move state d =
                 else state
         Nothing -> state
 
-drop : Int -> TetrisState -> TetrisState
-drop scoreDown state =
-    let (newState, _) = updateTetris (-1) state
-    in case newState.dropping of
-        Nothing -> newState
+drop : Int -> Bool -> TetrisState -> TetrisState
+drop scoreDown clear state =
+    case state.dropping of
         Just _ ->
-            if scoreDown == 0
-               then drop dropScore { newState | score = newState.score + 1 }
-               else drop (scoreDown - 1) newState
+            let (newState, _) = updateTetris (-1) state
+            in case newState.dropping of
+                Nothing -> if clear then newState else state
+                Just _ ->
+                    if scoreDown == 0
+                       then drop dropScore clear { newState | score = newState.score + 1 }
+                       else drop (scoreDown - 1) clear newState
+        _ -> state
 
 rotate_ : TetrisState -> TetrisState
 rotate_ state =
@@ -464,26 +483,26 @@ rotateFill x =
         UpRight -> DownRight
 
 
-renderTetris : TetrisState -> List (S.Svg msg)
-renderTetris state =
+renderTetris : Maybe (Int, Int, Int) -> TetrisState -> List (S.Svg msg)
+renderTetris blend state =
     let placed =
             case state.dropping of
                 Nothing -> state.blocks
                 Just dropping -> Maybe.withDefault state.blocks <| place state.blocks dropping
-    in renderGrid 0 0 placed
+    in renderGrid blend 0 0 placed
 
-renderGrid oy ox =
+renderGrid blend oy ox =
     List.concat <<
         List.indexedMap (\y line ->
             List.concat <|
                 List.indexedMap (\x blk ->
-                    renderBlock (y + oy) (x + ox) blk
+                    renderBlock blend (y + oy) (x + ox) blk
                 )
                 line
         )
 
-renderBlock : Int -> Int -> BlockState -> List (S.Svg msg)
-renderBlock yp xp blk =
+renderBlock : Maybe (Int, Int, Int) -> Int -> Int -> BlockState -> List (S.Svg msg)
+renderBlock blend yp xp blk =
     let y = yp * size
         x = xp * size
     in case blk of
@@ -493,7 +512,7 @@ renderBlock yp xp blk =
                     , Sa.y <| toString y
                     , Sa.width <| toString size
                     , Sa.height <| toString size
-                    , Sa.style <| "fill:" ++ colStr col
+                    , Sa.style <| "fill:" ++ colStr blend col
                     ] []
                 ]
         Filled DownLeft col ->
@@ -504,7 +523,7 @@ renderBlock yp xp blk =
                         , toString x ++ "," ++ toString (y + size)
                         , toString (x + size) ++ "," ++ toString (y + size)
                         ]
-                    , Sa.style <| "fill:" ++ colStr col
+                    , Sa.style <| "fill:" ++ colStr blend col
                     ] []
                 ]
         Filled DownRight col ->
@@ -515,7 +534,7 @@ renderBlock yp xp blk =
                         , toString x ++ "," ++ toString (y + size)
                         , toString (x + size) ++ "," ++ toString (y + size)
                         ]
-                    , Sa.style <| "fill:" ++ colStr col
+                    , Sa.style <| "fill:" ++ colStr blend col
                     ] []
                 ]
         Filled UpLeft col ->
@@ -526,7 +545,7 @@ renderBlock yp xp blk =
                         , toString x ++ "," ++ toString (y + size)
                         , toString (x + size) ++ "," ++ toString y
                         ]
-                    , Sa.style <| "fill:" ++ colStr col
+                    , Sa.style <| "fill:" ++ colStr blend col
                     ] []
                 ]
         Filled UpRight col ->
@@ -537,12 +556,12 @@ renderBlock yp xp blk =
                         , toString (x + size) ++ "," ++ toString y
                         , toString (x + size) ++ "," ++ toString (y + size)
                         ]
-                    , Sa.style <| "fill:" ++ colStr col
+                    , Sa.style <| "fill:" ++ colStr blend col
                     ] []
                 ]
         Split shape c1 c2 ->
-            let first  = renderBlock yp xp ( Filled shape c1 )
-                second = renderBlock yp xp ( Filled (rotateFill <| rotateFill shape) c2 )
+            let first  = renderBlock blend yp xp ( Filled shape c1 )
+                second = renderBlock blend yp xp ( Filled (rotateFill <| rotateFill shape) c2 )
             in first ++ second
         _ ->
                 [ S.rect
