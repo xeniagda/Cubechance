@@ -2,6 +2,7 @@ module Base exposing (..)
 
 import Dict exposing (..)
 import Date
+import Date.Extra
 
 import Json.Decode as D
 import Json.Decode.Pipeline exposing (decode, required, requiredAt, optional, hardcoded)
@@ -121,7 +122,7 @@ decodeDate =
     D.string
         |> D.andThen
             (\st ->
-                case Date.fromString st of
-                    Ok date -> D.succeed date
-                    Err e -> D.fail e
+                case Date.Extra.fromIsoString <| String.dropRight 3 st of
+                    Just date -> D.succeed date
+                    Nothing -> D.fail <| "Can't parse date " ++ toString st
             )
