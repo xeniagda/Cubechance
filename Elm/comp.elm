@@ -135,6 +135,7 @@ update msg model =
                                 [x] ->
                                     { model
                                     | selected = Just <| SelectEvent x
+                                    , matching = []
                                     } ! []
                                 _ ->
                                     { model
@@ -209,7 +210,7 @@ view model =
                     [ [ tr [] [th [] [text "Name"], th [] [text "Wca ID"]] ]
                     , List.map (\p ->
                         tr []
-                            [ td [ onClick <| SelectedPerson p ] [text p.name]
+                            [ td [ onClick <| SelectedPerson p, style [("cursor", "pointer")] ] [text p.name]
                             , td [] [text p.id]]
                         ) <| model.matching
                     , if List.length model.matching >= 20
@@ -298,7 +299,7 @@ viewCompetitors sort competition people selected =
             case selected of
                 Just x ->
                     if not <| List.any (\p -> x.id == p.id) competition.competitors
-                        then [ viewCompetitor selected competition (Base.Competitor x.id x.name <| Dict.keys x.times) x ]
+                        then [viewCompetitor selected competition (Base.Competitor x.id x.name <| Dict.keys x.times) x]
                         else [  ]
                 _ -> []
     in table [id "list"]
@@ -360,12 +361,13 @@ displayEvent select event competitor person =
         Nothing -> td [class "event"] []
         Just avg ->
             if List.any (\a -> a == event) competitor.events then
-                let click =
-                        case select of
-                            Just _ -> [ onClick <| SelectedEvent event ]
-                            _ -> []
-                in td ([class "event"] ++ click)
-                    [ text <| Base.viewTime avg ]
+                if isJust select && isSelected
+                    then
+                        td ([class "event", style [("cursor", "pointer")], onClick <| SelectedEvent event])
+                            [ text <| Base.viewTime avg ]
+                    else
+                        td ([class "event"])
+                            [ text <| Base.viewTime avg ]
             else td [class "event"] []
 
 genIcon event =
@@ -379,3 +381,15 @@ findPerson id people =
         <| List.filter (\person -> person.id == id) people
 
 subs model = Time.every (Time.second * 10) <| always LoadComp
+
+isJust : Maybe x -> Bool
+isJust x =
+    case x of
+        Just _ -> True
+        Nothing -> False
+
+isNothing : Maybe x -> Bool
+isNothing x =
+    case x of
+        Nothing -> True
+        Just _ -> False
