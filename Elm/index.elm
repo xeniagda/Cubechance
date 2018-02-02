@@ -140,8 +140,8 @@ view model =
              then div [ id "loadingcircle" ] []
              else div [] []
         , p [] [ text "Other links: " ]
-        , ul [] [
-            a [ href "tetris.html" ] [ text "Trekantris" ]
+        , ul []
+            [ li [] [ a [ href "tetris.html" ] [ text "Trekantris" ] ]
             ]
         ]
 

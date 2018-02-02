@@ -11764,15 +11764,22 @@ var _user$project$Main$view = function (model) {
 											{
 												ctor: '::',
 												_0: A2(
-													_elm_lang$html$Html$a,
+													_elm_lang$html$Html$li,
+													{ctor: '[]'},
 													{
 														ctor: '::',
-														_0: _elm_lang$html$Html_Attributes$href('tetris.html'),
-														_1: {ctor: '[]'}
-													},
-													{
-														ctor: '::',
-														_0: _elm_lang$html$Html$text('Trekantris'),
+														_0: A2(
+															_elm_lang$html$Html$a,
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html_Attributes$href('tetris.html'),
+																_1: {ctor: '[]'}
+															},
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html$text('Trekantris'),
+																_1: {ctor: '[]'}
+															}),
 														_1: {ctor: '[]'}
 													}),
 												_1: {ctor: '[]'}
