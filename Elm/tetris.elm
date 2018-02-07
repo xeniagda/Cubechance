@@ -36,6 +36,7 @@ type Msg
     | Key Int
     | SetDroppings (List Dropping)
     | SetDropping Dropping
+    | Restart
 
 init : (Model, Cmd Msg)
 init =
@@ -55,18 +56,23 @@ init =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
+        Restart ->
+            init
+
         SetDroppings d ->
             let state = model.tetrisState
             in
                 { model
                 | tetrisState = { state | nexts = state.nexts ++ d }
                 } ! []
+
         SetDropping d ->
             let state = model.tetrisState
             in
                 { model
                 | tetrisState = { state | dropping = Just d }
                 } ! []
+
         Key code ->
             case code of
                 37 -> -- Left
@@ -176,8 +182,10 @@ view model =
             model.tetrisState.hold
     , div [ id "pause" ]
         <| if model.paused
-           then [ text "||" ]
-           else [ text "" ]
+               then [ text "||" ]
+               else [ text "" ]
+    , div [ id "restart" ]
+        [ button [ onClick Restart ] [ text "Restart" ] ]
     ]
 
 subs model =

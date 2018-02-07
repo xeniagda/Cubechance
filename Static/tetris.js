@@ -12512,6 +12512,7 @@ var _user$project$Main$TetrisState = F6(
 	function (a, b, c, d, e, f) {
 		return {blocks: a, dropping: b, nexts: c, hold: d, score: e, gameOver: f};
 	});
+var _user$project$Main$Restart = {ctor: 'Restart'};
 var _user$project$Main$SetDropping = function (a) {
 	return {ctor: 'SetDropping', _0: a};
 };
@@ -13949,7 +13950,33 @@ var _user$project$Main$view = function (model) {
 									_0: _elm_lang$html$Html$text(''),
 									_1: {ctor: '[]'}
 								}),
-							_1: {ctor: '[]'}
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$div,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$id('restart'),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$button,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Restart),
+												_1: {ctor: '[]'}
+											},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text('Restart'),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}
 						}
 					}
 				}
@@ -14213,6 +14240,8 @@ var _user$project$Main$update = F2(
 	function (msg, model) {
 		var _p55 = msg;
 		switch (_p55.ctor) {
+			case 'Restart':
+				return _user$project$Main$init;
 			case 'SetDroppings':
 				var state = model.tetrisState;
 				return A2(
