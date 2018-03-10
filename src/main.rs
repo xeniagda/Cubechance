@@ -1,4 +1,4 @@
-#![feature(plugin)]
+#![feature(plugin, universal_impl_trait)]
 #![plugin(rocket_codegen)]
 
 extern crate rocket;
@@ -26,9 +26,11 @@ use rocket::http::{ContentType, Status};
 mod wca;
 use wca::wca_export;
 
-#[derive(Debug, Default)]
-struct WebState {
-    wca: Option<wca::WcaResults>
+#[derive(Debug)]
+enum WebState {
+    Loaded(wca::WcaResults),
+    NotLoaded,
+    Loading(f64, f64) // (amount_done, dones per second)
 }
 
 type MutWebState = Arc<Mutex<WebState>>;
@@ -49,6 +51,16 @@ fn index_<'r>() -> Option<Response<'r>> {
     let mut path = PathBuf::new();
     path.push("index.html");
     index(path)
+}
+
+#[get("/prog", rank=0)]
+fn get_progress<'r>(state: State<MutWebState>) -> Option<Response<'r>> {
+    let state = state.lock().unwrap();
+
+    match *state {
+        WebState::Loading(prog, speed) => Some(make_html(format!("{} {}", prog, speed))),
+        _ => Some(make_html("e0".into()))
+    }
 }
 
 #[get("/<file..>", rank = 5)]
@@ -82,8 +94,8 @@ fn wca_person<'r>(name: String, state: State<MutWebState>) -> Response<'r> {
 
     let name = name.to_lowercase();
 
-    match state.wca {
-        Some(ref wca) => {
+    match *state {
+        WebState::Loaded(ref wca) => {
             let people: Vec<_> = wca.people.iter()
                     .filter(|&(id, p)| p.name.to_lowercase().contains(&name) || id.to_lowercase().contains(&name))
                     .filter_map(|(id, _)| wca.ext_person(&id))
@@ -99,7 +111,7 @@ fn wca_person<'r>(name: String, state: State<MutWebState>) -> Response<'r> {
                 }
             }
         }
-        None => {
+        _ => {
             make_html("e0".to_string())
         }
     }
@@ -109,8 +121,8 @@ fn wca_person<'r>(name: String, state: State<MutWebState>) -> Response<'r> {
 fn wca_id<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
     let state = state.lock().unwrap();
 
-    match state.wca {
-        Some(ref wca) => {
+    match *state {
+        WebState::Loaded(ref wca) => {
             let person = wca.ext_person(&id);
             match person {
                 Some(person) => {
@@ -128,7 +140,7 @@ fn wca_id<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
                 }
             }
         }
-        None => {
+        _ => {
             make_html("e0".to_string())
         }
     }
@@ -137,8 +149,8 @@ fn wca_id<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
 #[get("/api/upcoming")]
 fn upcoming<'r>(state: State<MutWebState>) -> Response<'r> {
     let state = state.lock().unwrap();
-    match state.wca {
-        Some(ref wca) => {
+    match *state {
+        WebState::Loaded(ref wca) => {
             let comps: Vec<&wca::Competition> = wca.comps.values()
                     .filter(|comp| !comp.has_been)
                     .collect();
@@ -151,7 +163,7 @@ fn upcoming<'r>(state: State<MutWebState>) -> Response<'r> {
                 }
             }
         }
-        None => {
+        _ => {
             make_html("e0".to_string())
         }
     }
@@ -160,8 +172,8 @@ fn upcoming<'r>(state: State<MutWebState>) -> Response<'r> {
 #[get("/api/beat/<id1>/<id2>/<event>", rank = 0)]
 fn beating<'r>(id1: String, id2: String, event: String, state: State<MutWebState>) -> Response<'r> {
     let state = state.lock().unwrap();
-    match state.wca {
-        Some(ref wca) => {
+    match *state {
+        WebState::Loaded(ref wca) => {
             let p1 = wca.ext_person(&id1);
             let p2 = wca.ext_person(&id2);
             match (p1, p2) {
@@ -173,7 +185,7 @@ fn beating<'r>(id1: String, id2: String, event: String, state: State<MutWebState
                 }
             }
         }
-        None => {
+        _ => {
             make_html("e0".to_string())
         }
     }
@@ -182,8 +194,8 @@ fn beating<'r>(id1: String, id2: String, event: String, state: State<MutWebState
 #[get("/api/place/<comp>/<id>/<event>", rank = 0)]
 fn place<'r>(comp: String, id: String, event: String, state: State<MutWebState>) -> Response<'r> {
     let state = state.lock().unwrap();
-    match state.wca {
-        Some(ref wca) => {
+    match *state {
+        WebState::Loaded(ref wca) => {
             match (wca.ext_person(&id), wca.comps.get(&comp)) {
                 ( Some(ref person), Some(ref comp) ) => {
                     let competitors: Vec<_> = 
@@ -199,7 +211,7 @@ fn place<'r>(comp: String, id: String, event: String, state: State<MutWebState>)
                 }
             }
         }
-        None => {
+        _ => {
             make_html("e0".to_string())
         }
     }
@@ -208,8 +220,8 @@ fn place<'r>(comp: String, id: String, event: String, state: State<MutWebState>)
 #[get("/api/comp/<id>", rank = 0)]
 fn comp<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
     let state = state.lock().unwrap();
-    match state.wca {
-        Some(ref wca) => {
+    match *state {
+        WebState::Loaded(ref wca) => {
             let comp = wca.comps.values()
                         .filter(|comp| comp.id == id)
                         .nth(0);
@@ -231,7 +243,7 @@ fn comp<'r>(id: String, state: State<MutWebState>) -> Response<'r> {
                 }
             }
         }
-        None => {
+        _ => {
             make_html("e0".to_string())
         }
     }
@@ -245,7 +257,7 @@ fn not_found<'r>(_req: &Request) -> Response<'r> {
 
 fn main() {
     // Setup WCA reading in background
-    let state = MutWebState::default();
+    let state: MutWebState = Arc::new(Mutex::new(WebState::NotLoaded));
 
     let thread_state = state.clone();
     thread::spawn(move || {
@@ -253,26 +265,36 @@ fn main() {
             println!("Downloading wca...");
             let start = Instant::now();
 
-            let comp = wca_export::download_wca();
+            let comp = wca_export::download_wca(|prog| {
+                let mut state = thread_state.lock().unwrap();
+                let prog_f64 = match prog {
+                    wca::Progress::LoadedZip              => 0.,
+                    wca::Progress::LoadedComp(x, y)       => x as f64 / (2. * y as f64),
+                    wca::Progress::LoadedCompetitor(x, y) => x as f64 / (2. * y as f64) + 0.5
+                };
+                *state = WebState::Loading(prog_f64,
+                                           prog_f64 as f64 / (Instant::now().duration_since(start)).as_secs() as f64);
+            });
 
             println!("Downloaded the WCA in {} seconds", start.elapsed().as_secs());
 
             match comp {
                 Ok(comp) => {
                     let mut state = thread_state.lock().unwrap();
-                    state.wca = Some(comp);
+                    *state = WebState::Loaded(comp);
                 }
                 Err(e) => {
                     println!("Compressed download failed! Error: {:?}", e);
                 }
             }
-            thread::sleep(Duration::new(3600, 0)); // Sleep for an hour
+
+            thread::sleep(Duration::new(3600 * 24, 0)); // Sleep for 24 hours
         }
     });
 
     rocket::ignite()
         .manage(state)
-        .mount("/", routes![wca_id, wca_person, upcoming, comp, beating, place, index, index_])
+        .mount("/", routes![get_progress, wca_id wca_id,, wca_person, upcoming, comp, beating, place, index, index_])
         .catch(errors![not_found])
         .launch();
 }

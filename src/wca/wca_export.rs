@@ -11,8 +11,8 @@ extern crate rayon;
 use self::zip::read::{ZipArchive, ZipFile};
 use std::io::{Read, Cursor, BufReader, BufRead};
 use std::vec::Vec;
-use std::sync::Arc;
-use std::sync::Mutex;
+use std::sync::mpsc::channel;
+use std::thread::spawn;
 
 use self::rayon::iter::IntoParallelIterator;
 use self::rayon::iter::ParallelIterator;
@@ -22,7 +22,7 @@ use self::chrono::{Date, NaiveDate, offset};
 use super::*;
 
 const WCA_TSV_URL: &'static str = "https://www.worldcubeassociation.org/results/misc/WCA_export.tsv.zip";
-
+const WCA_RESULTS_AMOUNT_DEFAULT: usize = 1_600_000;
 
 // Two default comps when you compile with skip_comps
 #[cfg(any(skip_comps, test))]
@@ -31,7 +31,7 @@ const SKILLCON: &'static str = "Skillcon2017\tSkillcon 2017\tLas Vegas, Nevada\t
 const SSL: &'static str = "SSL2Stockholm2017	SSL 2 Stockholm 2017	Stockholm	Sweden	The competition is a part of the Swedish Speedcubing League 2017. This is the second out of four competitions, followed by a final competiton later this year. The entry fee is set to 150 SEK and must be payed in advance by swedish competitors. Foreigners may pay at the competition venue. A competitor limit has been set to 100 competitors due to venue constraints. More information and payment details can be found on the competition website.	2017	4	8	4	9	222 333 333bf 333fm 333mbf 333oh 444 444bf 555 555bf 666 777 pyram skewb	[{Kåre Krig}{mailto:karekrig@gmail.com}] [{Anders Berggren}{mailto:anders_berggren-sjoblom@hotmail.com}]	[{Daniel Wallin}{mailto:danne_wallain@live.se}] [{Timothy Edegran Gren}{mailto:timothy.edegran@edu.nacka.se}]	Nacka Gymnasium	Griffelvägen 17, 131 40, Nacka	The main hall will be the school dining hall of Nacka Gymnasium. Long events will be held in a side-room close to the ma	http://ssl-se.webnode.se/ssl-2-stockholm-2017/	SSL 2 Stockholm 2017	59310982	18150448";
 
 // Downloads and parses the current WCA results.
-pub fn download_wca<'a>() -> Result<WcaResults, WcaError> {
+pub fn download_wca<'a>(callback: impl Fn(Progress)) -> Result<WcaResults, WcaError> {
     println!("Loading zip");
 
     let mut resp = reqwest::get(WCA_TSV_URL)?;
@@ -43,17 +43,19 @@ pub fn download_wca<'a>() -> Result<WcaResults, WcaError> {
     let mut zip = ZipArchive::new(cur)?;
 
     println!("Done loading");
- 
+
+    callback(Progress::LoadedZip);
+
     let mut results = WcaResults::default();// { people: HashMap::new(), comps: HashMap::new(), download_date: DateW::new(offset::Utc::today()) };
 
     println!("Parsing countries...");
     parse_wca_countries(zip.by_name("WCA_export_Countries.tsv")?, &mut results)?;
 
     println!("Parsing comps...");
-    parse_wca_comps(zip.by_name("WCA_export_Competitions.tsv")?, &mut results)?;
+    parse_wca_comps(zip.by_name("WCA_export_Competitions.tsv")?, &mut results, &callback)?;
 
     println!("Parsing results...");
-    parse_wca_results(zip.by_name("WCA_export_Results.tsv")?, &mut results)?;
+    parse_wca_results(zip.by_name("WCA_export_Results.tsv")?, &mut results, &callback)?;
 
 
     println!("Done");
@@ -96,7 +98,8 @@ pub fn parse_wca_countries<'a>(file: ZipFile, results: &mut WcaResults) -> Resul
     Ok(())
 }
 
-pub fn parse_wca_results<'a>(file: ZipFile, mut results: &mut WcaResults) -> Result<(), WcaError> {
+pub fn parse_wca_results<'a>(file: ZipFile, results: &mut WcaResults, cb: &impl Fn(Progress)) -> Result<(), WcaError> {
+
     let mut reader = BufReader::new(file);
 
     let mut i = 0;
@@ -105,33 +108,37 @@ pub fn parse_wca_results<'a>(file: ZipFile, mut results: &mut WcaResults) -> Res
         return Err(WcaError::ReadE(format!("Error reading file: {:?}", e)));
     }
 
-    loop {
-        let mut line = String::new();
+    let lines = reader.lines();
+
+    println!("Size hint: {:?}", lines.size_hint());
+
+    // let amount_of_competitors = lines.len();
+
+    for line in lines {
+        let line = line.unwrap();
+
         i += 1;
-        match reader.read_line(&mut line) {
-            Ok(_) => {
-                if line == "" {
-                    break;
-                }
+        if line == "" {
+            break;
+        }
 
-                if i % 10000 == 0 {
-                    println!("Line {}: {}", i, line);
-                }
+        if i % 10000 == 0 {
+            println!("Line {}: {}", i, line);
+        }
 
-                if let Err(e) = insert_result(&line, &mut results) {
-                    eprintln!("Error on line {}: {:?}", i, e);
-                }
-            }
-            Err(e) => {
-                return Err(WcaError::ReadE(format!("Error reading line {}: {:?}", i, e)));
-            }
+        if i % 1000 == 0 {
+            cb(Progress::LoadedCompetitor(i, WCA_RESULTS_AMOUNT_DEFAULT));
+        }
+
+        if let Err(e) = insert_result(&line, results) {
+            eprintln!("Error on line {}: {:?}", i, e);
         }
     }
 
     Ok(())
 }
 
-pub fn parse_wca_comps<'a>(file: ZipFile, results: &mut WcaResults) -> Result<(), WcaError> {
+pub fn parse_wca_comps<'a>(file: ZipFile, results: &mut WcaResults, cb: &impl Fn(Progress)) -> Result<(), WcaError> {
     let mut reader = BufReader::new(file);
 
     let mut _fl = String::new();
@@ -142,16 +149,33 @@ pub fn parse_wca_comps<'a>(file: ZipFile, results: &mut WcaResults) -> Result<()
     let lines: Vec<_> =
             reader.lines().collect();
 
+    let amount_of_comps = lines.len();
+
     let country_codes = results.country_codes.clone();
 
-    let comp_amut = Arc::new(Mutex::new(results));
+    let (send_comps, recv_comps) = channel();
 
-    lines.into_par_iter()
-        .map(|line| load_comp(line.unwrap(), &country_codes).unwrap())
-        .for_each(|comp| {
-            let mut res = comp_amut.lock().unwrap();
-            res.comps.insert(comp.id.clone(), comp);
-        });
+    spawn(move ||
+          lines.into_par_iter()
+          .map(|x| x.expect("Couldn't read line"))
+          .for_each_with(send_comps, |send_comps, line| {
+              let comp = load_comp(line.clone(), &country_codes)
+                  .expect(&format!("Couldn't parse competition {}", line));
+
+              send_comps.send(comp).expect("Send failed");
+          }) // Process results
+          );
+
+
+    for comp in recv_comps {
+        results.comps.insert(comp.id.clone(), comp);
+        cb(Progress::LoadedComp(results.comps.len(), amount_of_comps));
+
+        if results.comps.len() == amount_of_comps {
+            break;
+        }
+    }
+
 
     Ok(())
 }
@@ -167,7 +191,7 @@ pub fn insert_result<'a>(line: &'a str, results: &mut WcaResults) -> Result<(), 
 
     let comp_id = stuff[0];
     let event = stuff[1];
-    
+
     if event == "333mbf" {
         return Ok(())
     }
@@ -258,8 +282,7 @@ pub fn load_comp<'a>(line: String, country_codes: &HashMap<String, (String, Stri
                     competitors: vec![]
                 }
             } else {
-                println!("Downloading {}", comp_name);
-                Competition {
+                let res = Competition {
                     name: comp_name.to_string(),
                     id: comp_id.to_string(),
                     country: wca_country.to_string(),
@@ -271,7 +294,8 @@ pub fn load_comp<'a>(line: String, country_codes: &HashMap<String, (String, Stri
                     start: s_date,
                     end: e_date,
                     competitors: wca_competitors::download_competitors(comp_id)?
-                }
+                };
+                res
             };
 
         Ok(comp)

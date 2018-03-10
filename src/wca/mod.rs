@@ -22,6 +22,13 @@ use self::chrono::offset;
 
 
 #[derive(Debug, Clone)]
+pub enum Progress {
+    LoadedZip,
+    LoadedComp(usize, usize),
+    LoadedCompetitor(usize, usize)
+}
+
+#[derive(Debug, Clone)]
 pub struct DateW {
     date: Date<offset::Utc>
 }
