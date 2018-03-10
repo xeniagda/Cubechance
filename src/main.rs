@@ -294,7 +294,7 @@ fn main() {
 
     rocket::ignite()
         .manage(state)
-        .mount("/", routes![get_progress, wca_id wca_id,, wca_person, upcoming, comp, beating, place, index, index_])
+        .mount("/", routes![get_progress, wca_id, wca_person, upcoming, comp, beating, place, index, index_])
         .catch(errors![not_found])
         .launch();
 }
