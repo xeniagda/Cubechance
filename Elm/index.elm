@@ -117,7 +117,7 @@ update msg model =
                     let diff_s = (current - lastTime) / Time.second
                     in  { model
                         | lastTime = Just current
-                        , serverLoading = Just (prog + progSpeed * diff_s, progSpeed * (1 - prog) ^ (diff_s / 5))
+                        , serverLoading = Just (prog + progSpeed * diff_s, progSpeed * 0.9 ^ (diff_s / 5))
                         } ! []
                 _ -> { model | lastTime = Just current } ! []
 

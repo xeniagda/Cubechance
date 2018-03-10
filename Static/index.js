@@ -12007,23 +12007,22 @@ var _user$project$Main$update = F2(
 						}
 					}
 				case 'UpdateProgress':
-					var _p26 = _p11._0;
+					var _p25 = _p11._0;
 					var _p23 = {ctor: '_Tuple2', _0: model.lastTime, _1: model.serverLoading};
 					if ((((_p23.ctor === '_Tuple2') && (_p23._0.ctor === 'Just')) && (_p23._1.ctor === 'Just')) && (_p23._1._0.ctor === '_Tuple2')) {
-						var _p25 = _p23._1._0._1;
-						var _p24 = _p23._1._0._0;
-						var diff_s = (_p26 - _p23._0._0) / _elm_lang$core$Time$second;
+						var _p24 = _p23._1._0._1;
+						var diff_s = (_p25 - _p23._0._0) / _elm_lang$core$Time$second;
 						return A2(
 							_elm_lang$core$Platform_Cmd_ops['!'],
 							_elm_lang$core$Native_Utils.update(
 								model,
 								{
-									lastTime: _elm_lang$core$Maybe$Just(_p26),
+									lastTime: _elm_lang$core$Maybe$Just(_p25),
 									serverLoading: _elm_lang$core$Maybe$Just(
 										{
 											ctor: '_Tuple2',
-											_0: _p24 + (_p25 * diff_s),
-											_1: _p25 * Math.pow(1 - _p24, diff_s / 5)
+											_0: _p23._1._0._0 + (_p24 * diff_s),
+											_1: _p24 * Math.pow(0.9, diff_s / 5)
 										})
 								}),
 							{ctor: '[]'});
@@ -12033,7 +12032,7 @@ var _user$project$Main$update = F2(
 							_elm_lang$core$Native_Utils.update(
 								model,
 								{
-									lastTime: _elm_lang$core$Maybe$Just(_p26)
+									lastTime: _elm_lang$core$Maybe$Just(_p25)
 								}),
 							{ctor: '[]'});
 					}
