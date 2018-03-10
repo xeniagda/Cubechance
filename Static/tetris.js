@@ -12295,34 +12295,37 @@ var _user$project$Main$rConst = function (x) {
 		_elm_lang$core$Basics$always(x),
 		_elm_lang$core$Random$bool);
 };
-var _user$project$Main$isDifficult = function (piece) {
-	var triCount = _elm_lang$core$List$sum(
-		A2(
-			_elm_lang$core$List$map,
-			function (_p0) {
-				return _elm_lang$core$List$sum(
-					A2(
-						_elm_lang$core$List$map,
-						function (p) {
-							var _p1 = p;
-							switch (_p1.ctor) {
-								case 'Filled':
-									if (_p1._0.ctor === 'Full') {
-										return 0;
-									} else {
-										return 1;
+var _user$project$Main$isDifficult = F2(
+	function (settings, piece) {
+		return settings.hard && function () {
+			var triCount = _elm_lang$core$List$sum(
+				A2(
+					_elm_lang$core$List$map,
+					function (_p0) {
+						return _elm_lang$core$List$sum(
+							A2(
+								_elm_lang$core$List$map,
+								function (p) {
+									var _p1 = p;
+									switch (_p1.ctor) {
+										case 'Filled':
+											if (_p1._0.ctor === 'Full') {
+												return 0;
+											} else {
+												return 1;
+											}
+										case 'Empty':
+											return 0;
+										default:
+											return 0;
 									}
-								case 'Empty':
-									return 0;
-								default:
-									return 0;
-							}
-						},
-						_p0));
-			},
-			piece.shape));
-	return _elm_lang$core$Native_Utils.cmp(triCount, 1) > 0;
-};
+								},
+								_p0));
+					},
+					piece.shape));
+			return _elm_lang$core$Native_Utils.cmp(triCount, 1) > 0;
+		}();
+	});
 var _user$project$Main_ops = _user$project$Main_ops || {};
 _user$project$Main_ops['<||'] = F2(
 	function (f, m) {
@@ -12498,11 +12501,14 @@ var _user$project$Main$isFilled = function (b) {
 	} while(false);
 	return false;
 };
-var _user$project$Main$size = 24;
 var _user$project$Main$dropScore = 5;
-var _user$project$Main$Model = F4(
-	function (a, b, c, d) {
-		return {lastTime: a, tetrisState: b, paused: c, easy: d};
+var _user$project$Main$Model = F5(
+	function (a, b, c, d, e) {
+		return {lastTime: a, tetrisState: b, settings: c, paused: d, easy: e};
+	});
+var _user$project$Main$Settings = F2(
+	function (a, b) {
+		return {scale: a, hard: b};
 	});
 var _user$project$Main$Dropping = F3(
 	function (a, b, c) {
@@ -12604,6 +12610,7 @@ var _user$project$Main$init = A2(
 	{
 		lastTime: _elm_lang$core$Maybe$Nothing,
 		paused: false,
+		settings: {scale: 20, hard: false},
 		tetrisState: {
 			blocks: _user$project$Main$defaultTetris,
 			dropping: _elm_lang$core$Maybe$Nothing,
@@ -12909,10 +12916,11 @@ var _user$project$Main$droppingGenerator = F2(
 					_user$project$Main$width(state.blocks) - 3),
 				_user$project$Main$rConst(block)));
 	});
-var _user$project$Main$renderBlock = F4(
-	function (blend, yp, xp, blk) {
-		var x = xp * _user$project$Main$size;
-		var y = yp * _user$project$Main$size;
+var _user$project$Main$renderBlock = F5(
+	function (settings, blend, yp, xp, blk) {
+		var size = settings.scale;
+		var y = yp * size;
+		var x = xp * size;
 		var _p28 = blk;
 		switch (_p28.ctor) {
 			case 'Filled':
@@ -12933,11 +12941,11 @@ var _user$project$Main$renderBlock = F4(
 										_1: {
 											ctor: '::',
 											_0: _elm_lang$svg$Svg_Attributes$width(
-												_elm_lang$core$Basics$toString(_user$project$Main$size)),
+												_elm_lang$core$Basics$toString(size)),
 											_1: {
 												ctor: '::',
 												_0: _elm_lang$svg$Svg_Attributes$height(
-													_elm_lang$core$Basics$toString(_user$project$Main$size)),
+													_elm_lang$core$Basics$toString(size)),
 												_1: {
 													ctor: '::',
 													_0: _elm_lang$svg$Svg_Attributes$style(
@@ -12982,16 +12990,16 @@ var _user$project$Main$renderBlock = F4(
 														A2(
 															_elm_lang$core$Basics_ops['++'],
 															',',
-															_elm_lang$core$Basics$toString(y + _user$project$Main$size))),
+															_elm_lang$core$Basics$toString(y + size))),
 													_1: {
 														ctor: '::',
 														_0: A2(
 															_elm_lang$core$Basics_ops['++'],
-															_elm_lang$core$Basics$toString(x + _user$project$Main$size),
+															_elm_lang$core$Basics$toString(x + size),
 															A2(
 																_elm_lang$core$Basics_ops['++'],
 																',',
-																_elm_lang$core$Basics$toString(y + _user$project$Main$size))),
+																_elm_lang$core$Basics$toString(y + size))),
 														_1: {ctor: '[]'}
 													}
 												}
@@ -13024,7 +13032,7 @@ var _user$project$Main$renderBlock = F4(
 												ctor: '::',
 												_0: A2(
 													_elm_lang$core$Basics_ops['++'],
-													_elm_lang$core$Basics$toString(x + _user$project$Main$size),
+													_elm_lang$core$Basics$toString(x + size),
 													A2(
 														_elm_lang$core$Basics_ops['++'],
 														',',
@@ -13037,16 +13045,16 @@ var _user$project$Main$renderBlock = F4(
 														A2(
 															_elm_lang$core$Basics_ops['++'],
 															',',
-															_elm_lang$core$Basics$toString(y + _user$project$Main$size))),
+															_elm_lang$core$Basics$toString(y + size))),
 													_1: {
 														ctor: '::',
 														_0: A2(
 															_elm_lang$core$Basics_ops['++'],
-															_elm_lang$core$Basics$toString(x + _user$project$Main$size),
+															_elm_lang$core$Basics$toString(x + size),
 															A2(
 																_elm_lang$core$Basics_ops['++'],
 																',',
-																_elm_lang$core$Basics$toString(y + _user$project$Main$size))),
+																_elm_lang$core$Basics$toString(y + size))),
 														_1: {ctor: '[]'}
 													}
 												}
@@ -13092,12 +13100,12 @@ var _user$project$Main$renderBlock = F4(
 														A2(
 															_elm_lang$core$Basics_ops['++'],
 															',',
-															_elm_lang$core$Basics$toString(y + _user$project$Main$size))),
+															_elm_lang$core$Basics$toString(y + size))),
 													_1: {
 														ctor: '::',
 														_0: A2(
 															_elm_lang$core$Basics_ops['++'],
-															_elm_lang$core$Basics$toString(x + _user$project$Main$size),
+															_elm_lang$core$Basics$toString(x + size),
 															A2(
 																_elm_lang$core$Basics_ops['++'],
 																',',
@@ -13143,7 +13151,7 @@ var _user$project$Main$renderBlock = F4(
 													ctor: '::',
 													_0: A2(
 														_elm_lang$core$Basics_ops['++'],
-														_elm_lang$core$Basics$toString(x + _user$project$Main$size),
+														_elm_lang$core$Basics$toString(x + size),
 														A2(
 															_elm_lang$core$Basics_ops['++'],
 															',',
@@ -13152,11 +13160,11 @@ var _user$project$Main$renderBlock = F4(
 														ctor: '::',
 														_0: A2(
 															_elm_lang$core$Basics_ops['++'],
-															_elm_lang$core$Basics$toString(x + _user$project$Main$size),
+															_elm_lang$core$Basics$toString(x + size),
 															A2(
 																_elm_lang$core$Basics_ops['++'],
 																',',
-																_elm_lang$core$Basics$toString(y + _user$project$Main$size))),
+																_elm_lang$core$Basics$toString(y + size))),
 														_1: {ctor: '[]'}
 													}
 												}
@@ -13177,8 +13185,9 @@ var _user$project$Main$renderBlock = F4(
 				}
 			case 'Split':
 				var _p29 = _p28._0;
-				var second = A4(
+				var second = A5(
 					_user$project$Main$renderBlock,
+					settings,
 					blend,
 					yp,
 					xp,
@@ -13187,8 +13196,9 @@ var _user$project$Main$renderBlock = F4(
 						_user$project$Main$rotateFill(
 							_user$project$Main$rotateFill(_p29)),
 						_p28._2));
-				var first = A4(
+				var first = A5(
 					_user$project$Main$renderBlock,
+					settings,
 					blend,
 					yp,
 					xp,
@@ -13210,11 +13220,11 @@ var _user$project$Main$renderBlock = F4(
 								_1: {
 									ctor: '::',
 									_0: _elm_lang$svg$Svg_Attributes$width(
-										_elm_lang$core$Basics$toString(_user$project$Main$size)),
+										_elm_lang$core$Basics$toString(size)),
 									_1: {
 										ctor: '::',
 										_0: _elm_lang$svg$Svg_Attributes$height(
-											_elm_lang$core$Basics$toString(_user$project$Main$size)),
+											_elm_lang$core$Basics$toString(size)),
 										_1: {
 											ctor: '::',
 											_0: _elm_lang$svg$Svg_Attributes$style('stroke-width:0.3;stroke:white'),
@@ -13233,8 +13243,8 @@ var _user$project$Main$renderBlock = F4(
 				};
 		}
 	});
-var _user$project$Main$renderGrid = F3(
-	function (blend, oy, ox) {
+var _user$project$Main$renderGrid = F4(
+	function (settings, blend, oy, ox) {
 		return function (_p30) {
 			return _elm_lang$core$List$concat(
 				A2(
@@ -13246,15 +13256,15 @@ var _user$project$Main$renderGrid = F3(
 									_elm_lang$core$List$indexedMap,
 									F2(
 										function (x, blk) {
-											return A4(_user$project$Main$renderBlock, blend, y + oy, x + ox, blk);
+											return A5(_user$project$Main$renderBlock, settings, blend, y + oy, x + ox, blk);
 										}),
 									line));
 						}),
 					_p30));
 		};
 	});
-var _user$project$Main$renderTetris = F2(
-	function (blend, state) {
+var _user$project$Main$renderTetris = F3(
+	function (settings, blend, state) {
 		var placed = function () {
 			var _p31 = state.dropping;
 			if (_p31.ctor === 'Nothing') {
@@ -13266,7 +13276,7 @@ var _user$project$Main$renderTetris = F2(
 					A2(_user$project$Main$place, state.blocks, _p31._0));
 			}
 		}();
-		return A4(_user$project$Main$renderGrid, blend, 0, 0, placed);
+		return A5(_user$project$Main$renderGrid, settings, blend, 0, 0, placed);
 	});
 var _user$project$Main$Purple = {ctor: 'Purple'};
 var _user$project$Main$fillTri = function (piece) {
@@ -13410,48 +13420,49 @@ var _user$project$Main$addTri = function (piece) {
 		},
 		chooser);
 };
-var _user$project$Main$generatePieceWithArea = function (area) {
-	return A2(
-		_elm_lang$core$Random$andThen,
-		_user$project$Main$randomRot,
-		A2(
+var _user$project$Main$generatePieceWithArea = F2(
+	function (settings, area) {
+		return A2(
 			_elm_lang$core$Random$andThen,
-			function (piece) {
-				return _user$project$Main$isDifficult(piece) ? _user$project$Main$generatePieceWithArea(area) : _user$project$Main$rConst(piece);
-			},
-			function () {
-				var _p41 = area;
-				if (_p41 === 1) {
-					return _elm_community$random_extra$Random_Extra$constant(
-						A3(
-							_user$project$Main$Dropping,
-							0,
-							0,
+			_user$project$Main$randomRot,
+			A2(
+				_elm_lang$core$Random$andThen,
+				function (piece) {
+					return A2(_user$project$Main$isDifficult, settings, piece) ? A2(_user$project$Main$generatePieceWithArea, settings, area) : _user$project$Main$rConst(piece);
+				},
+				function () {
+					var _p41 = area;
+					if (_p41 === 1) {
+						return _elm_community$random_extra$Random_Extra$constant(
+							A3(
+								_user$project$Main$Dropping,
+								0,
+								0,
+								{
+									ctor: '::',
+									_0: {
+										ctor: '::',
+										_0: A2(_user$project$Main$Filled, _user$project$Main$DownRight, _user$project$Main$Purple),
+										_1: {ctor: '[]'}
+									},
+									_1: {ctor: '[]'}
+								}));
+					} else {
+						var prev = A2(_user$project$Main$generatePieceWithArea, settings, area - 1);
+						var adder = _elm_community$random_extra$Random_Extra$choices(
 							{
 								ctor: '::',
-								_0: {
+								_0: A2(_elm_lang$core$Random$andThen, _user$project$Main$addTri, prev),
+								_1: {
 									ctor: '::',
-									_0: A2(_user$project$Main$Filled, _user$project$Main$DownRight, _user$project$Main$Purple),
+									_0: A2(_elm_lang$core$Random$andThen, _user$project$Main$fillTri, prev),
 									_1: {ctor: '[]'}
-								},
-								_1: {ctor: '[]'}
-							}));
-				} else {
-					var prev = _user$project$Main$generatePieceWithArea(area - 1);
-					var adder = _elm_community$random_extra$Random_Extra$choices(
-						{
-							ctor: '::',
-							_0: A2(_elm_lang$core$Random$andThen, _user$project$Main$addTri, prev),
-							_1: {
-								ctor: '::',
-								_0: A2(_elm_lang$core$Random$andThen, _user$project$Main$fillTri, prev),
-								_1: {ctor: '[]'}
-							}
-						});
-					return adder;
-				}
-			}()));
-};
+								}
+							});
+						return adder;
+					}
+				}()));
+	});
 var _user$project$Main$Orange = {ctor: 'Orange'};
 var _user$project$Main$LBlue = {ctor: 'LBlue'};
 var _user$project$Main$Yellow = {ctor: 'Yellow'};
@@ -13530,22 +13541,23 @@ var _user$project$Main$setProps = F2(
 			},
 			A2(_user$project$Main$setPos, state, piece));
 	});
-var _user$project$Main$nextsGenerator = function (state) {
-	return A2(
-		_elm_lang$core$Random$andThen,
-		_elm_community$random_extra$Random_List$shuffle,
-		_elm_community$random_extra$Random_Extra$combine(
-			A2(
-				_elm_lang$core$List$map,
-				_elm_lang$core$Basics$always(
-					A2(
-						_elm_lang$core$Random$andThen,
-						_user$project$Main$setProps(state),
-						_user$project$Main$generatePieceWithArea(7))),
-				A2(_elm_lang$core$List$range, 0, 5))));
-};
-var _user$project$Main$updateTetris = F2(
-	function (delta, state) {
+var _user$project$Main$nextsGenerator = F2(
+	function (settings, state) {
+		return A2(
+			_elm_lang$core$Random$andThen,
+			_elm_community$random_extra$Random_List$shuffle,
+			_elm_community$random_extra$Random_Extra$combine(
+				A2(
+					_elm_lang$core$List$map,
+					_elm_lang$core$Basics$always(
+						A2(
+							_elm_lang$core$Random$andThen,
+							_user$project$Main$setProps(state),
+							A2(_user$project$Main$generatePieceWithArea, settings, 7))),
+					A2(_elm_lang$core$List$range, 0, 5))));
+	});
+var _user$project$Main$updateTetris = F3(
+	function (settings, delta, state) {
 		if (state.gameOver) {
 			return A2(
 				_elm_lang$core$Platform_Cmd_ops['!'],
@@ -13586,7 +13598,7 @@ var _user$project$Main$updateTetris = F2(
 							_0: A2(
 								_elm_lang$core$Random$generate,
 								_user$project$Main$SetDroppings,
-								_user$project$Main$nextsGenerator(state)),
+								A2(_user$project$Main$nextsGenerator, settings, state)),
 							_1: {ctor: '[]'}
 						} : {ctor: '[]'});
 				} else {
@@ -13598,7 +13610,7 @@ var _user$project$Main$updateTetris = F2(
 							_0: A2(
 								_elm_lang$core$Random$generate,
 								_user$project$Main$SetDroppings,
-								_user$project$Main$nextsGenerator(state)),
+								A2(_user$project$Main$nextsGenerator, settings, state)),
 							_1: {ctor: '[]'}
 						});
 				}
@@ -13638,35 +13650,39 @@ var _user$project$Main$updateTetris = F2(
 			}
 		}
 	});
-var _user$project$Main$drop = F3(
-	function (scoreDown, clear, state) {
+var _user$project$Main$drop = F4(
+	function (settings, scoreDown, clear, state) {
 		drop:
 		while (true) {
 			var _p48 = state.dropping;
 			if (_p48.ctor === 'Just') {
-				var _p49 = A2(_user$project$Main$updateTetris, -1, state);
+				var _p49 = A3(_user$project$Main$updateTetris, settings, -1, state);
 				var newState = _p49._0;
 				var _p50 = newState.dropping;
 				if (_p50.ctor === 'Nothing') {
 					return clear ? newState : state;
 				} else {
 					if (_elm_lang$core$Native_Utils.eq(scoreDown, 0)) {
-						var _v48 = _user$project$Main$dropScore,
-							_v49 = clear,
-							_v50 = _elm_lang$core$Native_Utils.update(
+						var _v48 = settings,
+							_v49 = _user$project$Main$dropScore,
+							_v50 = clear,
+							_v51 = _elm_lang$core$Native_Utils.update(
 							newState,
 							{score: newState.score + 1});
-						scoreDown = _v48;
-						clear = _v49;
-						state = _v50;
+						settings = _v48;
+						scoreDown = _v49;
+						clear = _v50;
+						state = _v51;
 						continue drop;
 					} else {
-						var _v51 = scoreDown - 1,
-							_v52 = clear,
-							_v53 = newState;
-						scoreDown = _v51;
-						clear = _v52;
-						state = _v53;
+						var _v52 = settings,
+							_v53 = scoreDown - 1,
+							_v54 = clear,
+							_v55 = newState;
+						settings = _v52;
+						scoreDown = _v53;
+						clear = _v54;
+						state = _v55;
 						continue drop;
 					}
 				}
@@ -13703,17 +13719,17 @@ var _user$project$Main$view = function (model) {
 								ctor: '::',
 								_0: _elm_lang$svg$Svg_Attributes$height(
 									_elm_lang$core$Basics$toString(
-										_user$project$Main$size * _elm_lang$core$List$length(model.tetrisState.blocks))),
+										model.settings.scale * _elm_lang$core$List$length(model.tetrisState.blocks))),
 								_1: {
 									ctor: '::',
 									_0: _elm_lang$svg$Svg_Attributes$width(
 										_elm_lang$core$Basics$toString(
-											_user$project$Main$size * _user$project$Main$width(model.tetrisState.blocks))),
+											model.settings.scale * _user$project$Main$width(model.tetrisState.blocks))),
 									_1: {ctor: '[]'}
 								}
 							}
 						},
-						A2(_user$project$Main$renderTetris, _elm_lang$core$Maybe$Nothing, model.tetrisState)),
+						A3(_user$project$Main$renderTetris, model.settings, _elm_lang$core$Maybe$Nothing, model.tetrisState)),
 					_1: {
 						ctor: '::',
 						_0: A2(
@@ -13725,20 +13741,21 @@ var _user$project$Main$view = function (model) {
 									ctor: '::',
 									_0: _elm_lang$svg$Svg_Attributes$height(
 										_elm_lang$core$Basics$toString(
-											_user$project$Main$size * _elm_lang$core$List$length(model.tetrisState.blocks))),
+											model.settings.scale * _elm_lang$core$List$length(model.tetrisState.blocks))),
 									_1: {
 										ctor: '::',
 										_0: _elm_lang$svg$Svg_Attributes$width(
 											_elm_lang$core$Basics$toString(
-												_user$project$Main$size * _user$project$Main$width(model.tetrisState.blocks))),
+												model.settings.scale * _user$project$Main$width(model.tetrisState.blocks))),
 										_1: {ctor: '[]'}
 									}
 								}
 							},
 							function () {
-								var tetrisState = A3(_user$project$Main$drop, 0, false, model.tetrisState);
-								return A2(
+								var tetrisState = A4(_user$project$Main$drop, model.settings, 0, false, model.tetrisState);
+								return A3(
 									_user$project$Main$renderTetris,
+									model.settings,
 									_elm_lang$core$Maybe$Just(
 										{ctor: '_Tuple3', _0: 255, _1: 255, _2: 255}),
 									_elm_lang$core$Native_Utils.update(
@@ -13762,17 +13779,17 @@ var _user$project$Main$view = function (model) {
 										ctor: '::',
 										_0: _elm_lang$svg$Svg_Attributes$height(
 											_elm_lang$core$Basics$toString(
-												_user$project$Main$size * _elm_lang$core$List$length(model.tetrisState.blocks))),
+												model.settings.scale * _elm_lang$core$List$length(model.tetrisState.blocks))),
 										_1: {
 											ctor: '::',
 											_0: _elm_lang$svg$Svg_Attributes$width(
 												_elm_lang$core$Basics$toString(
-													_user$project$Main$size * _user$project$Main$width(model.tetrisState.blocks))),
+													model.settings.scale * _user$project$Main$width(model.tetrisState.blocks))),
 											_1: {ctor: '[]'}
 										}
 									}
 								},
-								A2(_user$project$Main$renderTetris, _elm_lang$core$Maybe$Nothing, model.tetrisState)),
+								A3(_user$project$Main$renderTetris, model.settings, _elm_lang$core$Maybe$Nothing, model.tetrisState)),
 							_1: {ctor: '[]'}
 						}
 					}
@@ -13804,16 +13821,16 @@ var _user$project$Main$view = function (model) {
 											ctor: '::',
 											_0: _elm_lang$svg$Svg_Attributes$height(
 												_elm_lang$core$Basics$toString(
-													_user$project$Main$size * _elm_lang$core$List$length(piece.shape))),
+													model.settings.scale * _elm_lang$core$List$length(piece.shape))),
 											_1: {
 												ctor: '::',
 												_0: _elm_lang$svg$Svg_Attributes$width(
 													_elm_lang$core$Basics$toString(
-														_user$project$Main$size * _user$project$Main$width(piece.shape))),
+														model.settings.scale * _user$project$Main$width(piece.shape))),
 												_1: {ctor: '[]'}
 											}
 										},
-										A4(_user$project$Main$renderGrid, _elm_lang$core$Maybe$Nothing, 0, 0, piece.shape)),
+										A5(_user$project$Main$renderGrid, model.settings, _elm_lang$core$Maybe$Nothing, 0, 0, piece.shape)),
 									_1: {ctor: '[]'}
 								});
 						},
@@ -13916,16 +13933,16 @@ var _user$project$Main$view = function (model) {
 																ctor: '::',
 																_0: _elm_lang$svg$Svg_Attributes$height(
 																	_elm_lang$core$Basics$toString(
-																		_user$project$Main$size * _elm_lang$core$List$length(_p52.shape))),
+																		model.settings.scale * _elm_lang$core$List$length(_p52.shape))),
 																_1: {
 																	ctor: '::',
 																	_0: _elm_lang$svg$Svg_Attributes$width(
 																		_elm_lang$core$Basics$toString(
-																			_user$project$Main$size * _user$project$Main$width(_p52.shape))),
+																			model.settings.scale * _user$project$Main$width(_p52.shape))),
 																	_1: {ctor: '[]'}
 																}
 															},
-															A4(_user$project$Main$renderGrid, _elm_lang$core$Maybe$Nothing, 0, 0, _p52.shape)),
+															A5(_user$project$Main$renderGrid, model.settings, _elm_lang$core$Maybe$Nothing, 0, 0, _p52.shape)),
 														_1: {ctor: '[]'}
 													}
 												});
@@ -14317,7 +14334,7 @@ var _user$project$Main$update = F2(
 								model,
 								{ctor: '[]'});
 						} else {
-							var _p57 = A2(_user$project$Main$updateTetris, 0, model.tetrisState);
+							var _p57 = A3(_user$project$Main$updateTetris, model.settings, 0, model.tetrisState);
 							var newState = _p57._0;
 							var cmd = _p57._1;
 							return {
@@ -14344,7 +14361,7 @@ var _user$project$Main$update = F2(
 							_elm_lang$core$Native_Utils.update(
 								model,
 								{
-									tetrisState: A3(_user$project$Main$drop, 0, true, model.tetrisState)
+									tetrisState: A4(_user$project$Main$drop, model.settings, 0, true, model.tetrisState)
 								}),
 							{ctor: '[]'});
 					default:
@@ -14386,7 +14403,7 @@ var _user$project$Main$update = F2(
 							{ctor: '[]'});
 					} else {
 						var delta = (_p62 - _p60._0) / 1000;
-						var _p61 = A2(_user$project$Main$updateTetris, delta, model.tetrisState);
+						var _p61 = A3(_user$project$Main$updateTetris, model.settings, delta, model.tetrisState);
 						var newState = _p61._0;
 						var cmd = _p61._1;
 						return {

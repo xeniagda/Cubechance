@@ -14,7 +14,6 @@ import Random.List as Rl
 import Base
 
 dropScore = 5
-size = 24
 
 main =
     program
@@ -27,8 +26,14 @@ main =
 type alias Model =
     { lastTime : Maybe Time.Time
     , tetrisState : TetrisState
+    , settings : Settings
     , paused : Bool
     , easy : Bool
+    }
+
+type alias Settings =
+    { scale : Int
+    , hard : Bool
     }
 
 type Msg
@@ -42,6 +47,10 @@ init : (Model, Cmd Msg)
 init =
     { lastTime = Nothing
     , paused = False
+    , settings =
+        { scale = 20
+        , hard = False
+        }
     , tetrisState =
         { blocks = defaultTetris
         , dropping = Nothing
@@ -83,7 +92,7 @@ update msg model =
                     if model.paused then model ! [] else { model | tetrisState = rotate_ model.tetrisState } ! []
                 40 -> -- Down
                     if model.paused then model ! [] else
-                        let (newState, cmd) = updateTetris 0 model.tetrisState
+                        let (newState, cmd) = updateTetris model.settings 0 model.tetrisState
                         in
                             (
                                 { model
@@ -94,7 +103,9 @@ update msg model =
                 27 -> -- Escape
                     { model | paused = not model.paused } ! []
                 32 -> -- Space
-                    if model.paused then model ! [] else { model | tetrisState = drop 0 True model.tetrisState } ! []
+                    if model.paused
+                        then model ! []
+                        else { model | tetrisState = drop model.settings 0 True model.tetrisState } ! []
                 _ -> if code > 48 && code < 58  -- Is a number
                     then
                         let (newState, cmd) = holdPiece (code - 49) model.tetrisState
@@ -108,7 +119,7 @@ update msg model =
                     Nothing -> { model | lastTime = Just time } ! []
                     Just last ->
                         let delta = (time - last) / 1000
-                            (newState, cmd) = updateTetris delta model.tetrisState
+                            (newState, cmd) = updateTetris model.settings delta model.tetrisState
                         in
                             (
                                 { model
@@ -125,35 +136,35 @@ view model =
         [
         S.svg
             [ id "blur"
-            , Sa.height <| toString <| size * List.length model.tetrisState.blocks
-            , Sa.width <| toString <| size * width model.tetrisState.blocks
+            , Sa.height <| toString <| model.settings.scale * List.length model.tetrisState.blocks
+            , Sa.width <| toString <| model.settings.scale * width model.tetrisState.blocks
             ]
-            <| renderTetris Nothing model.tetrisState
+            <| renderTetris model.settings Nothing model.tetrisState
         , S.svg
             [ id "game_next"
-            , Sa.height <| toString <| size * List.length model.tetrisState.blocks
-            , Sa.width <| toString <| size * width model.tetrisState.blocks
+            , Sa.height <| toString <| model.settings.scale * List.length model.tetrisState.blocks
+            , Sa.width <| toString <| model.settings.scale * width model.tetrisState.blocks
             ] <|
-                let tetrisState = drop 0 False model.tetrisState
-                in renderTetris (Just (255, 255, 255))
+                let tetrisState = drop model.settings 0 False model.tetrisState
+                in renderTetris model.settings (Just (255, 255, 255))
                     { tetrisState
                     | blocks = List.map ( List.map (always Empty)) tetrisState.blocks
                     }
         , S.svg
             [ id "game"
-            , Sa.height <| toString <| size * List.length model.tetrisState.blocks
-            , Sa.width <| toString <| size * width model.tetrisState.blocks
+            , Sa.height <| toString <| model.settings.scale * List.length model.tetrisState.blocks
+            , Sa.width <| toString <| model.settings.scale * width model.tetrisState.blocks
             ]
-            <| renderTetris Nothing model.tetrisState
+            <| renderTetris model.settings Nothing model.tetrisState
         ]
     , div [ id "nexts" ]
         <| List.map
             (\piece ->
                 div [ class "next" ]
                 [ S.svg
-                    [ Sa.height <| toString <| size * List.length piece.shape
-                    , Sa.width <| toString <| size * width piece.shape
-                    ] <| renderGrid Nothing 0 0 piece.shape
+                    [ Sa.height <| toString <| model.settings.scale * List.length piece.shape
+                    , Sa.width <| toString <| model.settings.scale * width piece.shape
+                    ] <| renderGrid model.settings Nothing 0 0 piece.shape
                 ]
             )
         <| List.take 3 model.tetrisState.nexts
@@ -174,9 +185,9 @@ view model =
                         div []
                             [ div [ class "holdIdx", class "active" ] [ text <| (toString <| i + 1) ++ ": " ]
                             , S.svg
-                                [ Sa.height <| toString <| size * List.length hold.shape
-                                , Sa.width <| toString <| size * width hold.shape
-                                ] <| renderGrid Nothing 0 0 hold.shape
+                                [ Sa.height <| toString <| model.settings.scale * List.length hold.shape
+                                , Sa.width <| toString <| model.settings.scale * width hold.shape
+                                ] <| renderGrid model.settings Nothing 0 0 hold.shape
                             ]
             )
             model.tetrisState.hold
@@ -332,8 +343,8 @@ holdPiece idx state =
                 Nothing -> []
         a -> (always <| state ! []) <| Debug.log "Nope" a
 
-updateTetris : Float -> TetrisState -> (TetrisState, Cmd Msg)
-updateTetris delta state =
+updateTetris : Settings -> Float -> TetrisState -> (TetrisState, Cmd Msg)
+updateTetris settings delta state =
     if state.gameOver
         then
             { state
@@ -352,10 +363,10 @@ updateTetris delta state =
                             |> List.any (\p -> isFilled p)
                         } !
                         if List.length rest < 3
-                           then [ Random.generate SetDroppings <| nextsGenerator state ]
+                           then [ Random.generate SetDroppings <| nextsGenerator settings state ]
                            else []
                     [] ->
-                        state ! [ Random.generate SetDroppings <| nextsGenerator state ]
+                        state ! [ Random.generate SetDroppings <| nextsGenerator settings state ]
             Just dropping ->
                 let newDropping = { dropping | y = dropping.y + 1 }
                 in
@@ -434,17 +445,17 @@ move state d =
                 else state
         Nothing -> state
 
-drop : Int -> Bool -> TetrisState -> TetrisState
-drop scoreDown clear state =
+drop : Settings -> Int -> Bool -> TetrisState -> TetrisState
+drop settings scoreDown clear state =
     case state.dropping of
         Just _ ->
-            let (newState, _) = updateTetris (-1) state
+            let (newState, _) = updateTetris settings (-1) state
             in case newState.dropping of
                 Nothing -> if clear then newState else state
                 Just _ ->
                     if scoreDown == 0
-                       then drop dropScore clear { newState | score = newState.score + 1 }
-                       else drop (scoreDown - 1) clear newState
+                       then drop settings dropScore clear { newState | score = newState.score + 1 }
+                       else drop settings (scoreDown - 1) clear newState
         _ -> state
 
 rotate_ : TetrisState -> TetrisState
@@ -491,27 +502,28 @@ rotateFill x =
         UpRight -> DownRight
 
 
-renderTetris : Maybe (Int, Int, Int) -> TetrisState -> List (S.Svg msg)
-renderTetris blend state =
+renderTetris : Settings -> Maybe (Int, Int, Int) -> TetrisState -> List (S.Svg msg)
+renderTetris settings blend state =
     let placed =
             case state.dropping of
                 Nothing -> state.blocks
                 Just dropping -> Maybe.withDefault state.blocks <| place state.blocks dropping
-    in renderGrid blend 0 0 placed
+    in renderGrid settings blend 0 0 placed
 
-renderGrid blend oy ox =
+renderGrid settings blend oy ox =
     List.concat <<
         List.indexedMap (\y line ->
             List.concat <|
                 List.indexedMap (\x blk ->
-                    renderBlock blend (y + oy) (x + ox) blk
+                    renderBlock settings blend (y + oy) (x + ox) blk
                 )
                 line
         )
 
-renderBlock : Maybe (Int, Int, Int) -> Int -> Int -> BlockState -> List (S.Svg msg)
-renderBlock blend yp xp blk =
-    let y = yp * size
+renderBlock : Settings -> Maybe (Int, Int, Int) -> Int -> Int -> BlockState -> List (S.Svg msg)
+renderBlock settings blend yp xp blk =
+    let size = settings.scale
+        y = yp * size
         x = xp * size
     in case blk of
         Filled Full col ->
@@ -568,8 +580,8 @@ renderBlock blend yp xp blk =
                     ] []
                 ]
         Split shape c1 c2 ->
-            let first  = renderBlock blend yp xp ( Filled shape c1 )
-                second = renderBlock blend yp xp ( Filled (rotateFill <| rotateFill shape) c2 )
+            let first  = renderBlock settings blend yp xp ( Filled shape c1 )
+                second = renderBlock settings blend yp xp ( Filled (rotateFill <| rotateFill shape) c2 )
             in first ++ second
         _ ->
                 [ S.rect
@@ -582,8 +594,9 @@ renderBlock blend yp xp blk =
                     ] []
                 ]
 
-isDifficult : Dropping -> Bool
-isDifficult piece =
+isDifficult : Settings -> Dropping -> Bool
+isDifficult settings piece =
+    settings.hard &&
     let triCount =
             List.sum <| List.map
                 ( List.sum << List.map
@@ -598,19 +611,19 @@ isDifficult piece =
     in triCount > 1
 
 -- Generate a piece with the area of the argument. One area unit is the same as half a square.
-generatePieceWithArea : Int -> Random.Generator Dropping
-generatePieceWithArea area =
+generatePieceWithArea : Settings -> Int -> Random.Generator Dropping
+generatePieceWithArea settings area =
     Random.andThen randomRot
     <| Random.andThen
         (\piece ->
-            if isDifficult piece
-               then generatePieceWithArea area
+            if isDifficult settings piece
+               then generatePieceWithArea settings area
                else rConst piece
         )
     <| case area of
         1 -> Re.constant ( Dropping 0 0 [ [ Filled DownRight Purple ] ] )
         _ ->
-            let prev = generatePieceWithArea ( area - 1 )
+            let prev = generatePieceWithArea settings ( area - 1 )
                 adder = Re.choices [ Random.andThen addTri prev, Random.andThen fillTri prev ]
             in adder
 
@@ -711,13 +724,13 @@ randomRot x =
             , rotate <| rotate <| rotate x
             ]
 
-nextsGenerator : TetrisState -> Random.Generator (List Dropping)
-nextsGenerator state =
+nextsGenerator : Settings -> TetrisState -> Random.Generator (List Dropping)
+nextsGenerator settings state =
     Random.andThen
         Rl.shuffle
         <| Re.combine
         <| List.map
-            (always <| Random.andThen (setProps state) <| generatePieceWithArea 7)
+            (always <| Random.andThen (setProps state) <| generatePieceWithArea settings 7)
             (List.range 0 5)
 
 randCol : Blocks -> Random.Generator Blocks
