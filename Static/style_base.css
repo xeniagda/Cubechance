@@ -29,25 +29,35 @@ th, h1 {
     font-weight: normal;
 }
 
-#loading {
+#loadingtext {
     text-align: center;
     font-size: 30px;
     color: #611;
 }
 
-#loadingcircle {
+#loadingbar_out {
+    width: 300px;
+    border: 1px solid gray;
+    height: 10px;
 
-    position: absolute;
-    left: 50%;
-    right: 50%;
+    margin: auto;
+}
+
+#loading_in {
+    height: 100%;
+    background: #8888FF;
+}
+
+#loadingcircle {
+    margin: auto;
     border-radius : 30%;
     border-top    : 4px solid #00FFFF;
     border-right  : 4px solid #FF0000;
     border-bottom : 4px solid #00FF00;
     border-left   : 4px solid #FF8800;
     background: linear-gradient(to bottom right, #FFF 0%, #FFF 50%, #FF0 50%, #FF0 100%);
-    width: 30px;
-    height: 30px;
+    width: 50px;
+    height: 50px;
     -webkit-animation: spin 2s linear infinite;
     animation: spin 2s linear infinite;
 }

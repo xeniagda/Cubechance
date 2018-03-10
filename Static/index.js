@@ -11470,20 +11470,19 @@ var _user$project$Main$getMatchingComps = function (_p0) {
 		},
 		_p2);
 };
-var _user$project$Main$defaultSort = {
-	ctor: '_Tuple2',
-	_0: 'Date',
-	_1: F2(
-		function (c1, c2) {
-			return A2(
-				_elm_lang$core$Basics$compare,
-				_elm_lang$core$Date$toTime(c1.date),
-				_elm_lang$core$Date$toTime(c2.date));
-		})
-};
 var _user$project$Main$sortings = {
 	ctor: '::',
-	_0: _user$project$Main$defaultSort,
+	_0: {
+		ctor: '_Tuple2',
+		_0: 'Date',
+		_1: F2(
+			function (c1, c2) {
+				return A2(
+					_elm_lang$core$Basics$compare,
+					_elm_lang$core$Date$toTime(c1.date),
+					_elm_lang$core$Date$toTime(c2.date));
+			})
+	},
 	_1: {
 		ctor: '::',
 		_0: {
@@ -11525,9 +11524,11 @@ var _user$project$Main$sortings = {
 		}
 	}
 };
-var _user$project$Main$Model = F6(
-	function (a, b, c, d, e, f) {
-		return {competitions: a, search: b, searchPerson: c, searchCountry: d, sorting: e, serverLoading: f};
+var _user$project$Main$defaultSort = _elm_lang$core$List$head(_user$project$Main$sortings);
+var _user$project$Main$loadingText = 'The server is currently loading the results from WCA. This usually takes about one minute.';
+var _user$project$Main$Model = F7(
+	function (a, b, c, d, e, f, g) {
+		return {competitions: a, search: b, searchPerson: c, searchCountry: d, sorting: e, serverLoading: f, lastTime: g};
 	});
 var _user$project$Main$SetSorting = function (a) {
 	return {ctor: 'SetSorting', _0: a};
@@ -11551,8 +11552,8 @@ var _user$project$Main$viewDropdown = function (model) {
 						ctor: '::',
 						_0: _elm_lang$html$Html_Attributes$selected(
 							_elm_lang$core$Native_Utils.eq(
-								_p8,
-								_elm_lang$core$Tuple$first(model.sorting))),
+								_elm_lang$core$Maybe$Just(_p8),
+								A2(_elm_lang$core$Maybe$map, _elm_lang$core$Tuple$first, model.sorting))),
 						_1: {ctor: '[]'}
 					},
 					{
@@ -11706,46 +11707,110 @@ var _user$project$Main$view = function (model) {
 				_0: _user$project$Main$genSearch(model),
 				_1: {
 					ctor: '::',
-					_0: _user$project$Main$renderComps(
-						A2(
-							_elm_lang$core$List$sortWith,
-							_elm_lang$core$Tuple$second(model.sorting),
-							_user$project$Main$getMatchingComps(model))),
+					_0: function () {
+						var _p9 = model.sorting;
+						if (_p9.ctor === 'Just') {
+							return _user$project$Main$renderComps(
+								A2(
+									_elm_lang$core$List$sortWith,
+									_elm_lang$core$Tuple$second(_p9._0),
+									_user$project$Main$getMatchingComps(model)));
+						} else {
+							return _user$project$Main$renderComps(
+								_user$project$Main$getMatchingComps(model));
+						}
+					}(),
 					_1: {
 						ctor: '::',
 						_0: _user$project$Main$wcaDisc,
 						_1: {
 							ctor: '::',
-							_0: model.serverLoading ? A2(
-								_elm_lang$html$Html$p,
+							_0: _elm_lang$core$Native_Utils.eq(
+								model.competitions,
+								{ctor: '[]'}) ? A2(
+								_elm_lang$html$Html$div,
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$id('loading'),
+									_0: _elm_lang$html$Html_Attributes$id('loadingcircle'),
 									_1: {ctor: '[]'}
 								},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text('The server is currently loading the results from WCA. This usually takes around one minute.'),
-									_1: {ctor: '[]'}
-								}) : A2(
+								{ctor: '[]'}) : A2(
 								_elm_lang$html$Html$div,
 								{ctor: '[]'},
 								{ctor: '[]'}),
 							_1: {
 								ctor: '::',
-								_0: _elm_lang$core$Native_Utils.eq(
-									model.competitions,
-									{ctor: '[]'}) ? A2(
-									_elm_lang$html$Html$div,
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$id('loadingcircle'),
-										_1: {ctor: '[]'}
-									},
-									{ctor: '[]'}) : A2(
-									_elm_lang$html$Html$div,
-									{ctor: '[]'},
-									{ctor: '[]'}),
+								_0: function () {
+									var _p10 = model.serverLoading;
+									if (_p10.ctor === 'Just') {
+										return A2(
+											_elm_lang$html$Html$div,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$id('loader'),
+												_1: {ctor: '[]'}
+											},
+											{
+												ctor: '::',
+												_0: A2(
+													_elm_lang$html$Html$p,
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html_Attributes$id('loadingtext'),
+														_1: {ctor: '[]'}
+													},
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html$text(_user$project$Main$loadingText),
+														_1: {ctor: '[]'}
+													}),
+												_1: {
+													ctor: '::',
+													_0: A2(
+														_elm_lang$html$Html$div,
+														{
+															ctor: '::',
+															_0: _elm_lang$html$Html_Attributes$id('loadingbar_out'),
+															_1: {ctor: '[]'}
+														},
+														{
+															ctor: '::',
+															_0: A2(
+																_elm_lang$html$Html$div,
+																{
+																	ctor: '::',
+																	_0: _elm_lang$html$Html_Attributes$id('loading_in'),
+																	_1: {
+																		ctor: '::',
+																		_0: _elm_lang$html$Html_Attributes$style(
+																			{
+																				ctor: '::',
+																				_0: {
+																					ctor: '_Tuple2',
+																					_0: 'width',
+																					_1: A2(
+																						_elm_lang$core$Basics_ops['++'],
+																						_elm_lang$core$Basics$toString(100 * _p10._0._0),
+																						'%')
+																				},
+																				_1: {ctor: '[]'}
+																			}),
+																		_1: {ctor: '[]'}
+																	}
+																},
+																{ctor: '[]'}),
+															_1: {ctor: '[]'}
+														}),
+													_1: {ctor: '[]'}
+												}
+											});
+									} else {
+										return A2(
+											_elm_lang$html$Html$div,
+											{ctor: '[]'},
+											{ctor: '[]'});
+									}
+								}(),
 								_1: {
 									ctor: '::',
 									_0: A2(
@@ -11794,40 +11859,185 @@ var _user$project$Main$view = function (model) {
 			}
 		});
 };
+var _user$project$Main$UpdateProgress = function (a) {
+	return {ctor: 'UpdateProgress', _0: a};
+};
+var _user$project$Main$ParseProgress = function (a) {
+	return {ctor: 'ParseProgress', _0: a};
+};
 var _user$project$Main$ParseUpcoming = function (a) {
 	return {ctor: 'ParseUpcoming', _0: a};
 };
+var _user$project$Main$LoadProgress = {ctor: 'LoadProgress'};
 var _user$project$Main$update = F2(
 	function (msg, model) {
-		var _p9 = msg;
-		switch (_p9.ctor) {
-			case 'SetSorting':
-				var sorting = _elm_lang$core$List$head(
-					A2(
-						_elm_lang$core$List$filter,
-						function (sort) {
-							return _elm_lang$core$Native_Utils.eq(
-								_elm_lang$core$Tuple$first(sort),
-								_p9._0);
-						},
-						_user$project$Main$sortings));
-				var _p10 = sorting;
-				if (_p10.ctor === 'Nothing') {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						model,
-						{ctor: '[]'});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
+		update:
+		while (true) {
+			var _p11 = msg;
+			switch (_p11.ctor) {
+				case 'SetSorting':
+					var sorting = _elm_lang$core$List$head(
+						A2(
+							_elm_lang$core$List$filter,
+							function (sort) {
+								return _elm_lang$core$Native_Utils.eq(
+									_elm_lang$core$Tuple$first(sort),
+									_p11._0);
+							},
+							_user$project$Main$sortings));
+					var _p12 = sorting;
+					if (_p12.ctor === 'Nothing') {
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
 							model,
-							{sorting: _p10._0}),
-						{ctor: '[]'});
-				}
-			case 'LoadUpcoming':
-				var _p11 = model.competitions;
-				if (_p11.ctor === '[]') {
+							{ctor: '[]'});
+					} else {
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							_elm_lang$core$Native_Utils.update(
+								model,
+								{
+									sorting: _elm_lang$core$Maybe$Just(_p12._0)
+								}),
+							{ctor: '[]'});
+					}
+				case 'LoadUpcoming':
+					var _p13 = model.competitions;
+					if (_p13.ctor === '[]') {
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							model,
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$http$Http$send,
+									_user$project$Main$ParseUpcoming,
+									_elm_lang$http$Http$getString('api/upcoming')),
+								_1: {ctor: '[]'}
+							});
+					} else {
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							model,
+							{ctor: '[]'});
+					}
+				case 'ParseUpcoming':
+					if (_p11._0.ctor === 'Ok') {
+						var _p16 = _p11._0._0;
+						if (_elm_lang$core$Native_Utils.eq(_p16, 'e0')) {
+							var _v7 = _user$project$Main$LoadProgress,
+								_v8 = model;
+							msg = _v7;
+							model = _v8;
+							continue update;
+						} else {
+							var _p14 = A2(
+								_elm_lang$core$Json_Decode$decodeString,
+								_elm_lang$core$Json_Decode$list(_user$project$Base$decodeComp),
+								_p16);
+							if (_p14.ctor === 'Ok') {
+								return A2(
+									_elm_lang$core$Platform_Cmd_ops['!'],
+									_elm_lang$core$Native_Utils.update(
+										model,
+										{
+											competitions: A2(_elm_lang$core$Debug$log, 'Comps', _p14._0),
+											serverLoading: _elm_lang$core$Maybe$Nothing
+										}),
+									{ctor: '[]'});
+							} else {
+								var _p15 = A2(_elm_lang$core$Debug$log, 'Server error', _p14._0);
+								return A2(
+									_elm_lang$core$Platform_Cmd_ops['!'],
+									model,
+									{ctor: '[]'});
+							}
+						}
+					} else {
+						var _p17 = A2(_elm_lang$core$Debug$log, 'Server error', _p11._0._0);
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							model,
+							{ctor: '[]'});
+					}
+				case 'ParseProgress':
+					if (_p11._0.ctor === 'Err') {
+						var _p18 = A2(_elm_lang$core$Debug$log, 'Server error', _p11._0._0);
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							model,
+							{ctor: '[]'});
+					} else {
+						var _p19 = A2(
+							_elm_lang$core$Debug$log,
+							'Result',
+							A2(
+								_elm_lang$core$List$map,
+								_elm_lang$core$String$toFloat,
+								A2(_elm_lang$core$String$split, ' ', _p11._0._0)));
+						if (((((_p19.ctor === '::') && (_p19._0.ctor === 'Ok')) && (_p19._1.ctor === '::')) && (_p19._1._0.ctor === 'Ok')) && (_p19._1._1.ctor === '[]')) {
+							var _p22 = _p19._1._0._0;
+							var _p21 = _p19._0._0;
+							var _p20 = A2(
+								_elm_lang$core$Debug$log,
+								'Res',
+								{
+									ctor: '::',
+									_0: _p21,
+									_1: {
+										ctor: '::',
+										_0: _p22,
+										_1: {ctor: '[]'}
+									}
+								});
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										serverLoading: _elm_lang$core$Maybe$Just(
+											{ctor: '_Tuple2', _0: _p21, _1: _p22})
+									}),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								model,
+								{ctor: '[]'});
+						}
+					}
+				case 'UpdateProgress':
+					var _p26 = _p11._0;
+					var _p23 = {ctor: '_Tuple2', _0: model.lastTime, _1: model.serverLoading};
+					if ((((_p23.ctor === '_Tuple2') && (_p23._0.ctor === 'Just')) && (_p23._1.ctor === 'Just')) && (_p23._1._0.ctor === '_Tuple2')) {
+						var _p25 = _p23._1._0._1;
+						var _p24 = _p23._1._0._0;
+						var diff_s = (_p26 - _p23._0._0) / _elm_lang$core$Time$second;
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							_elm_lang$core$Native_Utils.update(
+								model,
+								{
+									lastTime: _elm_lang$core$Maybe$Just(_p26),
+									serverLoading: _elm_lang$core$Maybe$Just(
+										{
+											ctor: '_Tuple2',
+											_0: _p24 + (_p25 * diff_s),
+											_1: _p25 * Math.pow(1 - _p24, diff_s / 5)
+										})
+								}),
+							{ctor: '[]'});
+					} else {
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							_elm_lang$core$Native_Utils.update(
+								model,
+								{
+									lastTime: _elm_lang$core$Maybe$Just(_p26)
+								}),
+							{ctor: '[]'});
+					}
+				case 'LoadProgress':
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						model,
@@ -11835,77 +12045,32 @@ var _user$project$Main$update = F2(
 							ctor: '::',
 							_0: A2(
 								_elm_lang$http$Http$send,
-								_user$project$Main$ParseUpcoming,
-								_elm_lang$http$Http$getString('api/upcoming')),
+								_user$project$Main$ParseProgress,
+								_elm_lang$http$Http$getString('prog')),
 							_1: {ctor: '[]'}
 						});
-				} else {
+				case 'Search':
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
-						model,
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{search: _p11._0}),
 						{ctor: '[]'});
-				}
-			case 'ParseUpcoming':
-				if (_p9._0.ctor === 'Ok') {
-					var _p14 = _p9._0._0;
-					if (_elm_lang$core$Native_Utils.eq(_p14, 'e0')) {
-						return A2(
-							_elm_lang$core$Platform_Cmd_ops['!'],
-							_elm_lang$core$Native_Utils.update(
-								model,
-								{serverLoading: true}),
-							{ctor: '[]'});
-					} else {
-						var _p12 = A2(
-							_elm_lang$core$Json_Decode$decodeString,
-							_elm_lang$core$Json_Decode$list(_user$project$Base$decodeComp),
-							_p14);
-						if (_p12.ctor === 'Ok') {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										competitions: A2(_elm_lang$core$Debug$log, 'Comps', _p12._0),
-										serverLoading: false
-									}),
-								{ctor: '[]'});
-						} else {
-							var _p13 = A2(_elm_lang$core$Debug$log, 'Server error', _p12._0);
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								model,
-								{ctor: '[]'});
-						}
-					}
-				} else {
-					var _p15 = A2(_elm_lang$core$Debug$log, 'Server error', _p9._0._0);
+				case 'SearchPerson':
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
-						model,
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{searchPerson: _p11._0}),
 						{ctor: '[]'});
-				}
-			case 'Search':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{search: _p9._0}),
-					{ctor: '[]'});
-			case 'SearchPerson':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{searchPerson: _p9._0}),
-					{ctor: '[]'});
-			default:
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{searchCountry: _p9._0}),
-					{ctor: '[]'});
+				default:
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{searchCountry: _p11._0}),
+						{ctor: '[]'});
+			}
 		}
 	});
 var _user$project$Main$LoadUpcoming = {ctor: 'LoadUpcoming'};
@@ -11918,13 +12083,23 @@ var _user$project$Main$init = A2(
 		searchPerson: '',
 		searchCountry: '',
 		sorting: _user$project$Main$defaultSort,
-		serverLoading: false
+		serverLoading: _elm_lang$core$Maybe$Nothing,
+		lastTime: _elm_lang$core$Maybe$Nothing
 	});
 var _user$project$Main$subs = function (model) {
-	return A2(
-		_elm_lang$core$Time$every,
-		_elm_lang$core$Time$second * 5,
-		_elm_lang$core$Basics$always(_user$project$Main$LoadUpcoming));
+	return _elm_lang$core$Platform_Sub$batch(
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$core$Time$every,
+				_elm_lang$core$Time$second * 2,
+				_elm_lang$core$Basics$always(_user$project$Main$LoadUpcoming)),
+			_1: {
+				ctor: '::',
+				_0: A2(_elm_lang$core$Time$every, _elm_lang$core$Time$second / 10, _user$project$Main$UpdateProgress),
+				_1: {ctor: '[]'}
+			}
+		});
 };
 var _user$project$Main$main = _elm_lang$html$Html$program(
 	{init: _user$project$Main$init, update: _user$project$Main$update, view: _user$project$Main$view, subscriptions: _user$project$Main$subs})();
