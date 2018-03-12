@@ -28,7 +28,7 @@ type alias Model =
     , tetrisState : TetrisState
     , settings : Settings
     , paused : Bool
-    , easy : Bool
+    , changingSettings : Bool
     }
 
 type alias Settings =
@@ -36,12 +36,22 @@ type alias Settings =
     , hard : Bool
     }
 
+type Setting =
+    Hard Bool
+
+updateSetting : Settings -> Setting -> Settings
+updateSetting settings setting =
+    case setting of
+        Hard hard -> { settings | hard = hard }
+
 type Msg
     = Update Time.Time
     | Key Int
     | SetDroppings (List Dropping)
     | SetDropping Dropping
     | Restart
+    | ChangingSettings
+    | SetSetting Setting
 
 init : (Model, Cmd Msg)
 init =
@@ -59,14 +69,15 @@ init =
         , score = 0
         , gameOver = False
         }
-    , easy = True
+    , changingSettings = False
     } ! []
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
         Restart ->
-            init
+            let mod = Tuple.first init
+            in { mod | settings = model.settings } ! []
 
         SetDroppings d ->
             let state = model.tetrisState
@@ -129,8 +140,30 @@ update msg model =
                             , cmd
                             )
 
+        SetSetting setting -> { model | settings = updateSetting model.settings setting } ! []
+
+        ChangingSettings -> { model | changingSettings = not model.changingSettings } ! []
+
 view : Model -> Html Msg
 view model =
+    if model.changingSettings
+        then viewSettings model
+        else viewTetris model
+
+viewSettings : Model -> Html Msg
+viewSettings model =
+    div [ id "gameS", align "center" ]
+        [ text "Hard"
+        , input
+            [ type_ "checkbox"
+            , checked model.settings.hard
+            , onClick (SetSetting <| Hard <| not model.settings.hard)
+            ] []
+        , button [ onClick ChangingSettings ] [ text "Back" ]
+        ]
+
+viewTetris : Model -> Html Msg
+viewTetris model =
     div []
     [ div [ id "gameS", align "center" ]
         [
@@ -195,8 +228,10 @@ view model =
         <| if model.paused
                then [ text "||" ]
                else [ text "" ]
-    , div [ id "restart" ]
-        [ button [ onClick Restart ] [ text "Restart" ] ]
+    , div [ id "buttons" ]
+        [ button [ onClick ChangingSettings ] [ text "Settings" ]
+        , button [ onClick Restart          ] [ text "Restart" ]
+        ]
     ]
 
 subs model =
@@ -596,19 +631,21 @@ renderBlock settings blend yp xp blk =
 
 isDifficult : Settings -> Dropping -> Bool
 isDifficult settings piece =
-    settings.hard &&
-    let triCount =
-            List.sum <| List.map
-                ( List.sum << List.map
-                    (\p -> case p of
-                        Filled Full _ -> 0
-                        Empty -> 0
-                        Split _ _ _ -> 0
-                        _ -> 1
-                    )
-                )
-            piece.shape
-    in triCount > 1
+    if settings.hard
+        then False
+        else
+            let triCount =
+                    List.sum <| List.map
+                        ( List.sum << List.map
+                            (\p -> case p of
+                                Filled Full _ -> 0
+                                Empty -> 0
+                                Split _ _ _ -> 0
+                                _ -> 1
+                            )
+                        )
+                    piece.shape
+            in triCount > 1
 
 -- Generate a piece with the area of the argument. One area unit is the same as half a square.
 generatePieceWithArea : Settings -> Int -> Random.Generator Dropping
