@@ -44,15 +44,6 @@ updateSetting settings setting =
     case setting of
         Hard hard -> { settings | hard = hard }
 
-type Msg
-    = Update Time.Time
-    | Key Int
-    | SetDroppings (List Dropping)
-    | SetDropping Dropping
-    | Restart
-    | ChangingSettings
-    | SetSetting Setting
-
 init : (Model, Cmd Msg)
 init =
     { lastTime = Nothing
@@ -69,8 +60,18 @@ init =
         , score = 0
         , gameOver = False
         }
-    , changingSettings = False
+    , changingSettings = True
     } ! []
+
+
+type Msg
+    = Update Time.Time
+    | Key Int
+    | SetDroppings (List Dropping)
+    | SetDropping Dropping
+    | Restart
+    | SetSetting Setting
+    | Started
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -124,7 +125,7 @@ update msg model =
                     else model ! []
 
         Update time ->
-            if model.paused
+            if model.paused || model.changingSettings
                 then model ! []
                 else case model.lastTime of
                     Nothing -> { model | lastTime = Just time } ! []
@@ -142,7 +143,7 @@ update msg model =
 
         SetSetting setting -> { model | settings = updateSetting model.settings setting } ! []
 
-        ChangingSettings -> { model | changingSettings = not model.changingSettings } ! []
+        Started -> { model | changingSettings = False } ! []
 
 view : Model -> Html Msg
 view model =
@@ -153,13 +154,14 @@ view model =
 viewSettings : Model -> Html Msg
 viewSettings model =
     div [ id "gameS", align "center" ]
-        [ text "Hard"
+        [ text "Hard: "
         , input
             [ type_ "checkbox"
             , checked model.settings.hard
             , onClick (SetSetting <| Hard <| not model.settings.hard)
             ] []
-        , button [ onClick ChangingSettings ] [ text "Back" ]
+        , br [] []
+        , button [ onClick Started ] [ text "Start" ]
         ]
 
 viewTetris : Model -> Html Msg
@@ -229,8 +231,7 @@ viewTetris model =
                then [ text "||" ]
                else [ text "" ]
     , div [ id "buttons" ]
-        [ button [ onClick ChangingSettings ] [ text "Settings" ]
-        , button [ onClick Restart          ] [ text "Restart" ]
+        [ button [ onClick Restart ] [ text "Restart" ]
         ]
     ]
 

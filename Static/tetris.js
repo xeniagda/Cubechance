@@ -12530,10 +12530,10 @@ var _user$project$Main$TetrisState = F6(
 var _user$project$Main$Hard = function (a) {
 	return {ctor: 'Hard', _0: a};
 };
+var _user$project$Main$Started = {ctor: 'Started'};
 var _user$project$Main$SetSetting = function (a) {
 	return {ctor: 'SetSetting', _0: a};
 };
-var _user$project$Main$ChangingSettings = {ctor: 'ChangingSettings'};
 var _user$project$Main$viewSettings = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
@@ -12548,7 +12548,7 @@ var _user$project$Main$viewSettings = function (model) {
 		},
 		{
 			ctor: '::',
-			_0: _elm_lang$html$Html$text('Hard'),
+			_0: _elm_lang$html$Html$text('Hard: '),
 			_1: {
 				ctor: '::',
 				_0: A2(
@@ -12572,18 +12572,25 @@ var _user$project$Main$viewSettings = function (model) {
 				_1: {
 					ctor: '::',
 					_0: A2(
-						_elm_lang$html$Html$button,
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$ChangingSettings),
-							_1: {ctor: '[]'}
-						},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text('Back'),
-							_1: {ctor: '[]'}
-						}),
-					_1: {ctor: '[]'}
+						_elm_lang$html$Html$br,
+						{ctor: '[]'},
+						{ctor: '[]'}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$button,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Started),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Start'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}
 				}
 			}
 		});
@@ -12689,7 +12696,7 @@ var _user$project$Main$init = A2(
 			score: 0,
 			gameOver: false
 		},
-		changingSettings: false
+		changingSettings: true
 	},
 	{ctor: '[]'});
 var _user$project$Main$removeWholeLines = function (blocks) {
@@ -14052,30 +14059,15 @@ var _user$project$Main$viewTetris = function (model) {
 											_elm_lang$html$Html$button,
 											{
 												ctor: '::',
-												_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$ChangingSettings),
+												_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Restart),
 												_1: {ctor: '[]'}
 											},
 											{
 												ctor: '::',
-												_0: _elm_lang$html$Html$text('Settings'),
+												_0: _elm_lang$html$Html$text('Restart'),
 												_1: {ctor: '[]'}
 											}),
-										_1: {
-											ctor: '::',
-											_0: A2(
-												_elm_lang$html$Html$button,
-												{
-													ctor: '::',
-													_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Restart),
-													_1: {ctor: '[]'}
-												},
-												{
-													ctor: '::',
-													_0: _elm_lang$html$Html$text('Restart'),
-													_1: {ctor: '[]'}
-												}),
-											_1: {ctor: '[]'}
-										}
+										_1: {ctor: '[]'}
 									}),
 								_1: {ctor: '[]'}
 							}
@@ -14479,7 +14471,7 @@ var _user$project$Main$update = F2(
 				}
 			case 'Update':
 				var _p63 = _p56._0;
-				if (model.paused) {
+				if (model.paused || model.changingSettings) {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						model,
@@ -14526,7 +14518,7 @@ var _user$project$Main$update = F2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{changingSettings: !model.changingSettings}),
+						{changingSettings: false}),
 					{ctor: '[]'});
 		}
 	});
