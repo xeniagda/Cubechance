@@ -1,8 +1,9 @@
-#![feature(plugin, universal_impl_trait)]
+#![feature(plugin)]
 #![plugin(rocket_codegen)]
 
 extern crate rocket;
 extern crate serde_json;
+extern crate reqwest;
 
 #[cfg(test)]
 #[macro_use]
@@ -61,6 +62,29 @@ fn get_progress<'r>(state: State<MutWebState>) -> Option<Response<'r>> {
         WebState::Loading(prog, speed) => Some(make_html(format!("{} {}", prog, speed))),
         _ => Some(make_html("e0".into()))
     }
+}
+
+#[get("/gh/<gh_link>/<file..>", rank=0)]
+fn soviet<'r>(gh_link: String, file: PathBuf) -> Option<Response<'r>> {
+    println!("soviet");
+    let mut content =
+        reqwest::get(&format!(
+                "https://raw.githubusercontent.com/loovjo/{}/master/site/{}",
+                gh_link,
+                file.to_str()?)
+            ).ok()?;
+    println!("Made content");
+
+    let mut body = vec![];
+    // let body = Cursor::new(content.body_bytes().ok()?);
+    content.copy_to(&mut body).ok()?;
+    println!("Copied");
+
+    let mut resp = Response::new();
+    resp.set_status(Status::Ok);
+    resp.set_sized_body(Cursor::new(body));
+
+    Some(resp)
 }
 
 #[get("/<file..>", rank = 5)]
@@ -294,7 +318,7 @@ fn main() {
 
     rocket::ignite()
         .manage(state)
-        .mount("/", routes![get_progress, wca_id, wca_person, upcoming, comp, beating, place, index, index_])
+        .mount("/", routes![get_progress, wca_id, wca_person, upcoming, comp, beating, place, index, index_, soviet])
         .catch(errors![not_found])
         .launch();
 }
