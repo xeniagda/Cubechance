@@ -178,12 +178,7 @@ view model =
                         ]
                     ]
             Nothing -> div [] []
-        , p [] [ text "Other links: " ]
-        , ul []
-            [ li [] [ a [ href "tetris.html" ] [ text "Trekantris" ] ]
-            , li [] [ a [ href "gh/soviet-sim/index.html" ] [ text "☭☭☭ Soviet Simulator ☭☭☭" ] ]
-            , li [] [ a [ href "gh/tri-2048/index.html" ] [ text "Tri-2048" ] ]
-            ]
+        , a [href "rest.html"] [ text "Other things (links to random games etc.)" ]
         ]
 
 pageTitle : Model -> Html Msg
