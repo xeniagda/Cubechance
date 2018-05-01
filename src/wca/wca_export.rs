@@ -112,7 +112,6 @@ pub fn parse_wca_results<'a>(file: ZipFile, results: &mut WcaResults, cb: &impl 
 
     println!("Size hint: {:?}", lines.size_hint());
 
-    // let amount_of_competitors = lines.len();
 
     for line in lines {
         let line = line.unwrap();

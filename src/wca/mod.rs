@@ -28,6 +28,7 @@ pub enum Progress {
     LoadedCompetitor(usize, usize)
 }
 
+// A simple wrapper around a date in the UTC timezone
 #[derive(Debug, Clone)]
 pub struct DateW {
     date: Date<offset::Utc>
@@ -195,7 +196,6 @@ impl <'l> ExtendedPerson<'l> {
 }
 
 pub fn get_avg_stddev(times: &[Time]) -> Option<(f64, f64)> {
-    // println!("times: {:?}", times);
     let times_weight: Vec<(f64, f64)> = times.iter()
             .filter_map(|t| {
                 match t {
@@ -208,29 +208,23 @@ pub fn get_avg_stddev(times: &[Time]) -> Option<(f64, f64)> {
                 }
             })
             .collect();
-    // println!("times_weight: {:?}", times_weight);
     if times_weight.len() == 0 {
         return None;
     }
     let weighted_sum: f64 = times_weight.iter()
             .map(|t| t.0 * t.1)
             .sum();
-    // println!("weighted_sum: {}", weighted_sum);
     let total_weight: f64 = times_weight.iter()
             .map(|t| t.1)
             .sum();
-    // println!("total_weight: {}", total_weight);
     if total_weight == 0.0 {
         return None;
     }
     let avg = weighted_sum / total_weight;
-    // println!("avg: {}", avg);
 
     let weighted_stddev: f64 = times_weight.iter()
             .map(|t| (t.0 - avg) * (t.0 - avg) * t.1)
             .sum();
-
-    // println!("weighted_stddev: {}", weighted_stddev);
 
     Some((avg, f64::sqrt(weighted_stddev / total_weight) / 3.0))
 }
@@ -278,20 +272,6 @@ pub struct Competition {
     pub city: String,
 }
 
-// impl Serialize for Competition {
-//     fn serialize<S>(&self, ser: S) -> Result<S::Ok, S::Error>
-//         where S: Serializer
-//     {
-//         let mut s = ser.serialize_struct("Comp", 6)?;
-//         s.serialize_field("name", &self.name)?;
-//         s.serialize_field("id", &self.id)?;
-//         s.serialize_field("events", &self.events)?;
-//         s.serialize_field("people", &self.competitors)?;
-//         s.serialize_field("start", &*format!("{}", self.start))?;
-//         s.serialize_field("end", &*format!("{}", self.end))?;
-//         s.end()
-//     }
-// }
 
 #[derive(Serialize, Debug, Default)]
 pub struct Competitor {

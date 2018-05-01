@@ -38,6 +38,7 @@ type MutWebState = Arc<Mutex<WebState>>;
 
 const HTML_NOT_FOUND: &'static str = include_str!("not_found.html");
 
+// Converts a String into a Response
 fn make_html<'r>(content: String) -> Response<'r> {
     let mut resp = Response::new();
     resp.set_status(Status::Ok);
@@ -54,6 +55,7 @@ fn index_<'r>() -> Option<Response<'r>> {
     index(path)
 }
 
+// Gets the progress of loading the webstate
 #[get("/prog", rank=0)]
 fn get_progress<'r>(state: State<MutWebState>) -> Option<Response<'r>> {
     let state = state.lock().unwrap();
