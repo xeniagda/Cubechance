@@ -178,7 +178,7 @@ view model =
                         ]
                     ]
             Nothing -> div [] []
-        , a [href "rest.html"] [ text "Other things (links to random games etc.)" ]
+        -- , a [href "rest.html"] [ text "Other things (links to random games etc.)" ]
         ]
 
 pageTitle : Model -> Html Msg
