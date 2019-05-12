@@ -361,7 +361,7 @@ fn main() {
 
     let sys = actix_web::actix::System::new("cubechance");
 
-    let addr = format!("localhost:{}", port);
+    let addr = format!("0.0.0.0:{}", port);
 
     server::new(|| {
         App::new()
