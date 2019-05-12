@@ -25,6 +25,7 @@ use self::chrono::offset;
 pub enum Progress {
     LoadedZip,
     LoadedComp(usize, usize),
+    StartLoadCompetitor,
     LoadedCompetitor(usize, usize)
 }
 

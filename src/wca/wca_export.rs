@@ -22,7 +22,6 @@ use self::chrono::{Date, NaiveDate, offset};
 use super::*;
 
 const WCA_TSV_URL: &'static str = "https://www.worldcubeassociation.org/results/misc/WCA_export.tsv.zip";
-const WCA_RESULTS_AMOUNT_DEFAULT: usize = 1_600_000;
 
 // Two default comps when you compile with skip_comps
 #[cfg(any(skip_comps, test))]
@@ -31,7 +30,7 @@ const SKILLCON: &'static str = "Skillcon2017\tSkillcon 2017\tLas Vegas, Nevada\t
 const SSL: &'static str = "SSL2Stockholm2017	SSL 2 Stockholm 2017	Stockholm	Sweden	The competition is a part of the Swedish Speedcubing League 2017. This is the second out of four competitions, followed by a final competiton later this year. The entry fee is set to 150 SEK and must be payed in advance by swedish competitors. Foreigners may pay at the competition venue. A competitor limit has been set to 100 competitors due to venue constraints. More information and payment details can be found on the competition website.	2017	4	8	4	9	222 333 333bf 333fm 333mbf 333oh 444 444bf 555 555bf 666 777 pyram skewb	[{Kåre Krig}{mailto:karekrig@gmail.com}] [{Anders Berggren}{mailto:anders_berggren-sjoblom@hotmail.com}]	[{Daniel Wallin}{mailto:danne_wallain@live.se}] [{Timothy Edegran Gren}{mailto:timothy.edegran@edu.nacka.se}]	Nacka Gymnasium	Griffelvägen 17, 131 40, Nacka	The main hall will be the school dining hall of Nacka Gymnasium. Long events will be held in a side-room close to the ma	http://ssl-se.webnode.se/ssl-2-stockholm-2017/	SSL 2 Stockholm 2017	59310982	18150448";
 
 // Downloads and parses the current WCA results.
-pub fn download_wca<'a>(callback: impl Fn(Progress)) -> Result<WcaResults, WcaError> {
+pub fn download_wca<'a>(mut callback: impl FnMut(Progress)) -> Result<WcaResults, WcaError> {
     println!("Loading zip");
 
     let mut resp = reqwest::get(WCA_TSV_URL)?;
@@ -52,10 +51,10 @@ pub fn download_wca<'a>(callback: impl Fn(Progress)) -> Result<WcaResults, WcaEr
     parse_wca_countries(zip.by_name("WCA_export_Countries.tsv")?, &mut results)?;
 
     println!("Parsing comps...");
-    parse_wca_comps(zip.by_name("WCA_export_Competitions.tsv")?, &mut results, &callback)?;
+    parse_wca_comps(zip.by_name("WCA_export_Competitions.tsv")?, &mut results, &mut callback)?;
 
     println!("Parsing results...");
-    parse_wca_results(zip.by_name("WCA_export_Results.tsv")?, &mut results, &callback)?;
+    parse_wca_results(zip.by_name("WCA_export_Results.tsv")?, &mut results, &mut callback)?;
 
 
     println!("Done");
@@ -98,7 +97,10 @@ pub fn parse_wca_countries<'a>(file: ZipFile, results: &mut WcaResults) -> Resul
     Ok(())
 }
 
-pub fn parse_wca_results<'a>(file: ZipFile, results: &mut WcaResults, cb: &impl Fn(Progress)) -> Result<(), WcaError> {
+pub fn parse_wca_results<'a>(file: ZipFile, results: &mut WcaResults, cb: &mut impl FnMut(Progress)) -> Result<(), WcaError> {
+    cb(Progress::StartLoadCompetitor);
+
+    let size = file.size();
 
     let mut reader = BufReader::new(file);
 
@@ -112,9 +114,12 @@ pub fn parse_wca_results<'a>(file: ZipFile, results: &mut WcaResults, cb: &impl 
 
     println!("Size hint: {:?}", lines.size_hint());
 
+    let mut size_so_far = 0;
 
     for line in lines {
         let line = line.unwrap();
+
+        size_so_far += line.len();
 
         i += 1;
         if line == "" {
@@ -126,7 +131,10 @@ pub fn parse_wca_results<'a>(file: ZipFile, results: &mut WcaResults, cb: &impl 
         }
 
         if i % 1000 == 0 {
-            cb(Progress::LoadedCompetitor(i, WCA_RESULTS_AMOUNT_DEFAULT));
+            let avg_line_length = size_so_far as f64 / i as f64;
+            let tot_lines = (size as f64 / avg_line_length) as usize;
+
+            cb(Progress::LoadedCompetitor(i, tot_lines));
         }
 
         if let Err(e) = insert_result(&line, results) {
@@ -137,7 +145,7 @@ pub fn parse_wca_results<'a>(file: ZipFile, results: &mut WcaResults, cb: &impl 
     Ok(())
 }
 
-pub fn parse_wca_comps<'a>(file: ZipFile, results: &mut WcaResults, cb: &impl Fn(Progress)) -> Result<(), WcaError> {
+pub fn parse_wca_comps<'a>(file: ZipFile, results: &mut WcaResults, cb: &mut impl FnMut(Progress)) -> Result<(), WcaError> {
     let mut reader = BufReader::new(file);
 
     let mut _fl = String::new();
