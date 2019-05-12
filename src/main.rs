@@ -12,6 +12,7 @@ use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
+use std::env::args;
 
 use actix_web::{http::Method, server, App, HttpRequest, HttpResponse, Responder};
 use percent_encoding::percent_decode;
@@ -301,6 +302,8 @@ fn comp<'r>(req: &HttpRequest) -> Option<impl Responder> {
 // }
 
 fn main() {
+    let port = args().nth(1).unwrap_or("8080".into());
+
     let thread_state = STATE.clone();
     thread::spawn(move || {
         loop {
@@ -358,6 +361,8 @@ fn main() {
 
     let sys = actix_web::actix::System::new("cubechance");
 
+    let addr = format!("127.0.0.1:{}", port);
+
     server::new(|| {
         App::new()
             .resource("/prog", |r| r.method(Method::GET).f(get_progress))
@@ -379,9 +384,11 @@ fn main() {
             .resource("/", |r| r.method(Method::GET).f(index_slash))
             .resource("/{path:.+}", |r| r.method(Method::GET).f(index))
     })
-    .bind("127.0.0.1:8080")
+    .bind(&addr)
     .unwrap()
     .start();
+
+    println!("Started on {}", addr);
 
     sys.run();
 }
