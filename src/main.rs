@@ -3,20 +3,19 @@ extern crate serde_derive;
 #[macro_use]
 extern crate lazy_static;
 extern crate actix_web;
+extern crate fuzz_search;
 extern crate percent_encoding;
-extern crate unicode_normalization;
 
+use std::env::args;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
-use std::env::args;
 
 use actix_web::{http::Method, server, App, HttpRequest, HttpResponse, Responder};
 use percent_encoding::percent_decode;
-use unicode_normalization::UnicodeNormalization;
 
 mod wca;
 use wca::wca_export;
@@ -94,38 +93,6 @@ fn github(req: &HttpRequest) -> Option<impl Responder> {
     Some(HttpResponse::Ok().body(body))
 }
 
-fn lcs_len(a: &str, b: &str) -> usize {
-    let mut cache: Vec<Option<usize>> = vec![None; (a.len() + 1) * (b.len() + 1)];
-
-    let a = a.chars().collect::<Vec<char>>();
-    let b = b.chars().collect::<Vec<char>>();
-
-    fn pop_cache(cache: &mut Vec<Option<usize>>, a: &[char], b: &[char], i: usize, j: usize) {
-        if i >= a.len() || j >= b.len() {
-            return;
-        }
-
-        if cache[i * b.len() + j].is_some() {
-            return;
-        }
-
-        if a[i] == b[j] {
-            pop_cache(cache, a, b, i + 1, j + 1);
-            cache[i * b.len() + j] = Some(cache[(i + 1) * b.len() + j + 1].unwrap_or(0) + 1);
-        } else {
-            pop_cache(cache, a, b, i + 1, j);
-            pop_cache(cache, a, b, i, j + 1);
-
-            let x = cache[(i + 1) * b.len() + j].unwrap_or(0);
-            let y = cache[i * b.len() + j + 1].unwrap_or(0);
-            cache[i * b.len() + j] = Some(x.max(y));
-        }
-    }
-    pop_cache(&mut cache, &a, &b, 0, 0);
-
-    cache[0].unwrap()
-}
-
 fn wca_person<'r>(req: &HttpRequest) -> Option<impl Responder> {
     let name = req.match_info().get("name")?;
     let name = percent_decode(name.as_bytes())
@@ -153,35 +120,18 @@ fn wca_person<'r>(req: &HttpRequest) -> Option<impl Responder> {
             //
             println!("Searching for {:?}", name);
 
-            let mut people_vec = wca
-                .people
-                .iter()
-                .map(|(id, p)| {
-                    (
-                        id,
-                        p,
-                        lcs_len(
-                            &p.name.nfd().collect::<String>().to_lowercase(),
-                            &name.nfd().collect::<String>().to_lowercase(),
-                        ),
-                    )
-                })
-                .filter(|(_, _, lcs)| lcs * 10 > name.len() * 9)
-                .collect::<Vec<(_, _, _)>>();
+            let people_vec = wca.people.iter().collect::<Vec<(_, _)>>();
 
             println!("{:?} people", people_vec.len());
 
-            people_vec.sort_by_key(|&(_, p, lcs_len)| {
-                -((lcs_len * 1000 / p.name.len()) as isize)
-            });
-
-            let best: Vec<_> = people_vec
-                .into_iter()
-                .filter_map(|(id, _, _)| wca.ext_person(&id))
-                .take(21)
-                .collect();
-
-            println!("Done: {:?}", best);
+            let best: Vec<_> = fuzz_search::best_matches_scores_key(
+                &name,
+                people_vec,
+                |(_id, p)| p.name.clone(),
+                20,
+            )
+            .map(|x| x.0)
+            .collect();
 
             match serde_json::to_string(&best) {
                 Ok(json) => Some(HttpResponse::Ok().body(json)),
@@ -302,7 +252,11 @@ fn comp<'r>(req: &HttpRequest) -> Option<impl Responder> {
 // }
 
 fn main() {
-    let port = args().nth(1).unwrap_or("8080".into()).parse().expect("PORT must be a number");
+    let port = args()
+        .nth(1)
+        .unwrap_or("8080".into())
+        .parse()
+        .expect("PORT must be a number");
 
     let thread_state = STATE.clone();
     thread::spawn(move || {

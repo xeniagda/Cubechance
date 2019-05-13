@@ -16,6 +16,8 @@ rand = "0.5"
 rayon = "1.0"
 percent-encoding = "1.0"
 unicode-normalization = "0.1"
+levenshtein = "1.0"
+fuzz-search = "0.1"
 
 base64 = "0.10"
 
