@@ -302,7 +302,7 @@ fn comp<'r>(req: &HttpRequest) -> Option<impl Responder> {
 // }
 
 fn main() {
-    let port = args().nth(1).unwrap_or("8080".into());
+    let port = args().nth(1).unwrap_or("8080".into()).parse().expect("PORT must be a number");
 
     let thread_state = STATE.clone();
     thread::spawn(move || {
@@ -361,8 +361,6 @@ fn main() {
 
     let sys = actix_web::actix::System::new("cubechance");
 
-    let addr = format!("0.0.0.0:{}", port);
-
     server::new(|| {
         App::new()
             .resource("/prog", |r| r.method(Method::GET).f(get_progress))
@@ -384,11 +382,11 @@ fn main() {
             .resource("/", |r| r.method(Method::GET).f(index_slash))
             .resource("/{path:.+}", |r| r.method(Method::GET).f(index))
     })
-    .bind(&addr)
+    .bind(("0.0.0.0", port))
     .unwrap()
     .start();
 
-    println!("Started on {}", addr);
+    println!("Started on {:?}", ("0.0.0.0", port));
 
     sys.run();
 }
