@@ -133,6 +133,11 @@ fn wca_person<'r>(req: &HttpRequest) -> Option<impl Responder> {
             .map(|x| x.0)
             .collect();
 
+            let best: Vec<_> = best
+                .into_iter()
+                .map(|(id, _)| wca.ext_person(&id))
+                .collect();
+
             match serde_json::to_string(&best) {
                 Ok(json) => Some(HttpResponse::Ok().body(json)),
                 _ => None,
