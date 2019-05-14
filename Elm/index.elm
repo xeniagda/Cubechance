@@ -85,7 +85,7 @@ update msg model =
 
         ParseUpcoming (Ok text) ->
             if text == "e0"
-                then update LoadProgress model
+                then model ! []
                 else case D.decodeString (D.list Base.decodeComp) text of
                     Ok comps ->
                         { model
@@ -112,7 +112,7 @@ update msg model =
                 _ -> model ! []
 
         UpdateProgress current ->
-            case (model.lastTime, model.serverLoading) of
+            case Debug.log "xyz" <| (model.lastTime, model.serverLoading) of
                 (Just lastTime, Just (prog, progSpeed)) ->
                     let diff_s = (current - lastTime) / Time.second
                     in  { model
@@ -259,5 +259,6 @@ wcaDisc =
 subs model =
     Sub.batch
     [ Time.every (Time.second * 2) <| always LoadUpcoming
+    , Time.every (Time.second / 2) <| always LoadProgress
     , Time.every (Time.second / 10) <| UpdateProgress
     ]

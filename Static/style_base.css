@@ -50,6 +50,7 @@ th, h1 {
 
 #loadingcircle {
     margin: auto;
+    margin-top: 30px !important;
     border-radius : 30%;
     border-top    : 4px solid #00FFFF;
     border-right  : 4px solid #FF0000;
