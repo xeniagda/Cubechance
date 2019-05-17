@@ -413,7 +413,7 @@ updateTetris settings delta state =
                             } ! []
                         else
                             let (newLines, amount) =
-                                    removeWholeLines
+                                    removeWholeLines settings
                                     <| Maybe.withDefault state.blocks
                                     <| place state.blocks dropping
                             in
@@ -423,12 +423,27 @@ updateTetris settings delta state =
                                 , score = state.score + 100 * 2 ^ amount * amount + 5
                                 } ! []
 
-removeWholeLines : Blocks -> (Blocks, Int)
-removeWholeLines blocks =
+shouldRemove : Settings -> List BlockState -> Bool
+shouldRemove settings line =
+    let nrTrisFilled =
+            List.sum <|
+                List.map
+                    (\x ->
+                    case x of
+                        Filled Full _ -> 2
+                        Filled _ _ -> 1
+                        Split _ _ _ -> 2
+                        _ -> 0
+                ) line
+    in if settings.hard
+        then nrTrisFilled == 2 * List.length line
+        else nrTrisFilled >= 2 * List.length line - 1
+
+removeWholeLines : Settings -> Blocks -> (Blocks, Int)
+removeWholeLines settings blocks =
     let removed =
             List.filter
-                ( List.any
-                    <| not << isFilled
+                ( not << shouldRemove settings
                 ) blocks
         removedAmount = List.length blocks - List.length removed
         newLines =
