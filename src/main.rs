@@ -3,24 +3,28 @@ extern crate serde_derive;
 #[macro_use]
 extern crate lazy_static;
 extern crate actix_web;
+extern crate chrono;
 extern crate fuzz_search;
 extern crate percent_encoding;
 
+use chrono::Local;
 use std::env::args;
-use std::fs::File;
-use std::io::Read;
+use std::fs::{File, OpenOptions};
+use std::io::{Read, Write};
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
 use actix_web::{http::Method, server, App, HttpRequest, HttpResponse, Responder};
+
 use percent_encoding::percent_decode;
 
 mod wca;
 use wca::wca_export;
 
 const COMP_SPEED_MUL: f64 = 0.7376;
+const TRAFIC_FILE: &str = "trafic.txt";
 
 lazy_static! {
     // Setup WCA reading in background
@@ -38,8 +42,41 @@ type MutWebState = Arc<Mutex<WebState>>;
 
 const HTML_NOT_FOUND: &'static str = include_str!("not_found.html");
 
+fn get_trafic_file() -> Result<File, std::io::Error> {
+    let path = Path::new(TRAFIC_FILE);
+
+    OpenOptions::new()
+        .create(true)
+        .read(false)
+        .write(true)
+        .append(true)
+        .truncate(false)
+        .open(path)
+}
+
+fn write_log(text: &str, req: Option<&HttpRequest>) -> Result<(), std::io::Error> {
+    let mut tr = get_trafic_file()?;
+    let date = Local::now();
+    let to_write = format!(
+        "{}{} - {}\n",
+        date.format("%F %T"), // TODO: Fix
+        req.and_then(|x| x.connection_info().remote().map(|x| format!(" ({})", x)))
+            .unwrap_or("".to_string()),
+        text
+    );
+
+    tr.write(to_write.as_bytes())?;
+    Ok(())
+}
+
 fn index(req: &HttpRequest) -> impl Responder {
     let path = req.match_info().get("path").unwrap();
+
+    if path.ends_with(".html") {
+        // Write to trafic file
+        write_log(&format!("Accessing {}", path), Some(req))?;
+    }
+
     read_file(Path::new(path))
 }
 
@@ -63,7 +100,8 @@ fn read_file(path: &Path) -> Result<impl Responder, std::io::Error> {
     }
 }
 
-fn index_slash(_: &HttpRequest) -> impl Responder {
+fn index_slash(req: &HttpRequest) -> impl Responder {
+    write_log("Accessing /", Some(req))?;
     read_file(Path::new("index.html"))
 }
 
