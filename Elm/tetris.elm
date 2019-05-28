@@ -14,6 +14,7 @@ import Random.List as Rl
 import Base
 
 dropScore = 5
+hashPrimeMod = 80953
 
 main =
     program
@@ -34,6 +35,7 @@ type alias Model =
 type alias Settings =
     { scale : Int
     , hard : Bool
+    , pieceSize : Int
     }
 
 type Setting =
@@ -51,6 +53,7 @@ init =
     , settings =
         { scale = 20
         , hard = False
+        , pieceSize = 7
         }
     , tetrisState =
         { blocks = defaultTetris
@@ -195,7 +198,7 @@ viewTetris model =
     , div [ id "nexts" ]
         <| List.map
             (\piece ->
-                div [ class "next" ]
+            div [ class "next" ]
                 [ S.svg
                     [ Sa.height <| toString <| model.settings.scale * List.length piece.shape
                     , Sa.width <| toString <| model.settings.scale * width piece.shape
@@ -269,6 +272,7 @@ type Color
     | LBlue
     | Orange
     | Purple
+    | RGB (Int, Int, Int)
 
 cols = [Red, Blue, Green, White, LBlue, Orange, Purple]
 
@@ -284,6 +288,7 @@ colStr blend c =
                 LBlue ->  (0,   255, 255)
                 Orange -> (255, 120, 0)
                 Purple -> (255, 0,   255)
+                RGB x ->  x
         (r_, g_, b_) =
             case blend of
                 Just (br, bg, bb) -> ((r + br) // 2, (g + bg) // 2, (b + bb) // 2)
@@ -307,6 +312,40 @@ type alias TetrisState =
     , gameOver : Bool
     }
 
+flatten : List (List a) -> List a
+flatten x =
+    case x of
+        [] -> []
+        (a::b) -> a ++ flatten b
+
+hashPieceRaw : Blocks -> Int
+hashPieceRaw blocks =
+    let lst = flatten blocks
+        h = List.foldr (\blk prev ->
+                let cur =
+                        case blk of
+                            Empty -> 0
+                            Filled DownLeft _ -> 1
+                            Filled DownRight _ -> 2
+                            Filled UpLeft _ -> 3
+                            Filled UpRight _ -> 4
+                            Filled Full _ -> 5
+                            Split _ _ _ -> 0
+                in (cur + prev * 6) % hashPrimeMod
+            ) 0 lst
+    in h * 16 + List.length blocks
+
+hashPiece : Blocks -> Int
+hashPiece b =
+    let d0 = { x = 0, y = 0, shape = b }
+        h0 = hashPieceRaw d0.shape
+        d1 = rotate d0
+        h1 = hashPieceRaw d1.shape
+        d2 = rotate d1
+        h2 = hashPieceRaw d2.shape
+        d3 = rotate d2
+        h3 = hashPieceRaw d3.shape
+    in Basics.min h0 <| Basics.min h1 <| Basics.min h2 h3
 
 width : List (List a) -> Int
 width x = List.length <| Maybe.withDefault [] <| List.head x
@@ -783,14 +822,13 @@ nextsGenerator settings state =
         Rl.shuffle
         <| Re.combine
         <| List.map
-            (always <| Random.andThen (setProps state) <| generatePieceWithArea settings 7)
+            (always <| Random.andThen (setProps state) <|
+                generatePieceWithArea settings settings.pieceSize)
             (List.range 0 5)
 
 randCol : Blocks -> Random.Generator Blocks
 randCol shape =
-    let col =
-            Random.map (Maybe.withDefault Purple)
-                <| Re.sample cols
+    let col = rConst <| hash2RGB <| hashPiece shape
     in Random.map
             (\col ->
                 List.map
@@ -839,20 +877,30 @@ droppingGenerator state block =
 
 rConst x = Random.map (always x) Random.bool
 
+fracpart : Float -> Float
+fracpart x = x - toFloat (floor x)
 
-pieces =
-    [ -- O
-        [ [ Filled Full Red, Filled Full Red ], [ Filled Full Red, Filled Full Red ] ]
-    , -- I
-        [ [ Filled Full Blue, Filled Full Blue, Filled Full Blue, Filled Full Blue ] ]
-    , -- T
-        [ [ Empty, Filled Full Green, Empty ], [ Filled Full Green, Filled Full Green, Filled Full Green ] ]
-    , -- S
-        [ [ Empty, Filled Full LBlue, Filled Full LBlue ], [ Filled Full LBlue, Filled Full LBlue, Empty ] ]
-    , -- Z
-        [ [ Filled Full Orange, Filled Full Orange, Empty ], [ Empty, Filled Full Orange, Filled Full Orange ]]
-    , -- J
-        [ [ Filled Full White, Empty, Empty ], [ Filled Full White, Filled Full White, Filled Full White ] ]
-    , -- L
-        [ [ Filled Full Yellow, Filled Full Yellow, Filled Full Yellow ], [ Filled Full Yellow, Empty, Empty ] ]
-    ]
+mod3 : Float -> Float
+mod3 x = 3 * fracpart (x / 3)
+
+cCurv : Float -> Float
+cCurv x =
+    let y = mod3 (x * 3)
+    in Basics.min y (Basics.min 1 (3 - y))
+
+hue2RGB : Float -> (Float, Float, Float)
+hue2RGB x =
+    let a = x / 3
+    in
+        ( cCurv <| x
+        , cCurv <| x + 1 / 3
+        , cCurv <| x + 2 / 3
+        )
+
+hash2RGB : Int -> Color
+hash2RGB hash =
+    let hue = toFloat hash / hashPrimeMod
+        sat = (mod3 (toFloat hash) + 1) / 3
+        (r, g, b) = hue2RGB hue
+        (r_, g_, b_) = (r * sat + (1 - sat), g * sat + (1 - sat), b * sat + (1 - sat))
+    in RGB (floor (255 * r_), floor (255 * g_), floor (255 * b_))
