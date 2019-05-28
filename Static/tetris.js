@@ -12362,7 +12362,7 @@ var _user$project$Main$isDifficult = F2(
 								_p0));
 					},
 					piece.shape));
-			return _elm_lang$core$Native_Utils.cmp(triCount, 1) > 0;
+			return _elm_lang$core$Native_Utils.cmp(triCount, 2) > 0;
 		}
 	});
 var _user$project$Main$shouldRemove = F2(
@@ -12693,19 +12693,26 @@ var _user$project$Main$viewSettings = function (model) {
 									_1: {
 										ctor: '::',
 										_0: _elm_lang$html$Html_Attributes$value(
-											_elm_lang$core$Basics$toString(model.settings.pieceSize)),
+											(_elm_lang$core$Native_Utils.cmp(model.settings.pieceSize, 0) > 0) ? _elm_lang$core$Basics$toString(model.settings.pieceSize) : ''),
 										_1: {
 											ctor: '::',
 											_0: _elm_lang$html$Html_Events$onInput(
 												function (st) {
-													var _p17 = _elm_lang$core$String$toInt(st);
-													if (_p17.ctor === 'Ok') {
+													if (_elm_lang$core$Native_Utils.eq(st, '')) {
 														return _user$project$Main$SetSettings(
 															_elm_lang$core$Native_Utils.update(
 																set,
-																{pieceSize: _p17._0}));
+																{pieceSize: 0}));
 													} else {
-														return _user$project$Main$SetSettings(model.settings);
+														var _p17 = _elm_lang$core$String$toInt(st);
+														if (_p17.ctor === 'Ok') {
+															return _user$project$Main$SetSettings(
+																_elm_lang$core$Native_Utils.update(
+																	set,
+																	{pieceSize: _p17._0}));
+														} else {
+															return _user$project$Main$SetSettings(model.settings);
+														}
 													}
 												}),
 											_1: {ctor: '[]'}
@@ -14475,11 +14482,14 @@ var _user$project$Main$update = F2(
 						{settings: _p61._0}),
 					{ctor: '[]'});
 			default:
-				return A2(
+				return (_elm_lang$core$Native_Utils.cmp(model.settings.pieceSize, 0) > 0) ? A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
 						{changingSettings: false}),
+					{ctor: '[]'}) : A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					model,
 					{ctor: '[]'});
 		}
 	});

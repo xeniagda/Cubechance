@@ -138,7 +138,10 @@ update msg model =
 
         SetSettings s -> { model | settings = s } ! []
 
-        Started -> { model | changingSettings = False } ! []
+        Started ->
+            if model.settings.pieceSize > 0
+            then { model | changingSettings = False } ! []
+            else model ! []
 
 view : Model -> Html Msg
 view model =
@@ -160,10 +163,13 @@ viewSettings model =
         , text "Number of triangles per piece: "
         , input
             [ type_ "number"
-            , value <| toString model.settings.pieceSize
+            , value <| if model.settings.pieceSize > 0
+                then toString model.settings.pieceSize
+                else ""
             , onInput
                 (\st ->
-                    case String.toInt st of
+                    if st == "" then SetSettings { set | pieceSize = 0 }
+                    else case String.toInt st of
                         Ok x -> SetSettings { set | pieceSize = x }
                         _ -> SetSettings model.settings
                 )
@@ -705,7 +711,7 @@ isDifficult settings piece =
                             )
                         )
                     piece.shape
-            in triCount > 1
+            in triCount > 2
 
 -- Generate a piece with the area of the argument. One area unit is the same as half a square.
 generatePieceWithArea : Settings -> Int -> Random.Generator Dropping
