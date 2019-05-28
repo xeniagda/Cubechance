@@ -15,6 +15,7 @@ import Base
 
 dropScore = 5
 hashPrimeMod = 80953
+dims = (10, 32) -- width, height
 
 main =
     program
@@ -409,8 +410,8 @@ mmap f m =
 infixr 9 <||
 
 defaultTetris =
-    List.repeat 32 <|
-    List.repeat 10 Empty
+    List.repeat (Tuple.second dims) <|
+    List.repeat (Tuple.first dims) Empty
 
 holdPiece : Int -> TetrisState -> (TetrisState, Cmd Msg)
 holdPiece idx state =
@@ -695,23 +696,27 @@ renderBlock settings blend yp xp blk =
                     ] []
                 ]
 
-isDifficult : Settings -> Dropping -> Bool
-isDifficult settings piece =
-    if settings.hard
-        then False
-        else
-            let triCount =
-                    List.sum <| List.map
-                        ( List.sum << List.map
-                            (\p -> case p of
-                                Filled Full _ -> 0
-                                Empty -> 0
-                                Split _ _ _ -> 0
-                                _ -> 1
+isBad : Settings -> Dropping -> Bool
+isBad settings piece =
+    let w = width piece.shape
+        h = List.length piece.shape
+    in if w > Tuple.first dims || h > Tuple.second dims
+        then True
+        else if settings.hard
+            then False
+            else
+                let triCount =
+                        List.sum <| List.map
+                            ( List.sum << List.map
+                                (\p -> case p of
+                                    Filled Full _ -> 0
+                                    Empty -> 0
+                                    Split _ _ _ -> 0
+                                    _ -> 1
+                                )
                             )
-                        )
-                    piece.shape
-            in triCount > 2
+                        piece.shape
+                in triCount > 2
 
 -- Generate a piece with the area of the argument. One area unit is the same as half a square.
 generatePieceWithArea : Settings -> Int -> Random.Generator Dropping
@@ -719,7 +724,7 @@ generatePieceWithArea settings area =
     Random.andThen randomRot
     <| Random.andThen
         (\piece ->
-            if isDifficult settings piece
+            if isBad settings piece
                then generatePieceWithArea settings area
                else rConst piece
         )

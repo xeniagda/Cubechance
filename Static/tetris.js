@@ -12332,49 +12332,16 @@ var _user$project$Main$rConst = function (x) {
 		_elm_lang$core$Basics$always(x),
 		_elm_lang$core$Random$bool);
 };
-var _user$project$Main$isDifficult = F2(
-	function (settings, piece) {
-		if (settings.hard) {
-			return false;
-		} else {
-			var triCount = _elm_lang$core$List$sum(
-				A2(
-					_elm_lang$core$List$map,
-					function (_p0) {
-						return _elm_lang$core$List$sum(
-							A2(
-								_elm_lang$core$List$map,
-								function (p) {
-									var _p1 = p;
-									switch (_p1.ctor) {
-										case 'Filled':
-											if (_p1._0.ctor === 'Full') {
-												return 0;
-											} else {
-												return 1;
-											}
-										case 'Empty':
-											return 0;
-										default:
-											return 0;
-									}
-								},
-								_p0));
-					},
-					piece.shape));
-			return _elm_lang$core$Native_Utils.cmp(triCount, 2) > 0;
-		}
-	});
 var _user$project$Main$shouldRemove = F2(
 	function (settings, line) {
 		var nrTrisFilled = _elm_lang$core$List$sum(
 			A2(
 				_elm_lang$core$List$map,
 				function (x) {
-					var _p2 = x;
-					switch (_p2.ctor) {
+					var _p0 = x;
+					switch (_p0.ctor) {
 						case 'Filled':
-							if (_p2._0.ctor === 'Full') {
+							if (_p0._0.ctor === 'Full') {
 								return 2;
 							} else {
 								return 1;
@@ -12395,36 +12362,36 @@ var _user$project$Main$shouldRemove = F2(
 var _user$project$Main_ops = _user$project$Main_ops || {};
 _user$project$Main_ops['<||'] = F2(
 	function (f, m) {
-		var _p3 = m;
-		if (_p3.ctor === 'Nothing') {
+		var _p1 = m;
+		if (_p1.ctor === 'Nothing') {
 			return _elm_lang$core$Maybe$Nothing;
 		} else {
-			return f(_p3._0);
+			return f(_p1._0);
 		}
 	});
 var _user$project$Main$mmap = F2(
 	function (f, m) {
-		var _p4 = m;
-		if (_p4.ctor === 'Nothing') {
+		var _p2 = m;
+		if (_p2.ctor === 'Nothing') {
 			return _elm_lang$core$Maybe$Nothing;
 		} else {
 			return _elm_lang$core$Maybe$Just(
-				f(_p4._0));
+				f(_p2._0));
 		}
 	});
 var _user$project$Main$setAt = F3(
 	function (l, i, a) {
-		var _p5 = {ctor: '_Tuple3', _0: l, _1: i, _2: a};
-		if (_p5._0.ctor === '[]') {
+		var _p3 = {ctor: '_Tuple3', _0: l, _1: i, _2: a};
+		if (_p3._0.ctor === '[]') {
 			return {ctor: '[]'};
 		} else {
-			if (_p5._1 === 0) {
-				return {ctor: '::', _0: a, _1: _p5._0._1};
+			if (_p3._1 === 0) {
+				return {ctor: '::', _0: a, _1: _p3._0._1};
 			} else {
 				return {
 					ctor: '::',
-					_0: _p5._0._0,
-					_1: A3(_user$project$Main$setAt, _p5._0._1, i - 1, a)
+					_0: _p3._0._0,
+					_1: A3(_user$project$Main$setAt, _p3._0._1, i - 1, a)
 				};
 			}
 		}
@@ -12433,17 +12400,17 @@ var _user$project$Main$getAt = F2(
 	function (n, l) {
 		getAt:
 		while (true) {
-			var _p6 = {ctor: '_Tuple2', _0: l, _1: n};
-			if (_p6._0.ctor === '[]') {
+			var _p4 = {ctor: '_Tuple2', _0: l, _1: n};
+			if (_p4._0.ctor === '[]') {
 				return _elm_lang$core$Maybe$Nothing;
 			} else {
-				if (_p6._1 === 0) {
-					return _elm_lang$core$Maybe$Just(_p6._0._0);
+				if (_p4._1 === 0) {
+					return _elm_lang$core$Maybe$Just(_p4._0._0);
 				} else {
-					var _v6 = n - 1,
-						_v7 = _p6._0._1;
-					n = _v6;
-					l = _v7;
+					var _v5 = n - 1,
+						_v6 = _p4._0._1;
+					n = _v5;
+					l = _v6;
 					continue getAt;
 				}
 			}
@@ -12451,13 +12418,13 @@ var _user$project$Main$getAt = F2(
 	});
 var _user$project$Main$setBlock = F4(
 	function (y, x, block, blocks) {
-		var _p7 = A2(_user$project$Main$getAt, y, blocks);
-		if (_p7.ctor === 'Nothing') {
+		var _p5 = A2(_user$project$Main$getAt, y, blocks);
+		if (_p5.ctor === 'Nothing') {
 			return _elm_lang$core$Maybe$Nothing;
 		} else {
-			var _p9 = _p7._0;
-			var _p8 = A2(_user$project$Main$getAt, x, _p9);
-			if (_p8.ctor === 'Nothing') {
+			var _p7 = _p5._0;
+			var _p6 = A2(_user$project$Main$getAt, x, _p7);
+			if (_p6.ctor === 'Nothing') {
 				return _elm_lang$core$Maybe$Nothing;
 			} else {
 				return _elm_lang$core$Maybe$Just(
@@ -12465,7 +12432,7 @@ var _user$project$Main$setBlock = F4(
 						_user$project$Main$setAt,
 						blocks,
 						y,
-						A3(_user$project$Main$setAt, _p9, x, block)));
+						A3(_user$project$Main$setAt, _p7, x, block)));
 			}
 		}
 	});
@@ -12492,21 +12459,21 @@ var _user$project$Main$setPos = F2(
 			x);
 	});
 var _user$project$Main$flatten = function (x) {
-	var _p10 = x;
-	if (_p10.ctor === '[]') {
+	var _p8 = x;
+	if (_p8.ctor === '[]') {
 		return {ctor: '[]'};
 	} else {
 		return A2(
 			_elm_lang$core$Basics_ops['++'],
-			_p10._0,
-			_user$project$Main$flatten(_p10._1));
+			_p8._0,
+			_user$project$Main$flatten(_p8._1));
 	}
 };
 var _user$project$Main$colStr = F2(
 	function (blend, c) {
-		var _p11 = function () {
-			var _p12 = c;
-			switch (_p12.ctor) {
+		var _p9 = function () {
+			var _p10 = c;
+			switch (_p10.ctor) {
 				case 'Red':
 					return {ctor: '_Tuple3', _0: 255, _1: 0, _2: 0};
 				case 'Blue':
@@ -12524,23 +12491,23 @@ var _user$project$Main$colStr = F2(
 				case 'Purple':
 					return {ctor: '_Tuple3', _0: 255, _1: 0, _2: 255};
 				default:
-					return _p12._0;
+					return _p10._0;
 			}
 		}();
-		var r = _p11._0;
-		var g = _p11._1;
-		var b = _p11._2;
-		var _p13 = function () {
-			var _p14 = blend;
-			if (_p14.ctor === 'Just') {
-				return {ctor: '_Tuple3', _0: ((r + _p14._0._0) / 2) | 0, _1: ((g + _p14._0._1) / 2) | 0, _2: ((b + _p14._0._2) / 2) | 0};
+		var r = _p9._0;
+		var g = _p9._1;
+		var b = _p9._2;
+		var _p11 = function () {
+			var _p12 = blend;
+			if (_p12.ctor === 'Just') {
+				return {ctor: '_Tuple3', _0: ((r + _p12._0._0) / 2) | 0, _1: ((g + _p12._0._1) / 2) | 0, _2: ((b + _p12._0._2) / 2) | 0};
 			} else {
 				return {ctor: '_Tuple3', _0: r, _1: g, _2: b};
 			}
 		}();
-		var r_ = _p13._0;
-		var g_ = _p13._1;
-		var b_ = _p13._2;
+		var r_ = _p11._0;
+		var g_ = _p11._1;
+		var b_ = _p11._2;
 		return A2(
 			_elm_lang$core$Basics_ops['++'],
 			'rgb(',
@@ -12562,24 +12529,68 @@ var _user$project$Main$colStr = F2(
 								')'))))));
 	});
 var _user$project$Main$isFilled = function (b) {
-	var _p15 = b;
-	_v13_2:
+	var _p13 = b;
+	_v12_2:
 	do {
-		switch (_p15.ctor) {
+		switch (_p13.ctor) {
 			case 'Filled':
-				if (_p15._0.ctor === 'Full') {
+				if (_p13._0.ctor === 'Full') {
 					return true;
 				} else {
-					break _v13_2;
+					break _v12_2;
 				}
 			case 'Split':
 				return true;
 			default:
-				break _v13_2;
+				break _v12_2;
 		}
 	} while(false);
 	return false;
 };
+var _user$project$Main$dims = {ctor: '_Tuple2', _0: 10, _1: 32};
+var _user$project$Main$isBad = F2(
+	function (settings, piece) {
+		var h = _elm_lang$core$List$length(piece.shape);
+		var w = _user$project$Main$width(piece.shape);
+		if ((_elm_lang$core$Native_Utils.cmp(
+			w,
+			_elm_lang$core$Tuple$first(_user$project$Main$dims)) > 0) || (_elm_lang$core$Native_Utils.cmp(
+			h,
+			_elm_lang$core$Tuple$second(_user$project$Main$dims)) > 0)) {
+			return true;
+		} else {
+			if (settings.hard) {
+				return false;
+			} else {
+				var triCount = _elm_lang$core$List$sum(
+					A2(
+						_elm_lang$core$List$map,
+						function (_p14) {
+							return _elm_lang$core$List$sum(
+								A2(
+									_elm_lang$core$List$map,
+									function (p) {
+										var _p15 = p;
+										switch (_p15.ctor) {
+											case 'Filled':
+												if (_p15._0.ctor === 'Full') {
+													return 0;
+												} else {
+													return 1;
+												}
+											case 'Empty':
+												return 0;
+											default:
+												return 0;
+										}
+									},
+									_p14));
+						},
+						piece.shape));
+				return _elm_lang$core$Native_Utils.cmp(triCount, 2) > 0;
+			}
+		}
+	});
 var _user$project$Main$hashPrimeMod = 80953;
 var _user$project$Main$hashPieceRaw = function (blocks) {
 	var lst = _user$project$Main$flatten(blocks);
@@ -12834,8 +12845,11 @@ var _user$project$Main$Filled = F2(
 var _user$project$Main$Empty = {ctor: 'Empty'};
 var _user$project$Main$defaultTetris = A2(
 	_elm_lang$core$List$repeat,
-	32,
-	A2(_elm_lang$core$List$repeat, 10, _user$project$Main$Empty));
+	_elm_lang$core$Tuple$second(_user$project$Main$dims),
+	A2(
+		_elm_lang$core$List$repeat,
+		_elm_lang$core$Tuple$first(_user$project$Main$dims),
+		_user$project$Main$Empty));
 var _user$project$Main$init = A2(
 	_elm_lang$core$Platform_Cmd_ops['!'],
 	{
@@ -13740,7 +13754,7 @@ var _user$project$Main$generatePieceWithArea = F2(
 			A2(
 				_elm_lang$core$Random$andThen,
 				function (piece) {
-					return A2(_user$project$Main$isDifficult, settings, piece) ? A2(_user$project$Main$generatePieceWithArea, settings, area) : _user$project$Main$rConst(piece);
+					return A2(_user$project$Main$isBad, settings, piece) ? A2(_user$project$Main$generatePieceWithArea, settings, area) : _user$project$Main$rConst(piece);
 				},
 				function () {
 					var _p48 = area;
