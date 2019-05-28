@@ -12580,13 +12580,6 @@ var _user$project$Main$isFilled = function (b) {
 	} while(false);
 	return false;
 };
-var _user$project$Main$updateSetting = F2(
-	function (settings, setting) {
-		var _p16 = setting;
-		return _elm_lang$core$Native_Utils.update(
-			settings,
-			{hard: _p16._0});
-	});
 var _user$project$Main$hashPrimeMod = 80953;
 var _user$project$Main$hashPieceRaw = function (blocks) {
 	var lst = _user$project$Main$flatten(blocks);
@@ -12595,12 +12588,12 @@ var _user$project$Main$hashPieceRaw = function (blocks) {
 		F2(
 			function (blk, prev) {
 				var cur = function () {
-					var _p17 = blk;
-					switch (_p17.ctor) {
+					var _p16 = blk;
+					switch (_p16.ctor) {
 						case 'Empty':
 							return 0;
 						case 'Filled':
-							switch (_p17._0.ctor) {
+							switch (_p16._0.ctor) {
 								case 'DownLeft':
 									return 1;
 								case 'DownRight':
@@ -12639,14 +12632,12 @@ var _user$project$Main$TetrisState = F6(
 	function (a, b, c, d, e, f) {
 		return {blocks: a, dropping: b, nexts: c, hold: d, score: e, gameOver: f};
 	});
-var _user$project$Main$Hard = function (a) {
-	return {ctor: 'Hard', _0: a};
-};
 var _user$project$Main$Started = {ctor: 'Started'};
-var _user$project$Main$SetSetting = function (a) {
-	return {ctor: 'SetSetting', _0: a};
+var _user$project$Main$SetSettings = function (a) {
+	return {ctor: 'SetSettings', _0: a};
 };
 var _user$project$Main$viewSettings = function (model) {
+	var set = model.settings;
 	return A2(
 		_elm_lang$html$Html$div,
 		{
@@ -12674,8 +12665,10 @@ var _user$project$Main$viewSettings = function (model) {
 							_1: {
 								ctor: '::',
 								_0: _elm_lang$html$Html_Events$onClick(
-									_user$project$Main$SetSetting(
-										_user$project$Main$Hard(!model.settings.hard))),
+									_user$project$Main$SetSettings(
+										_elm_lang$core$Native_Utils.update(
+											set,
+											{hard: !model.settings.hard}))),
 								_1: {ctor: '[]'}
 							}
 						}
@@ -12689,19 +12682,61 @@ var _user$project$Main$viewSettings = function (model) {
 						{ctor: '[]'}),
 					_1: {
 						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$button,
-							{
+						_0: _elm_lang$html$Html$text('Number of triangles per piece: '),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$input,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$type_('number'),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$value(
+											_elm_lang$core$Basics$toString(model.settings.pieceSize)),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$html$Html_Events$onInput(
+												function (st) {
+													var _p17 = _elm_lang$core$String$toInt(st);
+													if (_p17.ctor === 'Ok') {
+														return _user$project$Main$SetSettings(
+															_elm_lang$core$Native_Utils.update(
+																set,
+																{pieceSize: _p17._0}));
+													} else {
+														return _user$project$Main$SetSettings(model.settings);
+													}
+												}),
+											_1: {ctor: '[]'}
+										}
+									}
+								},
+								{ctor: '[]'}),
+							_1: {
 								ctor: '::',
-								_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Started),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text('Start'),
-								_1: {ctor: '[]'}
-							}),
-						_1: {ctor: '[]'}
+								_0: A2(
+									_elm_lang$html$Html$br,
+									{ctor: '[]'},
+									{ctor: '[]'}),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$button,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Started),
+											_1: {ctor: '[]'}
+										},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text('Start'),
+											_1: {ctor: '[]'}
+										}),
+									_1: {ctor: '[]'}
+								}
+							}
+						}
 					}
 				}
 			}
@@ -13725,8 +13760,16 @@ var _user$project$Main$generatePieceWithArea = F2(
 								_0: A2(_elm_lang$core$Random$andThen, _user$project$Main$addTri, prev),
 								_1: {
 									ctor: '::',
-									_0: A2(_elm_lang$core$Random$andThen, _user$project$Main$fillTri, prev),
-									_1: {ctor: '[]'}
+									_0: A2(_elm_lang$core$Random$andThen, _user$project$Main$addTri, prev),
+									_1: {
+										ctor: '::',
+										_0: A2(_elm_lang$core$Random$andThen, _user$project$Main$addTri, prev),
+										_1: {
+											ctor: '::',
+											_0: A2(_elm_lang$core$Random$andThen, _user$project$Main$fillTri, prev),
+											_1: {ctor: '[]'}
+										}
+									}
 								}
 							});
 						return adder;
@@ -14424,14 +14467,12 @@ var _user$project$Main$update = F2(
 						};
 					}
 				}
-			case 'SetSetting':
+			case 'SetSettings':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{
-							settings: A2(_user$project$Main$updateSetting, model.settings, _p61._0)
-						}),
+						{settings: _p61._0}),
 					{ctor: '[]'});
 			default:
 				return A2(

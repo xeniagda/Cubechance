@@ -38,14 +38,6 @@ type alias Settings =
     , pieceSize : Int
     }
 
-type Setting =
-    Hard Bool
-
-updateSetting : Settings -> Setting -> Settings
-updateSetting settings setting =
-    case setting of
-        Hard hard -> { settings | hard = hard }
-
 init : (Model, Cmd Msg)
 init =
     { lastTime = Nothing
@@ -73,7 +65,7 @@ type Msg
     | SetDroppings (List Dropping)
     | SetDropping Dropping
     | Restart
-    | SetSetting Setting
+    | SetSettings Settings
     | Started
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -144,7 +136,7 @@ update msg model =
                             , cmd
                             )
 
-        SetSetting setting -> { model | settings = updateSetting model.settings setting } ! []
+        SetSettings s -> { model | settings = s } ! []
 
         Started -> { model | changingSettings = False } ! []
 
@@ -156,12 +148,25 @@ view model =
 
 viewSettings : Model -> Html Msg
 viewSettings model =
-    div [ id "gameS", align "center" ]
+    let set = model.settings
+    in div [ id "gameS", align "center" ]
         [ text "Hard: "
         , input
             [ type_ "checkbox"
             , checked model.settings.hard
-            , onClick (SetSetting <| Hard <| not model.settings.hard)
+            , onClick (SetSettings { set | hard = not model.settings.hard } )
+            ] []
+        , br [] []
+        , text "Number of triangles per piece: "
+        , input
+            [ type_ "number"
+            , value <| toString model.settings.pieceSize
+            , onInput
+                (\st ->
+                    case String.toInt st of
+                        Ok x -> SetSettings { set | pieceSize = x }
+                        _ -> SetSettings model.settings
+                )
             ] []
         , br [] []
         , button [ onClick Started ] [ text "Start" ]
@@ -716,7 +721,11 @@ generatePieceWithArea settings area =
         1 -> Re.constant ( Dropping 0 0 [ [ Filled DownRight Purple ] ] )
         _ ->
             let prev = generatePieceWithArea settings ( area - 1 )
-                adder = Re.choices [ Random.andThen addTri prev, Random.andThen fillTri prev ]
+                adder = Re.choices
+                    [ Random.andThen addTri prev
+                    , Random.andThen addTri prev
+                    , Random.andThen addTri prev
+                    , Random.andThen fillTri prev ]
             in adder
 
 
