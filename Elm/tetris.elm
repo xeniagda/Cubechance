@@ -15,6 +15,7 @@ import Base
 
 dropScore = 5
 hashPrimeMod = 80953
+hashPrimeMul = 54833
 dims = (10, 32) -- width, height
 
 main =
@@ -343,7 +344,7 @@ hashPieceRaw blocks =
                             Filled UpRight _ -> 4
                             Filled Full _ -> 5
                             Split _ _ _ -> 0
-                in (cur + prev * 6) % hashPrimeMod
+                in (cur * hashPrimeMul + prev * 6) % hashPrimeMod
             ) 0 lst
     in h * 16 + List.length blocks
 
@@ -900,27 +901,45 @@ rConst x = Random.map (always x) Random.bool
 fracpart : Float -> Float
 fracpart x = x - toFloat (floor x)
 
-mod3 : Float -> Float
-mod3 x = 3 * fracpart (x / 3)
+rgb2f : (Int, Int, Int) -> (Float, Float, Float)
+rgb2f (r, g, b) =
+    ( toFloat r / 256
+    , toFloat g / 256
+    , toFloat b / 256)
 
-cCurv : Float -> Float
-cCurv x =
-    let y = mod3 (x * 3)
-    in Basics.min y (Basics.min 1 (3 - y))
+gradient =
+    [ rgb2f(169, 239, 103) -- Grönare grön
+    , rgb2f(106, 226, 138) -- Lagom ljus (grön)
+    , rgb2f(94, 229, 213) -- Ljusblå
+    , rgb2f(96, 149, 234) -- Blå?
+    , rgb2f(37, 27, 173) -- Indigo
+    , rgb2f(106, 82, 211) -- Violett
+    , rgb2f(151, 59, 191) -- Lila
+    , rgb2f(232, 55, 140) -- Rosa
+    , rgb2f(232, 79, 55) -- Orangeröd
+    ]
 
-hue2RGB : Float -> (Float, Float, Float)
-hue2RGB x =
-    let a = x / 3
+blendidx : Int -> Float -> (Float, Float, Float)
+blendidx idx lvl =
+    let (r1, g1, b1) = Maybe.withDefault (0, 0, 0) <| getAt (idx % List.length gradient) gradient
+        (r2, g2, b2) = Maybe.withDefault (0, 0, 0) <| getAt ((idx + 1) % List.length gradient) gradient
     in
-        ( cCurv <| x
-        , cCurv <| x + 1 / 3
-        , cCurv <| x + 2 / 3
+        ( r1 * lvl + r2 * (1 - lvl)
+        , g1 * lvl + g2 * (1 - lvl)
+        , b1 * lvl + b2 * (1 - lvl)
         )
+
+f2grad : Float -> (Float, Float, Float)
+f2grad f =
+    let f_ = f * toFloat (List.length gradient)
+        idx = floor f_
+        blend = fracpart f_
+    in blendidx idx blend
 
 hash2RGB : Int -> Color
 hash2RGB hash =
     let hue = toFloat hash / hashPrimeMod
-        sat = (mod3 (toFloat hash) + 1) / 3
-        (r, g, b) = hue2RGB hue
-        (r_, g_, b_) = (r * sat + (1 - sat), g * sat + (1 - sat), b * sat + (1 - sat))
-    in RGB (floor (255 * r_), floor (255 * g_), floor (255 * b_))
+        -- sat = (mod3 (toFloat hash) + 1) / 3
+        (r, g, b) = f2grad hue
+        -- (r_, g_, b_) = (r * sat + (1 - sat), g * sat + (1 - sat), b * sat + (1 - sat))
+    in RGB (floor (255 * r), floor (255 * g), floor (255 * b))
